@@ -1,4 +1,5 @@
 import type { Coord, Mode } from "../types";
+import { haversine } from "./geo";
 import { roadGraph, tramGraph } from "./tramGraph";
 
 const VALHALLA = ["/valhalla", "https://valhalla1.openstreetmap.de/route"];
@@ -76,7 +77,7 @@ async function routeValhallaBus(from: Coord, to: Coord): Promise<Coord[]> {
       if (json.error) throw new Error(json.error);
       const shape = json.trip?.legs?.[0]?.shape;
       if (!shape) throw new Error("Brak trasy");
-      const geom = decodePolyline(shape, 6);
+      const geom = trimStopSpurs(decodePolyline(shape, 6), from, to);
       if (geom.length < 2) throw new Error("Brak trasy");
       return geom;
     } catch (e) {
@@ -97,7 +98,29 @@ async function routeOsrm(base: string, from: Coord, to: Coord): Promise<Coord[]>
   };
   const geom = json.routes?.[0]?.geometry?.coordinates;
   if (!geom || geom.length < 2) throw new Error("Brak trasy");
-  return geom;
+  return trimStopSpurs(geom, from, to);
+}
+
+/**
+ * External routers include a spur from the carriageway to the exact stop.
+ * Drop points that only exist to reach the platform.
+ */
+function trimStopSpurs(geom: Coord[], from: Coord, to: Coord): Coord[] {
+  const g = geom.slice();
+  while (
+    g.length > 2 &&
+    haversine(g[0], from) < 80 &&
+    haversine(g[0], from) + 4 < haversine(g[1], from)
+  ) {
+    g.shift();
+  }
+  while (g.length > 2) {
+    const n = g.length;
+    if (haversine(g[n - 1], to) < 80 && haversine(g[n - 1], to) + 4 < haversine(g[n - 2], to)) {
+      g.pop();
+    } else break;
+  }
+  return g.length >= 2 ? g : geom;
 }
 
 /** Google polyline, precision 6 (Valhalla default). */

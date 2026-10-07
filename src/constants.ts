@@ -113,8 +113,29 @@ export const DEFAULT_LAYOVER_MIN = 5;
 export const STOP_PAIR_METERS = 90;
 export const SNAP_METERS = 18;
 export const INTERLINE_TOLERANCE_M = 28;
-export const OFFSET_PX = 4.5;
-export const OFFSET_BASE_PX = 3.5;
+/** At network zoom, opposite directions within this distance draw as one stroke. */
+export const DIRECTION_COLLAPSE_M = 80;
+/** Gap between parallel strokes on a shared corridor, in px. */
+export const OFFSET_GAP_PX = 2.2;
+/** Screen-space length of an offset lane-change at a node. */
+export const OFFSET_BLEND_PX = 22;
+export const OFFSET_BLEND_MIN_M = 12;
+export const OFFSET_BLEND_MAX_M = 55;
+/** Stay on the current graph edge while the point is this close. */
+export const EDGE_STICK_M = 18;
+/** Sample spacing when baking a parallel stroke. */
+export const OFFSET_SAMPLE_M = 11;
+/**
+ * Stroke width (px) = peak trips/hour × vehicle length (m) × this factor.
+ * Peak is the more frequent of the morning and afternoon takt.
+ */
+export const LINE_WIDTH_FACTOR = 0.05;
+export const LINE_WIDTH_MIN_PX = 1.8;
+export const LINE_WIDTH_MAX_PX = 26;
+/** Below this zoom the map collapses into a network diagram. */
+export const NETWORK_ZOOM = 13.5;
+/** Same-name stops (Kraków platform numbers stripped) within this distance merge. */
+export const STOP_GROUP_METERS = 420;
 
 export const DEFAULT_TAKT: Record<PeriodId, number | null> = {
   wd_early: 20,

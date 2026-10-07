@@ -1,6 +1,28 @@
-import { INTERLINE_TOLERANCE_M, OFFSET_BASE_PX, OFFSET_PX } from "../constants";
-import type { Coord, TransitLine } from "../types";
-import { bboxOf, bboxesOverlap, distToLine, pointAlong } from "./geo";
+import {
+  DIRECTION_COLLAPSE_M,
+  INTERLINE_TOLERANCE_M,
+  LINE_WIDTH_FACTOR,
+  LINE_WIDTH_MAX_PX,
+  LINE_WIDTH_MIN_PX,
+  OFFSET_BLEND_MAX_M,
+  OFFSET_BLEND_MIN_M,
+  OFFSET_BLEND_PX,
+  OFFSET_GAP_PX,
+  OFFSET_SAMPLE_M,
+} from "../constants";
+import type { Coord, LineSegment, Stop, TransitLine } from "../types";
+import {
+  bboxOf,
+  bboxesOverlap,
+  densifyLine,
+  distToLine,
+  offsetLine,
+  pathDistances,
+  pointAlong,
+} from "./geo";
+import { peakTakt, tripsPerHourNum } from "./takt";
+import type { EdgeRun } from "./tramGraph";
+import { roadGraph, tramGraph } from "./tramGraph";
 
 export interface RenderSegment {
   id: string;
@@ -12,110 +34,289 @@ export interface RenderSegment {
   number: string;
 }
 
-const VEHICLE_WIDTH: Record<string, number> = {
-  "8m": 3.2,
-  "10m": 3.6,
-  "12m": 4.1,
-  "18m": 5.4,
-  "26m": 5.2,
-  "33m": 6.2,
-  "42m": 7.4,
-};
+interface Occupant {
+  strokeId: string;
+  width: number;
+  sort: string;
+}
 
-export function buildRenderSegments(lines: TransitLine[]): RenderSegment[] {
-  const visible = lines.filter((l) => l.visible && l.segments.length);
-  const items: {
-    lineId: string;
-    segId: string;
-    geometry: Coord[];
-    bbox: [number, number, number, number];
-  }[] = [];
+interface Prepared {
+  segId: string;
+  lineId: string;
+  strokeId: string;
+  direction: "outbound" | "inbound";
+  number: string;
+  color: string;
+  width: number;
+  sort: string;
+  geom: Coord[];
+  runs: EdgeRun[];
+  bbox: [number, number, number, number];
+}
 
-  for (const line of visible) {
+interface LaneCache {
+  lines: TransitLine[];
+  stops: Stop[] | undefined;
+  collapse: boolean;
+  roadN: number;
+  tramN: number;
+  pieces: Prepared[];
+  lanes: Map<string, Map<string, number>>;
+}
+
+let cache: LaneCache | null = null;
+
+export function buildRenderSegments(
+  lines: TransitLine[],
+  opts?: { collapseDirections?: boolean; stops?: Stop[]; metersPerPx?: number },
+): RenderSegment[] {
+  const collapse = opts?.collapseDirections ?? false;
+  const metersPerPx = opts?.metersPerPx ?? 2;
+  const prepared = prepare(lines, opts?.stops, collapse);
+  return prepared.pieces.map((piece) => ({
+    id: piece.segId,
+    lineId: piece.lineId,
+    color: piece.color,
+    width: piece.width,
+    offset: 0,
+    geometry: bakePiece(piece, prepared.lanes, metersPerPx),
+    number: collapse && piece.direction === "inbound" ? "" : piece.number,
+  }));
+}
+
+function prepare(lines: TransitLine[], stops: Stop[] | undefined, collapse: boolean): LaneCache {
+  const roadN = roadGraph.edgeCount();
+  const tramN = tramGraph.edgeCount();
+  if (
+    cache &&
+    cache.lines === lines &&
+    cache.stops === stops &&
+    cache.collapse === collapse &&
+    cache.roadN === roadN &&
+    cache.tramN === tramN
+  ) {
+    return cache;
+  }
+
+  const stopById = new Map((stops ?? []).map((s) => [s.id, s]));
+  let pieces: Prepared[] = [];
+
+  for (const line of lines) {
+    if (!line.visible) continue;
+    const width = strokeWidth(line);
+    const graph = line.mode === "tram" ? tramGraph : roadGraph;
     for (const seg of line.segments) {
-      if (seg.geometry.length < 2) continue;
-      items.push({
-        lineId: line.id,
+      const clipped = clipToNetwork(line, seg, stopById);
+      if (clipped.length < 2) continue;
+      const geom = densifyLine(clipped, OFFSET_SAMPLE_M);
+      const runs = graph.isEmpty() ? [] : graph.tracePolyline(geom);
+      const strokeId = collapse ? line.id : `${line.id}:${seg.direction}`;
+      pieces.push({
         segId: seg.id,
-        geometry: seg.geometry,
-        bbox: bboxOf(seg.geometry),
-      });
-    }
-  }
-
-  const sharing = new Map<string, Set<string>>();
-  const ensure = (id: string) => {
-    if (!sharing.has(id)) sharing.set(id, new Set([id]));
-    return sharing.get(id)!;
-  };
-
-  for (let i = 0; i < items.length; i++) {
-    const a = items[i];
-    const setA = ensure(a.lineId);
-    for (let j = i + 1; j < items.length; j++) {
-      const b = items[j];
-      if (a.lineId === b.lineId) continue;
-      if (!bboxesOverlap(a.bbox, b.bbox)) continue;
-      if (corridorsShare(a.geometry, b.geometry)) {
-        setA.add(b.lineId);
-        ensure(b.lineId).add(a.lineId);
-      }
-    }
-  }
-
-  // Union-find-ish expand
-  let changed = true;
-  while (changed) {
-    changed = false;
-    sharing.forEach((set) => {
-      const extra: string[] = [];
-      set.forEach((id) => {
-        sharing.get(id)?.forEach((o) => {
-          if (!set.has(o)) extra.push(o);
-        });
-      });
-      if (extra.length) {
-        extra.forEach((o) => set.add(o));
-        changed = true;
-      }
-    });
-  }
-
-  const indexOf = new Map<string, Map<string, number>>();
-  sharing.forEach((set, lineId) => {
-    const ids = [...set].sort();
-    const map = new Map<string, number>();
-    ids.forEach((id, i) => map.set(id, i));
-    indexOf.set(lineId, map);
-  });
-
-  const out: RenderSegment[] = [];
-  for (const line of visible) {
-    for (const seg of line.segments) {
-      if (seg.geometry.length < 2) continue;
-      const peers = indexOf.get(line.id);
-      const ids = peers ? [...new Set(peers.keys())].sort() : [line.id];
-      const idx = ids.indexOf(line.id);
-      const offset = OFFSET_BASE_PX + idx * OFFSET_PX;
-      out.push({
-        id: seg.id,
         lineId: line.id,
-        color: line.color,
-        width: VEHICLE_WIDTH[line.vehicle] ?? 4,
-        offset,
-        geometry: seg.geometry,
+        strokeId,
+        direction: seg.direction,
         number: line.number,
+        color: line.color,
+        width,
+        sort: sortKey(line.number, seg.direction, collapse),
+        geom,
+        runs,
+        bbox: bboxOf(geom),
       });
     }
   }
+
+  if (collapse) pieces = dropMirroredInbound(pieces);
+
+  const lanes = assignLanes(pieces);
+  cache = { lines, stops, collapse, roadN, tramN, pieces, lanes };
+  return cache;
+}
+
+function assignLanes(pieces: Prepared[]): Map<string, Map<string, number>> {
+  const onEdge = new Map<string, Map<string, Occupant>>();
+  for (const piece of pieces) {
+    for (const run of piece.runs) {
+      let bag = onEdge.get(run.key);
+      if (!bag) {
+        bag = new Map();
+        onEdge.set(run.key, bag);
+      }
+      const prev = bag.get(piece.strokeId);
+      if (!prev || piece.sort < prev.sort) {
+        bag.set(piece.strokeId, { strokeId: piece.strokeId, width: piece.width, sort: piece.sort });
+      } else {
+        prev.width = Math.max(prev.width, piece.width);
+      }
+    }
+  }
+
+  const lanes = new Map<string, Map<string, number>>();
+  onEdge.forEach((bag, key) => {
+    const ordered = [...bag.values()].sort((a, b) => a.sort.localeCompare(b.sort, "pl"));
+    const centered = centeredOffsets(ordered.map((o) => o.width));
+    const slot = new Map<string, number>();
+    ordered.forEach((o, i) => slot.set(o.strokeId, centered[i] ?? 0));
+    lanes.set(key, slot);
+  });
+  return lanes;
+}
+
+function bakePiece(
+  piece: Prepared,
+  lanes: Map<string, Map<string, number>>,
+  metersPerPx: number,
+): Coord[] {
+  if (piece.geom.length < 2 || !piece.runs.length) return piece.geom;
+
+  const s = pathDistances(piece.geom);
+  const runPx = piece.runs.map((run) => {
+    const canonical = lanes.get(run.key)?.get(piece.strokeId) ?? 0;
+    return canonical * (run.forward ? 1 : -1);
+  });
+  const runOf = new Array<number>(piece.geom.length).fill(-1);
+  const raw = new Array<number>(piece.geom.length).fill(0);
+
+  for (let r = 0; r < piece.runs.length; r++) {
+    const run = piece.runs[r];
+    for (let i = run.from; i <= run.to; i++) {
+      runOf[i] = r;
+      raw[i] = runPx[r];
+    }
+  }
+
+  for (let i = 0; i < raw.length; i++) {
+    if (runOf[i] >= 0) continue;
+    let p = i - 1;
+    let n = i + 1;
+    while (p >= 0 && runOf[p] < 0) p--;
+    while (n < raw.length && runOf[n] < 0) n++;
+    if (p >= 0 && n < raw.length) {
+      raw[i] = mix(raw[p], raw[n], (s[i] - s[p]) / Math.max(1e-3, s[n] - s[p]));
+    } else if (p >= 0) raw[i] = raw[p];
+    else if (n < raw.length) raw[i] = raw[n];
+  }
+
+  const px = blendOffsets(raw, s, runPx, piece.runs, metersPerPx);
+  return offsetLine(
+    piece.geom,
+    px.map((v) => v * metersPerPx),
+  );
+}
+
+function blendOffsets(
+  raw: number[],
+  s: number[],
+  runPx: number[],
+  runs: EdgeRun[],
+  metersPerPx: number,
+): number[] {
+  const out = raw.slice();
+  if (runs.length < 2) return out;
+
+  const runLen = (r: number) => s[runs[r].to] - s[runs[r].from];
+  const baseW = Math.min(
+    OFFSET_BLEND_MAX_M,
+    Math.max(OFFSET_BLEND_MIN_M, OFFSET_BLEND_PX * metersPerPx),
+  );
+
+  for (let r = 0; r < runs.length; r++) {
+    if (runLen(r) >= 2 * OFFSET_BLEND_MIN_M) continue;
+    const prev = r > 0 ? runPx[r - 1] : null;
+    const next = r < runs.length - 1 ? runPx[r + 1] : null;
+    if (prev == null || next == null) continue;
+    const from = s[runs[r].from];
+    const span = Math.max(1e-3, s[runs[r].to] - from);
+    for (let i = runs[r].from; i <= runs[r].to; i++) {
+      out[i] = mix(prev, next, smoothstep((s[i] - from) / span));
+    }
+  }
+
+  for (let b = 0; b < runs.length - 1; b++) {
+    const o0 = runPx[b];
+    const o1 = runPx[b + 1];
+    if (Math.abs(o1 - o0) < 0.15) continue;
+    if (runLen(b) < 2 * OFFSET_BLEND_MIN_M || runLen(b + 1) < 2 * OFFSET_BLEND_MIN_M) continue;
+    const w = Math.min(baseW, 0.45 * runLen(b), 0.45 * runLen(b + 1));
+    if (w < 2) continue;
+    const at = s[runs[b].to];
+    const lo = at - w;
+    const hi = at + w;
+    for (let i = 0; i < s.length; i++) {
+      if (s[i] < lo || s[i] > hi) continue;
+      out[i] = mix(o0, o1, smoothstep((s[i] - lo) / (2 * w)));
+    }
+  }
+
   return out;
 }
 
-function corridorsShare(a: Coord[], b: Coord[]): boolean {
-  const samples = [0.25, 0.5, 0.75].map((t) => pointAlong(a, t));
+function strokeWidth(line: TransitLine): number {
+  const perHour = tripsPerHourNum(peakTakt(line));
+  const lengthM = parseFloat(line.vehicle);
+  const len = Number.isFinite(lengthM) ? lengthM : 12;
+  const px = perHour * len * LINE_WIDTH_FACTOR;
+  return Math.min(LINE_WIDTH_MAX_PX, Math.max(LINE_WIDTH_MIN_PX, px));
+}
+
+function clipToNetwork(line: TransitLine, seg: LineSegment, stops: Map<string, Stop>): Coord[] {
+  const graph = line.mode === "tram" ? tramGraph : roadGraph;
+  if (graph.isEmpty()) return seg.geometry;
+  const a = stops.get(seg.fromStopId);
+  const b = stops.get(seg.toStopId);
+  if (!a || !b) return seg.geometry;
+  return graph.anchorLine(seg.geometry, [a.lon, a.lat], [b.lon, b.lat]);
+}
+
+function dropMirroredInbound(pieces: Prepared[]): Prepared[] {
+  const outbound = pieces.filter((p) => p.direction === "outbound");
+  return pieces.filter((p) => {
+    if (p.direction !== "inbound") return true;
+    const same = outbound.filter((o) => o.lineId === p.lineId);
+    return !same.some(
+      (o) => bboxesOverlap(o.bbox, p.bbox) && corridorsShare(p.geom, o.geom, DIRECTION_COLLAPSE_M),
+    );
+  });
+}
+
+function centeredOffsets(widths: number[]): number[] {
+  if (widths.length <= 1) return [0];
+  const total = widths.reduce((s, w) => s + w, 0) + OFFSET_GAP_PX * (widths.length - 1);
+  let x = -total / 2;
+  return widths.map((w) => {
+    const center = x + w / 2;
+    x += w + OFFSET_GAP_PX;
+    return center;
+  });
+}
+
+function sortKey(number: string, direction: string, collapse: boolean): string {
+  const m = number.match(/(\d+)/);
+  const n = (m ? m[1] : "999999").padStart(6, "0");
+  if (collapse) return `${n}\0${number}`;
+  const dir = direction === "outbound" ? "0" : "1";
+  return `${n}\0${number}\0${dir}`;
+}
+
+function corridorsShare(a: Coord[], b: Coord[], tolerance = INTERLINE_TOLERANCE_M): boolean {
+  return samplesHit(a, b, tolerance) || samplesHit(b, a, tolerance);
+}
+
+function samplesHit(a: Coord[], b: Coord[], tolerance: number): boolean {
+  const samples = [0.2, 0.4, 0.6, 0.8].map((t) => pointAlong(a, t));
   let hits = 0;
   for (const p of samples) {
-    if (distToLine(p, b) < INTERLINE_TOLERANCE_M) hits++;
+    if (distToLine(p, b) < tolerance) hits++;
   }
   return hits >= 2;
+}
+
+function mix(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+function smoothstep(t: number): number {
+  const x = Math.max(0, Math.min(1, t));
+  return x * x * (3 - 2 * x);
 }

@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import maplibregl, { Map, Popup } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { KRAKOW_CENTER } from "../constants";
+import { KRAKOW_CENTER, NETWORK_ZOOM, STOP_GROUP_METERS } from "../constants";
 import { buildRenderSegments } from "../lib/interline";
-import { distToLine } from "../lib/geo";
+import { clusterCentroid, clusterStops, distToLine, metersPerPixel, stopGroupLabel } from "../lib/geo";
 import { useStore } from "../store";
 import type { Coord, Stop } from "../types";
 
@@ -60,6 +60,21 @@ export function MapView() {
     map.on("mousemove", onMove);
     map.on("click", onClick);
     map.on("dblclick", onDblClick);
+    let networkMode = map.getZoom() < NETWORK_ZOOM;
+    const onZoom = () => {
+      const next = map.getZoom() < NETWORK_ZOOM;
+      if (next === networkMode || !readyRef.current) {
+        networkMode = next;
+        return;
+      }
+      networkMode = next;
+      syncLayers(map);
+    };
+    map.on("zoom", onZoom);
+    const onZoomEnd = () => {
+      if (readyRef.current) syncLayers(map);
+    };
+    map.on("zoomend", onZoomEnd);
 
     const ro = new ResizeObserver(() => map.resize());
     ro.observe(rootRef.current);
@@ -83,6 +98,8 @@ export function MapView() {
     return () => {
       unsub();
       ro.disconnect();
+      map.off("zoom", onZoom);
+      map.off("zoomend", onZoomEnd);
       map.remove();
       mapRef.current = null;
       readyRef.current = false;
@@ -178,7 +195,6 @@ function ensureSources(map: Map): void {
       paint: {
         "line-color": "#1a1714",
         "line-width": ["+", ["get", "width"], 1.8],
-        "line-offset": ["get", "offset"],
         "line-opacity": 0.35,
       },
     });
@@ -190,7 +206,6 @@ function ensureSources(map: Map): void {
       paint: {
         "line-color": ["get", "color"],
         "line-width": ["get", "width"],
-        "line-offset": ["get", "offset"],
         "line-opacity": 0.95,
       },
     });
@@ -233,11 +248,11 @@ function ensureSources(map: Map): void {
           ["linear"],
           ["zoom"],
           11,
-          2.2,
-          13,
-          4.2,
+          ["case", ["==", ["get", "grouped"], 1], 7, 2.2],
+          13.5,
+          ["case", ["==", ["get", "grouped"], 1], 11, 4],
           16,
-          7,
+          ["case", ["==", ["get", "grouped"], 1], 12, 7],
         ],
         "circle-color": [
           "case",
@@ -247,9 +262,17 @@ function ensureSources(map: Map): void {
           "#d1242f",
           "#1f4e79",
         ],
-        "circle-stroke-width": 1.2,
+        "circle-stroke-width": ["case", ["==", ["get", "grouped"], 1], 2.2, 1.2],
         "circle-stroke-color": "#fff",
-        "circle-opacity": ["interpolate", ["linear"], ["zoom"], 11, 0.55, 13, 0.95],
+        "circle-opacity": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          11,
+          ["case", ["==", ["get", "grouped"], 1], 1, 0.55],
+          13,
+          ["case", ["==", ["get", "grouped"], 1], 1, 0.95],
+        ],
       },
     });
     map.addLayer({
@@ -262,9 +285,9 @@ function ensureSources(map: Map): void {
           ["linear"],
           ["zoom"],
           12,
-          12,
+          ["case", ["==", ["get", "grouped"], 1], 18, 12],
           15,
-          20,
+          ["case", ["==", ["get", "grouped"], 1], 22, 20],
         ],
         "circle-color": "#000000",
         "circle-opacity": 0.01,
@@ -370,7 +393,13 @@ function syncLayersInner(map: Map): void {
   }
   setData(map, DRAFT, { type: "FeatureCollection", features: draftFeatures });
 
-  const render = buildRenderSegments(s.lines);
+  const network = map.getZoom() < NETWORK_ZOOM;
+  const metersPerPx = metersPerPixel(map.getCenter().lat, map.getZoom());
+  const render = buildRenderSegments(s.lines, {
+    collapseDirections: network,
+    stops: s.stops,
+    metersPerPx,
+  });
   setData(map, LINES, {
     type: "FeatureCollection",
     features: render.map((r) => ({
@@ -392,20 +421,30 @@ function syncLayersInner(map: Map): void {
     return st.modes.includes(modeFilter);
   });
 
-  setData(map, STOPS, {
-    type: "FeatureCollection",
-    features: visibleStops.map((st) => ({
+  const groups = network ? clusterStops(visibleStops, STOP_GROUP_METERS) : visibleStops.map((st) => [st]);
+  const stopFeatures: GeoJSON.Feature[] = groups.map((group) => {
+    const grouped = network && group.length > 1;
+    const label = grouped
+      ? group.map((st) => stopGroupLabel(st.name)).sort((a, b) => a.length - b.length)[0]
+      : group[0].name;
+    const at = grouped ? clusterCentroid(group) : [group[0].lon, group[0].lat];
+    return {
       type: "Feature",
       properties: {
-        id: st.id,
-        name: st.name,
-        local: st.source === "local" ? 1 : 0,
-        tram: st.modes.includes("tram") && !st.modes.includes("bus") ? 1 : 0,
-        bus: st.modes.includes("bus"),
+        id: group[0].id,
+        name: label,
+        members: group.map((st) => st.id).join("|"),
+        count: group.length,
+        grouped: grouped ? 1 : 0,
+        local: group.every((st) => st.source === "local") ? 1 : 0,
+        tram: group.every((st) => st.modes.includes("tram") && !st.modes.includes("bus")) ? 1 : 0,
+        bus: group.some((st) => st.modes.includes("bus")),
       },
-      geometry: { type: "Point", coordinates: [st.lon, st.lat] },
-    })),
+      geometry: { type: "Point", coordinates: at },
+    };
   });
+
+  setData(map, STOPS, { type: "FeatureCollection", features: stopFeatures });
 
   setData(map, HINTS, {
     type: "FeatureCollection",
@@ -419,14 +458,19 @@ function syncLayersInner(map: Map): void {
   });
 
   const chosen = selected ? s.stops.find((st) => st.id === selected) : undefined;
+  let selectedAt: Coord | null = chosen ? [chosen.lon, chosen.lat] : null;
+  if (chosen && network) {
+    const group = groups.find((g) => g.length > 1 && g.some((st) => st.id === chosen.id));
+    if (group) selectedAt = clusterCentroid(group);
+  }
   setData(map, SELECTED, {
     type: "FeatureCollection",
-    features: chosen
+    features: selectedAt
       ? [
           {
             type: "Feature",
             properties: {},
-            geometry: { type: "Point", coordinates: [chosen.lon, chosen.lat] },
+            geometry: { type: "Point", coordinates: selectedAt },
           },
         ]
       : [],
@@ -463,16 +507,26 @@ function setData(map: Map, id: string, data: GeoJSON.GeoJSON): void {
 function onMove(e: maplibregl.MapMouseEvent): void {
   const map = e.target;
   if (!map.getLayer("stops-hit")) return;
-  let id: string | null = null;
+  let hits: maplibregl.MapGeoJSONFeature[] = [];
   try {
-    const hits = map.queryRenderedFeatures(e.point, { layers: ["stops-hit"] });
-    id = (hits[0]?.properties?.id as string) ?? null;
+    hits = map.queryRenderedFeatures(e.point, { layers: ["stops-hit"] });
   } catch {
     return;
   }
+  const id = (hits[0]?.properties?.id as string) ?? null;
 
   const popup = popupRefEnsure(map);
   if (id) {
+    const count = Number(hits[0]?.properties?.count ?? 1);
+    const name = String(hits[0]?.properties?.name ?? "");
+    const lng = (hits[0]?.geometry as GeoJSON.Point | undefined)?.coordinates as Coord | undefined;
+    if (count > 1 && name && lng) {
+      popup
+        .setLngLat(lng)
+        .setHTML(`<strong>${escapeHtml(name)}</strong><span>${count} przystanków</span>`)
+        .addTo(map);
+      return;
+    }
     const stop = useStore.getState().stops.find((s) => s.id === id);
     if (stop) {
       popup.setLngLat([stop.lon, stop.lat]).setHTML(stopTooltip(stop)).addTo(map);
@@ -539,13 +593,7 @@ function onClick(e: maplibregl.MapMouseEvent): void {
   } catch {
     stopHits = [];
   }
-  const nearby = uniqueStops(
-    stopHits
-      .map((f) => f.properties?.id as string)
-      .filter(Boolean)
-      .map((id) => st.stops.find((s) => s.id === id))
-      .filter((s): s is Stop => Boolean(s)),
-  );
+  const nearby = uniqueStops(stopsFromHits(stopHits, st.stops));
 
   if (nearby.length > 1 && (st.tool === "select" || st.drawing || st.insertSlot)) {
     st.setStopPicker(nearby);
@@ -557,10 +605,13 @@ function onClick(e: maplibregl.MapMouseEvent): void {
   }
 
   const pixel = map.project(e.lngLat);
-  const around = st.stops.filter((s) => {
-    const p = map.project({ lng: s.lon, lat: s.lat });
-    return Math.hypot(p.x - pixel.x, p.y - pixel.y) < 28;
-  });
+  const around =
+    map.getZoom() < NETWORK_ZOOM
+      ? []
+      : st.stops.filter((s) => {
+          const p = map.project({ lng: s.lon, lat: s.lat });
+          return Math.hypot(p.x - pixel.x, p.y - pixel.y) < 28;
+        });
   const mode =
     st.drawing?.mode ??
     (st.insertSlot ? st.lines.find((l) => l.id === st.insertSlot!.lineId)?.mode : undefined);
@@ -601,6 +652,17 @@ function handleStopClick(stopId: string): void {
     return;
   }
   st.selectStop(stopId);
+}
+
+function stopsFromHits(features: maplibregl.MapGeoJSONFeature[], all: Stop[]): Stop[] {
+  const ids: string[] = [];
+  for (const f of features) {
+    const raw = String(f.properties?.members ?? f.properties?.id ?? "");
+    for (const id of raw.split("|")) if (id) ids.push(id);
+  }
+  return ids
+    .map((id) => all.find((s) => s.id === id))
+    .filter((s): s is Stop => Boolean(s));
 }
 
 function uniqueStops(list: Stop[]): Stop[] {
