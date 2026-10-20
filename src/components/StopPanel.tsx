@@ -8,6 +8,7 @@ export function StopPanel() {
   const selectLine = useStore((s) => s.selectLine);
   const removeLineFromStop = useStore((s) => s.removeLineFromStop);
   const deleteLocalStop = useStore((s) => s.deleteLocalStop);
+  const setTool = useStore((s) => s.setTool);
   const selectStop = useStore((s) => s.selectStop);
 
   if (!stop) return null;
@@ -27,6 +28,8 @@ export function StopPanel() {
           ×
         </button>
       </header>
+
+      <button type="button" className="ghost" onClick={() => setTool("move-stop")}>Przesuń przystanek</button>
 
       <h3>Linie na tym przystanku</h3>
       {lines.length === 0 && <p className="empty-hint">Żadna linia tu nie zatrzymuje.</p>}

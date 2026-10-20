@@ -221,7 +221,8 @@ export function densifyLine(line: Coord[], maxM: number): Coord[] {
 }
 
 export function metersPerPixel(lat: number, zoom: number): number {
-  return (156543.03392 * Math.cos(toRad(lat))) / 2 ** zoom;
+  // MapLibre uses a 512 px world tile, including when raster tiles are 256 px.
+  return (78271.51696 * Math.cos(toRad(lat))) / 2 ** zoom;
 }
 
 export function pathDistances(line: Coord[]): number[] {

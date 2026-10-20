@@ -1,11 +1,15 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl, { Map, Popup } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { KRAKOW_CENTER, NETWORK_ZOOM, STOP_GROUP_METERS } from "../constants";
+import { KRAKOW_CENTER } from "../constants";
 import { buildRenderSegments } from "../lib/interline";
-import { clusterCentroid, clusterStops, distToLine, metersPerPixel, stopGroupLabel } from "../lib/geo";
+import { buildNetworkStopMarkers } from "../lib/networkStops";
+import { isNetworkView } from "../lib/mapViewMode";
+import { bearing, pointAlong, distToLine, metersPerPixel, stopGroupLabel } from "../lib/geo";
 import { useStore } from "../store";
 import type { Coord, Stop } from "../types";
+import { IsochroneOverlay } from "./IsochroneOverlay";
+import { useIsochroneState } from "../lib/isochroneState";
 
 const STYLE: maplibregl.StyleSpecification = {
   version: 8,
@@ -26,15 +30,25 @@ const STYLE: maplibregl.StyleSpecification = {
 const TRACKS = "tracks";
 const DRAFT = "draft";
 const LINES = "lines";
+const ARROWS = "line-arrows";
 const STOPS = "stops";
 const HINTS = "hints";
 const PENDING = "pending";
 const SELECTED = "selected-stop";
+const WAYPOINTS = "route-waypoints";
+const WAYPOINT_DRAFT = "route-waypoint-draft";
 
 export function MapView() {
   const rootRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const readyRef = useRef(false);
+  const [readyMap, setReadyMap] = useState<Map | null>(null);
+  const isochrones = useStore((s) => s.tool === "isochrones");
+  const moveMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const moving = useStore((s) => s.tool === "move-stop");
+  const selectedStop = useStore((s) => s.stops.find((stop) => stop.id === s.selectedStopId));
+  const routing = useStore((s) => s.routing);
+  const routingError = useStore((s) => s.routingError);
 
   useEffect(() => {
     if (!rootRef.current || mapRef.current) return;
@@ -53,6 +67,7 @@ export function MapView() {
       readyRef.current = true;
       ensureSources(map);
       syncLayers(map);
+      setReadyMap(map);
     };
     map.on("load", onReady);
     map.on("style.load", onReady);
@@ -60,9 +75,9 @@ export function MapView() {
     map.on("mousemove", onMove);
     map.on("click", onClick);
     map.on("dblclick", onDblClick);
-    let networkMode = map.getZoom() < NETWORK_ZOOM;
+    let networkMode = isNetworkView(map.getZoom(), useStore.getState());
     const onZoom = () => {
-      const next = map.getZoom() < NETWORK_ZOOM;
+      const next = isNetworkView(map.getZoom(), useStore.getState());
       if (next === networkMode || !readyRef.current) {
         networkMode = next;
         return;
@@ -86,6 +101,7 @@ export function MapView() {
         s.stops !== prev.stops ||
         s.tracks !== prev.tracks ||
         s.selectedStopId !== prev.selectedStopId ||
+        s.selectedLineId !== prev.selectedLineId ||
         s.oppositeHintIds !== prev.oppositeHintIds ||
         s.pendingStop !== prev.pendingStop ||
         s.trackDraft !== prev.trackDraft ||
@@ -106,7 +122,41 @@ export function MapView() {
     };
   }, []);
 
-  return <div ref={rootRef} className="map" />;
+  useEffect(() => {
+    if (!moving || !selectedStop || !mapRef.current) return;
+    const element = document.createElement("button");
+    element.type = "button";
+    element.className = "move-stop-handle";
+    element.title = `Przeciągnij: ${selectedStop.name}`;
+    element.setAttribute("aria-label", element.title);
+    element.addEventListener("click", (event) => event.stopPropagation());
+    const marker = new maplibregl.Marker({ element, draggable: !useStore.getState().routing })
+      .setLngLat([selectedStop.lon, selectedStop.lat]).addTo(mapRef.current);
+    moveMarkerRef.current = marker;
+    marker.on("dragstart", () => popupRefSingleton.current?.remove());
+    marker.on("dragend", () => {
+      const point = marker.getLngLat();
+      void useStore.getState().moveStop(selectedStop.id, [point.lng, point.lat]).finally(() => {
+        const current = useStore.getState().stops.find((stop) => stop.id === selectedStop.id);
+        if (current) marker.setLngLat([current.lon, current.lat]);
+      });
+    });
+    return () => { marker.remove(); moveMarkerRef.current = null; };
+  }, [moving, selectedStop]);
+
+  useEffect(() => { moveMarkerRef.current?.setDraggable(!routing); }, [routing]);
+
+  return <>
+    <div ref={rootRef} className="map" />
+    {isochrones && readyMap && <IsochroneOverlay map={readyMap} />}
+    {moving && <div className="move-stop-hint" role="status">
+      <p>{routing ? "Przeliczam trasy…" : selectedStop
+        ? `${selectedStop.name}: przeciągnij znacznik albo kliknij nowe miejsce na mapie.`
+        : "Wybierz przystanek, który chcesz przesunąć."}</p>
+      {routingError && <p role="alert">{routingError}</p>}
+      <button type="button" className="ghost compact" onClick={() => useStore.getState().setTool("select")}>Zakończ przesuwanie</button>
+    </div>}
+  </>;
 }
 
 function ensureSources(map: Map): void {
@@ -119,10 +169,37 @@ function ensureSources(map: Map): void {
   add(TRACKS);
   add(DRAFT);
   add(LINES);
+  add(ARROWS);
+  if (!map.hasImage("direction-arrow")) {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 32;
+    const ctx = canvas.getContext("2d")!;
+    ctx.beginPath();
+    ctx.moveTo(16, 3);
+    ctx.lineTo(27, 27);
+    ctx.lineTo(16, 21);
+    ctx.lineTo(5, 27);
+    ctx.closePath();
+    ctx.fillStyle = "#1a1714";
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 3;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+    ctx.fill();
+    map.addImage("direction-arrow", ctx.getImageData(0, 0, 32, 32), { pixelRatio: 2 });
+  }
   add(STOPS);
   add(HINTS);
   add(PENDING);
   add(SELECTED);
+  add(WAYPOINTS);
+  add(WAYPOINT_DRAFT);
+  if (!map.getLayer("route-waypoint-line")) {
+    map.addLayer({ id: "route-waypoint-line", type: "line", source: WAYPOINT_DRAFT,
+      paint: { "line-color": "#7c3aed", "line-width": 4, "line-dasharray": [2, 1] } });
+    map.addLayer({ id: "route-waypoint-dots", type: "circle", source: WAYPOINTS,
+      paint: { "circle-radius": 6, "circle-color": "#7c3aed", "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+  }
 
   if (!map.getLayer("tracks-construction")) {
     map.addLayer({
@@ -210,6 +287,18 @@ function ensureSources(map: Map): void {
       },
     });
     map.addLayer({
+      id: "lines-arrows",
+      type: "symbol",
+      source: ARROWS,
+      layout: {
+        "icon-image": "direction-arrow",
+        "icon-rotate": ["get", "bearing"],
+        "icon-rotation-alignment": "map",
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
+      },
+    });
+    map.addLayer({
       id: "lines-label",
       type: "symbol",
       source: LINES,
@@ -248,30 +337,32 @@ function ensureSources(map: Map): void {
           ["linear"],
           ["zoom"],
           11,
-          ["case", ["==", ["get", "grouped"], 1], 7, 2.2],
+          ["case", ["==", ["get", "network"], 1], ["get", "radius"], 2.2],
           13.5,
-          ["case", ["==", ["get", "grouped"], 1], 11, 4],
+          ["case", ["==", ["get", "network"], 1], ["get", "radius"], 4],
           16,
-          ["case", ["==", ["get", "grouped"], 1], 12, 7],
+          ["case", ["==", ["get", "network"], 1], ["get", "radius"], 7],
         ],
         "circle-color": [
           "case",
+          ["==", ["get", "network"], 1],
+          "#fff",
           ["==", ["get", "local"], 1],
           "#7c3aed",
           ["==", ["get", "tram"], 1],
           "#d1242f",
           "#1f4e79",
         ],
-        "circle-stroke-width": ["case", ["==", ["get", "grouped"], 1], 2.2, 1.2],
-        "circle-stroke-color": "#fff",
+        "circle-stroke-width": ["case", ["==", ["get", "network"], 1], 1, 1.2],
+        "circle-stroke-color": ["case", ["==", ["get", "network"], 1], ["get", "color"], "#fff"],
         "circle-opacity": [
           "interpolate",
           ["linear"],
           ["zoom"],
           11,
-          ["case", ["==", ["get", "grouped"], 1], 1, 0.55],
+          ["case", ["==", ["get", "network"], 1], 1, 0.55],
           13,
-          ["case", ["==", ["get", "grouped"], 1], 1, 0.95],
+          ["case", ["==", ["get", "network"], 1], 1, 0.95],
         ],
       },
     });
@@ -285,9 +376,9 @@ function ensureSources(map: Map): void {
           ["linear"],
           ["zoom"],
           12,
-          ["case", ["==", ["get", "grouped"], 1], 18, 12],
+          ["case", ["==", ["get", "network"], 1], 6, 12],
           15,
-          ["case", ["==", ["get", "grouped"], 1], 22, 20],
+          ["case", ["==", ["get", "network"], 1], 7, 20],
         ],
         "circle-color": "#000000",
         "circle-opacity": 0.01,
@@ -299,7 +390,7 @@ function ensureSources(map: Map): void {
       source: SELECTED,
       paint: {
         "circle-radius": 9,
-        "circle-color": "#facc15",
+        "circle-color": ["case", ["==", ["get", "network"], 1], "transparent", "#facc15"],
         "circle-stroke-width": 2.5,
         "circle-stroke-color": "#1a1714",
       },
@@ -323,7 +414,7 @@ function ensureSources(map: Map): void {
       source: SELECTED,
       paint: {
         "circle-radius": 9,
-        "circle-color": "#facc15",
+        "circle-color": ["case", ["==", ["get", "network"], 1], "transparent", "#facc15"],
         "circle-stroke-width": 2.5,
         "circle-stroke-color": "#1a1714",
       },
@@ -347,8 +438,20 @@ function syncLayersInner(map: Map): void {
   }
   if (!map.getSource(TRACKS)) return;
   const s = useStore.getState();
+  // Keep the shaping handles visible above the wider line strokes.
+  map.moveLayer("route-waypoint-line");
+  map.moveLayer("route-waypoint-dots");
   const selected = s.selectedStopId;
   const drawing = s.drawing;
+  const editedLine = s.lines.find((line) => line.id === (drawing?.lineId ?? s.selectedLineId));
+  const waypointCoords = [...(editedLine?.segments.flatMap((segment) => segment.waypoints ?? []) ?? []),
+    ...(drawing?.waypoints ?? [])];
+  setData(map, WAYPOINTS, { type: "FeatureCollection", features: waypointCoords.map((coord) => ({
+    type: "Feature", properties: {}, geometry: { type: "Point", coordinates: coord },
+  })) });
+  setData(map, WAYPOINT_DRAFT, { type: "FeatureCollection", features: (drawing?.waypointLegs ?? []).map((geometry) => ({
+    type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: geometry },
+  })) });
   const modeFilter: "bus" | "tram" | null =
     drawing?.mode ??
     (s.insertSlot
@@ -393,7 +496,7 @@ function syncLayersInner(map: Map): void {
   }
   setData(map, DRAFT, { type: "FeatureCollection", features: draftFeatures });
 
-  const network = map.getZoom() < NETWORK_ZOOM;
+  const network = isNetworkView(map.getZoom(), useStore.getState());
   const metersPerPx = metersPerPixel(map.getCenter().lat, map.getZoom());
   const render = buildRenderSegments(s.lines, {
     collapseDirections: network,
@@ -411,8 +514,18 @@ function syncLayersInner(map: Map): void {
         width: r.width,
         offset: r.offset,
         number: r.number,
+        oneWay: r.oneWay,
       },
       geometry: { type: "LineString", coordinates: r.geometry },
+    })),
+  });
+
+  setData(map, ARROWS, {
+    type: "FeatureCollection",
+    features: render.filter((r) => r.oneWay).map((r) => ({
+      type: "Feature",
+      properties: { bearing: bearing(pointAlong(r.geometry, 0.62), pointAlong(r.geometry, 0.68)) },
+      geometry: { type: "Point", coordinates: pointAlong(r.geometry, 0.65) },
     })),
   });
 
@@ -421,28 +534,25 @@ function syncLayersInner(map: Map): void {
     return st.modes.includes(modeFilter);
   });
 
-  const groups = network ? clusterStops(visibleStops, STOP_GROUP_METERS) : visibleStops.map((st) => [st]);
-  const stopFeatures: GeoJSON.Feature[] = groups.map((group) => {
-    const grouped = network && group.length > 1;
-    const label = grouped
-      ? group.map((st) => stopGroupLabel(st.name)).sort((a, b) => a.length - b.length)[0]
-      : group[0].name;
-    const at = grouped ? clusterCentroid(group) : [group[0].lon, group[0].lat];
-    return {
-      type: "Feature",
-      properties: {
-        id: group[0].id,
-        name: label,
-        members: group.map((st) => st.id).join("|"),
-        count: group.length,
-        grouped: grouped ? 1 : 0,
-        local: group.every((st) => st.source === "local") ? 1 : 0,
-        tram: group.every((st) => st.modes.includes("tram") && !st.modes.includes("bus")) ? 1 : 0,
-        bus: group.some((st) => st.modes.includes("bus")),
-      },
-      geometry: { type: "Point", coordinates: at },
-    };
-  });
+  const projected = network ? buildNetworkStopMarkers(s.lines, s.stops, render) : [];
+  const markers = network
+    ? projected.map((marker) => ({ ...marker, network: 1 }))
+    : visibleStops.map((stop) => ({ group: [stop], coord: [stop.lon, stop.lat] as Coord,
+      network: 0, lineId: "", color: "#fff", radius: 0 }));
+  const stopFeatures: GeoJSON.Feature[] = markers.map(({ group, coord, network, lineId, color, radius }) => ({
+    type: "Feature",
+    properties: {
+      id: group[0].id,
+      name: network ? stopGroupLabel(group[0].name) : group[0].name,
+      members: group.map((st) => st.id).join("|"),
+      count: group.length,
+      grouped: network && group.length > 1 ? 1 : 0,
+      network, lineId, color, radius,
+      local: group.every((st) => st.source === "local") ? 1 : 0,
+      tram: group.every((st) => st.modes.includes("tram") && !st.modes.includes("bus")) ? 1 : 0,
+    },
+    geometry: { type: "Point", coordinates: coord },
+  }));
 
   setData(map, STOPS, { type: "FeatureCollection", features: stopFeatures });
 
@@ -458,22 +568,15 @@ function syncLayersInner(map: Map): void {
   });
 
   const chosen = selected ? s.stops.find((st) => st.id === selected) : undefined;
-  let selectedAt: Coord | null = chosen ? [chosen.lon, chosen.lat] : null;
-  if (chosen && network) {
-    const group = groups.find((g) => g.length > 1 && g.some((st) => st.id === chosen.id));
-    if (group) selectedAt = clusterCentroid(group);
-  }
+  const selectedCoords = network
+    ? projected.filter((marker) => marker.group.some((st) => st.id === selected)).map((marker) => marker.coord)
+    : chosen ? [[chosen.lon, chosen.lat] as Coord] : [];
   setData(map, SELECTED, {
     type: "FeatureCollection",
-    features: selectedAt
-      ? [
-          {
-            type: "Feature",
-            properties: {},
-            geometry: { type: "Point", coordinates: selectedAt },
-          },
-        ]
-      : [],
+    features: selectedCoords.map((coord) => ({
+      type: "Feature", properties: { network: network ? 1 : 0 },
+      geometry: { type: "Point", coordinates: coord },
+    })),
   });
 
   setData(map, PENDING, {
@@ -506,6 +609,10 @@ function setData(map: Map, id: string, data: GeoJSON.GeoJSON): void {
 
 function onMove(e: maplibregl.MapMouseEvent): void {
   const map = e.target;
+  if (useStore.getState().tool === "isochrones") {
+    popupRefSingleton.current?.remove();
+    return;
+  }
   if (!map.getLayer("stops-hit")) return;
   let hits: maplibregl.MapGeoJSONFeature[] = [];
   try {
@@ -566,6 +673,18 @@ function onClick(e: maplibregl.MapMouseEvent): void {
   const st = useStore.getState();
   const coord: Coord = [e.lngLat.lng, e.lngLat.lat];
 
+  if (st.tool === "isochrones") {
+    popupRefSingleton.current?.remove();
+    useIsochroneState.getState().setOrigin(coord);
+    return;
+  }
+
+  if (st.drawing?.placingWaypoint) {
+    popupRefSingleton.current?.remove();
+    void st.addDrawingWaypoint(coord);
+    return;
+  }
+
   if (st.tool === "add-stop") {
     st.openAddStop(coord);
     return;
@@ -594,6 +713,13 @@ function onClick(e: maplibregl.MapMouseEvent): void {
     stopHits = [];
   }
   const nearby = uniqueStops(stopsFromHits(stopHits, st.stops));
+  if (st.tool === "move-stop") {
+    if (st.routing) return;
+    if (nearby.length > 1) st.setStopPicker(nearby);
+    else if (nearby.length === 1) st.selectStop(nearby[0].id);
+    else if (st.selectedStopId) void st.moveStop(st.selectedStopId, coord);
+    return;
+  }
 
   if (nearby.length > 1 && (st.tool === "select" || st.drawing || st.insertSlot)) {
     st.setStopPicker(nearby);
@@ -606,7 +732,7 @@ function onClick(e: maplibregl.MapMouseEvent): void {
 
   const pixel = map.project(e.lngLat);
   const around =
-    map.getZoom() < NETWORK_ZOOM
+    isNetworkView(map.getZoom(), useStore.getState())
       ? []
       : st.stops.filter((s) => {
           const p = map.project({ lng: s.lon, lat: s.lat });

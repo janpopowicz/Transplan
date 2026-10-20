@@ -70,7 +70,7 @@ export const PERIODS = [
 export type PeriodId = (typeof PERIODS)[number]["id"];
 
 /** Standard Polish takt values (minutes), including 7.5 */
-export const TAKT_OPTIONS = [4, 5, 6, 7.5, 8, 10, 12, 15, 20, 30, 60] as const;
+export const TAKT_OPTIONS = [4, 5, 6, 7.5, 8, 10, 12, 15, 20, 30, 40, 60] as const;
 
 export const BUS_VEHICLES = [
   { id: "8m", label: "8 m", hint: "minibus / midi" },
@@ -108,12 +108,12 @@ export const LINE_COLORS = [
   "#854d0e",
 ];
 
-export const DEFAULT_TRAVEL_MIN = 2;
+export const AVERAGE_SPEED_KMH = { bus: 24, tram: 19 } as const;
 export const DEFAULT_LAYOVER_MIN = 5;
 export const STOP_PAIR_METERS = 90;
 export const SNAP_METERS = 18;
 export const INTERLINE_TOLERANCE_M = 28;
-/** At network zoom, opposite directions within this distance draw as one stroke. */
+/** Maximum separation of routes/platforms sharing a network-view corridor. */
 export const DIRECTION_COLLAPSE_M = 80;
 /** Gap between parallel strokes on a shared corridor, in px. */
 export const OFFSET_GAP_PX = 2.2;
@@ -139,11 +139,11 @@ export const STOP_GROUP_METERS = 420;
 
 export const DEFAULT_TAKT: Record<PeriodId, number | null> = {
   wd_early: 20,
-  wd_am: 10,
-  wd_mid: 15,
-  wd_pm: 10,
-  wd_eve: 15,
-  we_morn: 20,
-  we_day: 15,
+  wd_am: 15,
+  wd_mid: 20,
+  wd_pm: 15,
+  wd_eve: 20,
+  we_morn: 30,
+  we_day: 20,
   we_late: 20,
 };

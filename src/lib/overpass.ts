@@ -224,11 +224,17 @@ out geom;
   for (const el of data.elements) {
     if (el.type !== "way" || !el.geometry || el.geometry.length < 2) continue;
     const tags = el.tags ?? {};
+    // An area's perimeter is not a carriageway. Snapping to it can strand a
+    // nearby bus stop on a disconnected ring (e.g. Bonarka 01).
+    if (tags.area === "yes") continue;
+    if (tags.highway === "pedestrian") {
+      const access = tags.bus ?? tags.psv ?? tags.motor_vehicle ?? tags.vehicle ?? tags.access;
+      if (!access || !["yes", "designated", "permissive", "destination"].includes(access)) continue;
+    }
     const construction = tags.highway === "construction" || tags.construction === "yes";
-    const geometry = simplifyLine(
-      el.geometry.map((g) => [g.lon, g.lat] as Coord),
-      14,
-    );
+    // The routing graph joins ways at shared vertices. Distance-only
+    // simplification can remove a junction and disconnect otherwise valid roads.
+    const geometry: Coord[] = el.geometry.map((g) => [g.lon, g.lat]);
     if (geometry.length < 2) continue;
     roads.push({
       id: `osm-road-${el.id}`,
@@ -240,18 +246,6 @@ out geom;
     });
   }
   return roads;
-}
-
-function simplifyLine(geom: Coord[], minM: number): Coord[] {
-  if (geom.length < 3) return geom;
-  const out: Coord[] = [geom[0]];
-  for (let i = 1; i < geom.length - 1; i++) {
-    if (haversine(out[out.length - 1], geom[i]) >= minM) out.push(geom[i]);
-  }
-  const last = geom[geom.length - 1];
-  if (haversine(out[out.length - 1], last) > 0.5) out.push(last);
-  else out[out.length - 1] = last;
-  return out;
 }
 
 export function findOppositeStops(stop: Stop, all: Stop[], headingFrom?: Coord): Stop[] {

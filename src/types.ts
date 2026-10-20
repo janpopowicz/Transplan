@@ -4,9 +4,11 @@ export type Mode = "bus" | "tram";
 
 export type EditorTool =
   | "select"
+  | "isochrones"
   | "draw-bus"
   | "draw-tram"
   | "add-stop"
+  | "move-stop"
   | "draw-track"
   | "toggle-construction";
 
@@ -31,6 +33,8 @@ export interface Stop {
   modes: Mode[];
   source: "osm" | "local";
   osmId?: number;
+  /** Original OSM position, retained when a project moves this stop. */
+  originalPosition?: Coord;
 }
 
 export type WayKind = "tram" | "road";
@@ -50,6 +54,10 @@ export interface LineSegment {
   toStopId: string;
   geometry: Coord[];
   travelMin: number;
+  /** Route shaping points, never passenger stops. */
+  waypoints?: Coord[];
+  /** Missing on older projects: retain their saved time as a manual value. */
+  travelTimeSource?: "auto" | "manual";
   direction: "outbound" | "inbound";
 }
 
@@ -74,6 +82,9 @@ export interface DrawingState {
   lineId: string;
   mode: Mode;
   phase: DrawPhase;
+  placingWaypoint?: boolean;
+  waypoints?: Coord[];
+  waypointLegs?: Coord[][];
 }
 
 export interface TrackDraft {

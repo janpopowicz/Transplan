@@ -1,4 +1,4 @@
-import { BUS_VEHICLES, LINE_COLORS, TRAM_VEHICLES } from "../constants";
+import { AVERAGE_SPEED_KMH, BUS_VEHICLES, LINE_COLORS, TRAM_VEHICLES } from "../constants";
 import { cycleMinutes, peakTakt, vehiclesNeeded } from "../lib/takt";
 import { formatTakt } from "../lib/geo";
 import { useStore } from "../store";
@@ -12,28 +12,13 @@ export function LinePanel() {
   const setTakt = useStore((s) => s.setTakt);
   const setVehicle = useStore((s) => s.setVehicle);
   const setSegmentTime = useStore((s) => s.setSegmentTime);
+  const resetSegmentTime = useStore((s) => s.resetSegmentTime);
   const removeStopFromLine = useStore((s) => s.removeStopFromLine);
   const selectStop = useStore((s) => s.selectStop);
+  const selectLine = useStore((s) => s.selectLine);
   const deleteLine = useStore((s) => s.deleteLine);
 
-  if (!line) {
-    return (
-      <aside className="inspector">
-        <div className="inspector-empty">
-          <h2>Wariant sieci</h2>
-          <p>
-            Wybierz linię z listy albo narysuj nową. Przystanki pochodzą z OpenStreetMap —
-            kliknij je kolejno, a silnik sam poprowadzi trasę między nimi.
-          </p>
-          <ol>
-            <li>Krańcówka 1</li>
-            <li>Przystanki do krańcówki 2</li>
-            <li>Powrót po przeciwnej stronie jezdni</li>
-          </ol>
-        </div>
-      </aside>
-    );
-  }
+  if (!line) return null;
 
   const vehicles = line.mode === "bus" ? BUS_VEHICLES : TRAM_VEHICLES;
   const cycle = cycleMinutes(line);
@@ -56,6 +41,8 @@ export function LinePanel() {
           />
           <p className="muted">{line.mode === "bus" ? "Autobus" : "Tramwaj"}</p>
         </div>
+        <button type="button" className="icon-btn close-inspector"
+          aria-label="Zamknij panel linii" title="Zamknij panel linii" onClick={() => selectLine(null)}>×</button>
       </header>
 
       <label className="field">
@@ -101,7 +88,8 @@ export function LinePanel() {
           Czasy międzyprzystankowe
           {line.segments.length > 0 && <span>{line.segments.length}</span>}
         </summary>
-        <p className="muted">Domyślnie 2 min na odcinek — zmień ręcznie, bez ruchu na żywo.</p>
+        <p className="muted">Nowe odcinki: długość trasy przy {String(AVERAGE_SPEED_KMH[line.mode]).replace(".", ",")} km/h,
+          zaokrąglona do 0,5 min. Możesz zmienić czas ręcznie lub przywrócić obliczenie przyciskiem ↻.</p>
         {line.segments.length === 0 ? (
           <p className="empty-hint">Brak odcinków — pojawią się po dodaniu przystanków.</p>
         ) : (
@@ -112,6 +100,8 @@ export function LinePanel() {
                   {nameOf(seg.fromStopId)} → {nameOf(seg.toStopId)}
                 </button>
                 <input
+                  aria-label={`Czas: ${nameOf(seg.fromStopId)} → ${nameOf(seg.toStopId)}`}
+                  title={seg.travelTimeSource === "auto" ? "Czas obliczony z długości trasy" : "Czas ustawiony ręcznie"}
                   type="number"
                   min={0.5}
                   step={0.5}
@@ -119,6 +109,9 @@ export function LinePanel() {
                   onChange={(e) => setSegmentTime(line.id, seg.id, Number(e.target.value))}
                 />
                 <span>min</span>
+                <button type="button" className="icon-btn" title="Oblicz czas z długości trasy"
+                  aria-label={`Oblicz czas: ${nameOf(seg.fromStopId)} → ${nameOf(seg.toStopId)}`}
+                  onClick={() => resetSegmentTime(line.id, seg.id)}>↻</button>
               </li>
             ))}
           </ul>

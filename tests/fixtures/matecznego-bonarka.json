@@ -1,0 +1,1125 @@
+{
+  "elements": [
+    {
+      "id": 5176480389,
+      "type": "node",
+      "tags": {
+        "bench": "yes",
+        "bin": "yes",
+        "bus": "yes",
+        "covered": "no",
+        "departures_board": "timetable",
+        "highway": "bus_stop",
+        "lit": "yes",
+        "name": "Bonarka 01",
+        "network": "KMK",
+        "network:wikidata": "Q11687034",
+        "public_transport": "platform",
+        "shelter": "yes",
+        "tactile_paving": "no"
+      },
+      "lat": 50.0287799,
+      "lon": 19.9539883
+    },
+    {
+      "id": 10026189830,
+      "type": "node",
+      "tags": {
+        "bench": "yes",
+        "bin": "yes",
+        "bus": "yes",
+        "departures_board": "timetable",
+        "highway": "bus_stop",
+        "lit": "yes",
+        "name": "Rondo Matecznego 03",
+        "network": "KMK",
+        "network:wikidata": "Q11687034",
+        "operator": "Zarząd Transportu Publicznego w Krakowie",
+        "operator:wikidata": "Q110401950",
+        "public_transport": "platform",
+        "ref": "558-03",
+        "shelter": "yes",
+        "tactile_paving": "no"
+      },
+      "lat": 50.0358859,
+      "lon": 19.9412762
+    },
+    {
+      "id": 26988877,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "embankment": "yes",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "sidewalk": "separate",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0328763,
+          "lon": 19.9470807
+        },
+        {
+          "lat": 50.0328034,
+          "lon": 19.9471732
+        }
+      ]
+    },
+    {
+      "id": 29285575,
+      "type": "way",
+      "tags": {
+        "bridge": "viaduct",
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "highway": "primary",
+        "lanes": "4",
+        "layer": "1",
+        "lit": "yes",
+        "maxspeed": "50",
+        "maxweight:signed": "no",
+        "name": "Generała Henryka Kamieńskiego",
+        "parking:both": "no",
+        "sidewalk": "separate",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0334905,
+          "lon": 19.9463086
+        },
+        {
+          "lat": 50.0332986,
+          "lon": 19.9465511
+        }
+      ]
+    },
+    {
+      "id": 29285576,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "destination:backward": "Katowice;Warszawa;Chyżne",
+        "destination:colour:back:backward": "green",
+        "destination:colour:text:backward": "white",
+        "destination:symbol:backward": "centre",
+        "dual_carriageway": "no",
+        "embankment": "yes",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxgcweight": "7",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "parking:both": "no",
+        "sidewalk": "separate",
+        "source:maxgcweight": "PL:sign_B-18",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0332986,
+          "lon": 19.9465511
+        },
+        {
+          "lat": 50.0330055,
+          "lon": 19.9469169
+        },
+        {
+          "lat": 50.0328763,
+          "lon": 19.9470807
+        }
+      ]
+    },
+    {
+      "id": 29285590,
+      "type": "way",
+      "tags": {
+        "bridge": "viaduct",
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "highway": "primary",
+        "lanes": "4",
+        "layer": "1",
+        "lit": "yes",
+        "maxspeed": "50",
+        "maxweight:signed": "no",
+        "name": "Generała Henryka Kamieńskiego",
+        "sidewalk": "separate",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0328034,
+          "lon": 19.9471732
+        },
+        {
+          "lat": 50.0323433,
+          "lon": 19.9477502
+        }
+      ]
+    },
+    {
+      "id": 80576566,
+      "type": "way",
+      "tags": {
+        "bus:lanes:forward": "yes|yes|designated",
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:backward": "2",
+        "lanes:forward": "3",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "placement:backward": "left_of:1",
+        "sidewalk": "separate",
+        "smoothness": "excellent",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt",
+        "turn:lanes:forward": "through|through|right"
+      },
+      "geometry": [
+        {
+          "lat": 50.0321649,
+          "lon": 19.9479723
+        },
+        {
+          "lat": 50.0319365,
+          "lon": 19.9482575
+        },
+        {
+          "lat": 50.0318052,
+          "lon": 19.948423
+        },
+        {
+          "lat": 50.0316177,
+          "lon": 19.9486585
+        }
+      ]
+    },
+    {
+      "id": 80576574,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "yes",
+        "highway": "primary",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "70",
+        "name": "Generała Henryka Kamieńskiego",
+        "oneway": "yes",
+        "sidewalk:left": "no",
+        "sidewalk:right": "separate",
+        "smoothness": "excellent",
+        "source:maxspeed": "sign",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0316177,
+          "lon": 19.9486585
+        },
+        {
+          "lat": 50.0314605,
+          "lon": 19.9487626
+        },
+        {
+          "lat": 50.0314234,
+          "lon": 19.9488108
+        },
+        {
+          "lat": 50.031347,
+          "lon": 19.9489099
+        },
+        {
+          "lat": 50.031279,
+          "lon": 19.9490063
+        },
+        {
+          "lat": 50.0311378,
+          "lon": 19.9492051
+        },
+        {
+          "lat": 50.0309594,
+          "lon": 19.9495025
+        },
+        {
+          "lat": 50.0306588,
+          "lon": 19.9500637
+        },
+        {
+          "lat": 50.0304428,
+          "lon": 19.9505496
+        },
+        {
+          "lat": 50.0301668,
+          "lon": 19.9513453
+        }
+      ]
+    },
+    {
+      "id": 177494637,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "yes",
+        "highway": "primary_link",
+        "lanes": "1",
+        "lit": "yes",
+        "maxspeed": "70",
+        "maxspeed:type": "sign",
+        "noname": "yes",
+        "oneway": "yes",
+        "sidewalk:left": "no",
+        "sidewalk:right": "separate",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0301668,
+          "lon": 19.9513453
+        },
+        {
+          "lat": 50.0300694,
+          "lon": 19.9514976
+        },
+        {
+          "lat": 50.0299207,
+          "lon": 19.9518656
+        },
+        {
+          "lat": 50.0298418,
+          "lon": 19.9520683
+        },
+        {
+          "lat": 50.0297233,
+          "lon": 19.9524361
+        },
+        {
+          "lat": 50.0296262,
+          "lon": 19.9527842
+        },
+        {
+          "lat": 50.029573,
+          "lon": 19.9529997
+        }
+      ]
+    },
+    {
+      "id": 177494675,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "yes",
+        "highway": "unclassified",
+        "lanes": "1",
+        "lit": "yes",
+        "maxspeed:type": "PL:urban",
+        "noname": "yes",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0290489,
+          "lon": 19.9537655
+        },
+        {
+          "lat": 50.0290206,
+          "lon": 19.9538619
+        },
+        {
+          "lat": 50.0289679,
+          "lon": 19.9539371
+        },
+        {
+          "lat": 50.0289513,
+          "lon": 19.9539632
+        },
+        {
+          "lat": 50.0288736,
+          "lon": 19.9540279
+        },
+        {
+          "lat": 50.0287758,
+          "lon": 19.9540925
+        },
+        {
+          "lat": 50.0286551,
+          "lon": 19.9541556
+        },
+        {
+          "lat": 50.0285946,
+          "lon": 19.9541754
+        },
+        {
+          "lat": 50.0285657,
+          "lon": 19.9541849
+        }
+      ]
+    },
+    {
+      "id": 189689016,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "embankment": "yes",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed:backward": "50",
+        "maxspeed:forward": "70",
+        "name": "Generała Henryka Kamieńskiego",
+        "parking:both": "no",
+        "sidewalk:both": "separate",
+        "smoothness": "good",
+        "source:maxspeed:backward": "PL:urban",
+        "source:maxspeed:forward": "sign",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.035455,
+          "lon": 19.9426818
+        },
+        {
+          "lat": 50.0352738,
+          "lon": 19.9430844
+        },
+        {
+          "lat": 50.0348809,
+          "lon": 19.9439985
+        },
+        {
+          "lat": 50.0348211,
+          "lon": 19.9441361
+        },
+        {
+          "lat": 50.0347547,
+          "lon": 19.9442835
+        },
+        {
+          "lat": 50.0346539,
+          "lon": 19.9445031
+        },
+        {
+          "lat": 50.0345394,
+          "lon": 19.9447381
+        },
+        {
+          "lat": 50.0344905,
+          "lon": 19.9448322
+        }
+      ]
+    },
+    {
+      "id": 193354411,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "embankment": "yes",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "parking:both": "no",
+        "sidewalk": "separate",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0335523,
+          "lon": 19.9462353
+        },
+        {
+          "lat": 50.0334905,
+          "lon": 19.9463086
+        }
+      ]
+    },
+    {
+      "id": 217499916,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "embankment": "yes",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:backward": "3",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "parking:both": "no",
+        "placement:backward": "left_of:1",
+        "sidewalk": "separate",
+        "smoothness": "intermediate",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt",
+        "turn:lanes:backward": "||right"
+      },
+      "geometry": [
+        {
+          "lat": 50.0340544,
+          "lon": 19.9455637
+        },
+        {
+          "lat": 50.0339685,
+          "lon": 19.9456864
+        },
+        {
+          "lat": 50.0339022,
+          "lon": 19.9457806
+        },
+        {
+          "lat": 50.0338257,
+          "lon": 19.945883
+        }
+      ]
+    },
+    {
+      "id": 217499919,
+      "type": "way",
+      "tags": {
+        "cycleway:left": "separate",
+        "cycleway:right": "no",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:backward": "3",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed:backward": "50",
+        "maxspeed:forward": "70",
+        "name": "Generała Henryka Kamieńskiego",
+        "parking:both": "no",
+        "parking:condition:both": "no_stopping",
+        "placement:backward": "left_of:1",
+        "sidewalk": "separate",
+        "smoothness": "good",
+        "source:maxspeed:backward": "PL:urban",
+        "source:maxspeed:forward": "sign",
+        "surface": "asphalt",
+        "turn:lanes:backward": "through|through|through;right"
+      },
+      "geometry": [
+        {
+          "lat": 50.0356948,
+          "lon": 19.9421394
+        },
+        {
+          "lat": 50.035455,
+          "lon": 19.9426818
+        }
+      ]
+    },
+    {
+      "id": 284104155,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "embankment": "yes",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "parking:both": "no",
+        "sidewalk": "separate",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0344905,
+          "lon": 19.9448322
+        },
+        {
+          "lat": 50.0343139,
+          "lon": 19.9451481
+        },
+        {
+          "lat": 50.0342036,
+          "lon": 19.9453353
+        },
+        {
+          "lat": 50.0340544,
+          "lon": 19.9455637
+        }
+      ]
+    },
+    {
+      "id": 309423742,
+      "type": "way",
+      "tags": {
+        "area": "yes",
+        "highway": "pedestrian",
+        "lit": "yes",
+        "surface": "paving_stones"
+      },
+      "geometry": [
+        {
+          "lat": 50.0286274,
+          "lon": 19.9541009
+        },
+        {
+          "lat": 50.0286194,
+          "lon": 19.9540667
+        },
+        {
+          "lat": 50.0286836,
+          "lon": 19.9540256
+        },
+        {
+          "lat": 50.028675,
+          "lon": 19.953972
+        },
+        {
+          "lat": 50.0286892,
+          "lon": 19.9539349
+        },
+        {
+          "lat": 50.0287023,
+          "lon": 19.9539008
+        },
+        {
+          "lat": 50.0287671,
+          "lon": 19.9535687
+        },
+        {
+          "lat": 50.0287522,
+          "lon": 19.9535613
+        },
+        {
+          "lat": 50.0287617,
+          "lon": 19.9535121
+        },
+        {
+          "lat": 50.0287677,
+          "lon": 19.9535133
+        },
+        {
+          "lat": 50.0287736,
+          "lon": 19.953512
+        },
+        {
+          "lat": 50.0287786,
+          "lon": 19.9535087
+        },
+        {
+          "lat": 50.0287829,
+          "lon": 19.9535042
+        },
+        {
+          "lat": 50.0287869,
+          "lon": 19.9534981
+        },
+        {
+          "lat": 50.0287901,
+          "lon": 19.9534895
+        },
+        {
+          "lat": 50.0287912,
+          "lon": 19.9534828
+        },
+        {
+          "lat": 50.0287918,
+          "lon": 19.9534763
+        },
+        {
+          "lat": 50.0287915,
+          "lon": 19.9534688
+        },
+        {
+          "lat": 50.0287907,
+          "lon": 19.9534627
+        },
+        {
+          "lat": 50.0287889,
+          "lon": 19.9534567
+        },
+        {
+          "lat": 50.0287862,
+          "lon": 19.9534508
+        },
+        {
+          "lat": 50.0287831,
+          "lon": 19.9534457
+        },
+        {
+          "lat": 50.0287798,
+          "lon": 19.953442
+        },
+        {
+          "lat": 50.0287761,
+          "lon": 19.9534391
+        },
+        {
+          "lat": 50.0288022,
+          "lon": 19.9533057
+        },
+        {
+          "lat": 50.0288051,
+          "lon": 19.953307
+        },
+        {
+          "lat": 50.0288058,
+          "lon": 19.9533037
+        },
+        {
+          "lat": 50.0288675,
+          "lon": 19.9533283
+        },
+        {
+          "lat": 50.0288669,
+          "lon": 19.9533316
+        },
+        {
+          "lat": 50.0288756,
+          "lon": 19.953335
+        },
+        {
+          "lat": 50.0288761,
+          "lon": 19.9533318
+        },
+        {
+          "lat": 50.0289384,
+          "lon": 19.9533529
+        },
+        {
+          "lat": 50.028938,
+          "lon": 19.9533563
+        },
+        {
+          "lat": 50.0289467,
+          "lon": 19.9533591
+        },
+        {
+          "lat": 50.0289483,
+          "lon": 19.9533475
+        },
+        {
+          "lat": 50.0289472,
+          "lon": 19.9533471
+        },
+        {
+          "lat": 50.0289523,
+          "lon": 19.9533122
+        },
+        {
+          "lat": 50.0290241,
+          "lon": 19.9533322
+        },
+        {
+          "lat": 50.0290907,
+          "lon": 19.9533471
+        },
+        {
+          "lat": 50.0290884,
+          "lon": 19.95338
+        },
+        {
+          "lat": 50.0290825,
+          "lon": 19.9533789
+        },
+        {
+          "lat": 50.0290813,
+          "lon": 19.9533925
+        },
+        {
+          "lat": 50.0291283,
+          "lon": 19.9534013
+        },
+        {
+          "lat": 50.029119,
+          "lon": 19.9534734
+        },
+        {
+          "lat": 50.0291162,
+          "lon": 19.9534904
+        },
+        {
+          "lat": 50.0290765,
+          "lon": 19.953523
+        },
+        {
+          "lat": 50.0290249,
+          "lon": 19.9535988
+        },
+        {
+          "lat": 50.0290101,
+          "lon": 19.9536551
+        },
+        {
+          "lat": 50.0290019,
+          "lon": 19.9537078
+        },
+        {
+          "lat": 50.0289993,
+          "lon": 19.9537563
+        },
+        {
+          "lat": 50.0289937,
+          "lon": 19.9537979
+        },
+        {
+          "lat": 50.0289799,
+          "lon": 19.9538436
+        },
+        {
+          "lat": 50.0289659,
+          "lon": 19.9538769
+        },
+        {
+          "lat": 50.0289377,
+          "lon": 19.9539113
+        },
+        {
+          "lat": 50.0288922,
+          "lon": 19.9539423
+        },
+        {
+          "lat": 50.0287362,
+          "lon": 19.9540359
+        },
+        {
+          "lat": 50.0286326,
+          "lon": 19.9540978
+        },
+        {
+          "lat": 50.0286274,
+          "lon": 19.9541009
+        }
+      ]
+    },
+    {
+      "id": 379091745,
+      "type": "way",
+      "tags": {
+        "bus:lanes:backward": "yes|yes|designated",
+        "cycleway:left": "separate",
+        "cycleway:right": "no",
+        "dual_carriageway": "no",
+        "highway": "primary",
+        "lanes": "5",
+        "lanes:backward": "3",
+        "lanes:forward": "2",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "parking:both": "no",
+        "placement:backward": "left_of:1",
+        "sidewalk": "separate",
+        "source:maxspeed": "PL:urban",
+        "source:width": "ortofoto",
+        "surface": "asphalt",
+        "turn:lanes:backward": "through|through|right",
+        "width": "16.5"
+      },
+      "geometry": [
+        {
+          "lat": 50.035782,
+          "lon": 19.9419423
+        },
+        {
+          "lat": 50.0356948,
+          "lon": 19.9421394
+        }
+      ]
+    },
+    {
+      "id": 379091747,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "embankment": "yes",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "parking:both": "no",
+        "sidewalk": "separate",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0338257,
+          "lon": 19.945883
+        },
+        {
+          "lat": 50.0335523,
+          "lon": 19.9462353
+        }
+      ]
+    },
+    {
+      "id": 379091748,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "no",
+        "embankment": "yes",
+        "highway": "primary",
+        "lanes": "4",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "sidewalk:both": "separate",
+        "source:maxspeed": "PL:urban",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0323433,
+          "lon": 19.9477502
+        },
+        {
+          "lat": 50.0321649,
+          "lon": 19.9479723
+        }
+      ]
+    },
+    {
+      "id": 379091749,
+      "type": "way",
+      "tags": {
+        "bus:lanes": "yes|yes|designated",
+        "cycleway:both": "no",
+        "destination": "Rzeszów;Tarnów;Wieliczka",
+        "dual_carriageway": "yes",
+        "highway": "primary",
+        "lanes": "3",
+        "lit": "yes",
+        "maxspeed": "50",
+        "name": "Generała Henryka Kamieńskiego",
+        "oneway": "yes",
+        "parking:both": "no",
+        "sidewalk:left": "no",
+        "sidewalk:right": "separate",
+        "source:maxspeed": "PL:urban",
+        "source:width": "ortofoto",
+        "surface": "asphalt",
+        "turn:lanes": "through|through|merge_to_left",
+        "width": "8.5"
+      },
+      "geometry": [
+        {
+          "lat": 50.0360277,
+          "lon": 19.9410068
+        },
+        {
+          "lat": 50.0359722,
+          "lon": 19.9412221
+        },
+        {
+          "lat": 50.0359496,
+          "lon": 19.9413073
+        },
+        {
+          "lat": 50.0358474,
+          "lon": 19.9416917
+        },
+        {
+          "lat": 50.035782,
+          "lon": 19.9419423
+        }
+      ]
+    },
+    {
+      "id": 428195841,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "unclassified",
+        "junction": "roundabout",
+        "lane_markings": "no",
+        "lit": "yes",
+        "parking:both": "no",
+        "sidewalk": "separate",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0290489,
+          "lon": 19.9537655
+        },
+        {
+          "lat": 50.0290577,
+          "lon": 19.9538315
+        },
+        {
+          "lat": 50.0290794,
+          "lon": 19.9538899
+        },
+        {
+          "lat": 50.0291116,
+          "lon": 19.9539349
+        },
+        {
+          "lat": 50.029142,
+          "lon": 19.9539577
+        },
+        {
+          "lat": 50.0291751,
+          "lon": 19.9539682
+        },
+        {
+          "lat": 50.0292088,
+          "lon": 19.9539658
+        },
+        {
+          "lat": 50.0292447,
+          "lon": 19.9539481
+        },
+        {
+          "lat": 50.0292761,
+          "lon": 19.953916
+        },
+        {
+          "lat": 50.0293033,
+          "lon": 19.9538652
+        },
+        {
+          "lat": 50.0293193,
+          "lon": 19.9538038
+        },
+        {
+          "lat": 50.0293224,
+          "lon": 19.9537378
+        },
+        {
+          "lat": 50.0293152,
+          "lon": 19.9536852
+        },
+        {
+          "lat": 50.0292998,
+          "lon": 19.9536371
+        },
+        {
+          "lat": 50.0292771,
+          "lon": 19.9535965
+        }
+      ]
+    },
+    {
+      "id": 732358475,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "highway": "unclassified",
+        "junction": "roundabout",
+        "lane_markings": "no",
+        "lit": "yes",
+        "parking:both": "no",
+        "sidewalk": "separate",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.0292771,
+          "lon": 19.9535965
+        },
+        {
+          "lat": 50.0292537,
+          "lon": 19.9535702
+        },
+        {
+          "lat": 50.0292169,
+          "lon": 19.9535478
+        },
+        {
+          "lat": 50.0291774,
+          "lon": 19.9535426
+        },
+        {
+          "lat": 50.0291387,
+          "lon": 19.9535552
+        },
+        {
+          "lat": 50.029101,
+          "lon": 19.953588
+        },
+        {
+          "lat": 50.0290717,
+          "lon": 19.9536374
+        },
+        {
+          "lat": 50.0290537,
+          "lon": 19.9536986
+        },
+        {
+          "lat": 50.0290489,
+          "lon": 19.9537655
+        }
+      ]
+    },
+    {
+      "id": 1013072800,
+      "type": "way",
+      "tags": {
+        "cycleway:both": "no",
+        "dual_carriageway": "yes",
+        "highway": "primary_link",
+        "lanes": "1",
+        "lit": "yes",
+        "noname": "yes",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "geometry": [
+        {
+          "lat": 50.029573,
+          "lon": 19.9529997
+        },
+        {
+          "lat": 50.0295238,
+          "lon": 19.9532058
+        },
+        {
+          "lat": 50.0294914,
+          "lon": 19.9533079
+        },
+        {
+          "lat": 50.0294372,
+          "lon": 19.9534367
+        },
+        {
+          "lat": 50.0293857,
+          "lon": 19.9535179
+        },
+        {
+          "lat": 50.0293308,
+          "lon": 19.9535665
+        },
+        {
+          "lat": 50.0293193,
+          "lon": 19.9535729
+        },
+        {
+          "lat": 50.0292771,
+          "lon": 19.9535965
+        }
+      ]
+    }
+  ]
+}

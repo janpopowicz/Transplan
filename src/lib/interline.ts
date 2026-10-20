@@ -1,6 +1,4 @@
 import {
-  DIRECTION_COLLAPSE_M,
-  INTERLINE_TOLERANCE_M,
   LINE_WIDTH_FACTOR,
   LINE_WIDTH_MAX_PX,
   LINE_WIDTH_MIN_PX,
@@ -12,14 +10,11 @@ import {
 } from "../constants";
 import type { Coord, LineSegment, Stop, TransitLine } from "../types";
 import {
-  bboxOf,
-  bboxesOverlap,
   densifyLine,
-  distToLine,
   offsetLine,
   pathDistances,
-  pointAlong,
 } from "./geo";
+import { buildNetworkRenderSegments } from "./networkInterline";
 import { peakTakt, tripsPerHourNum } from "./takt";
 import type { EdgeRun } from "./tramGraph";
 import { roadGraph, tramGraph } from "./tramGraph";
@@ -32,6 +27,9 @@ export interface RenderSegment {
   offset: number;
   geometry: Coord[];
   number: string;
+  oneWay: boolean;
+  fromGroupId?: string;
+  toGroupId?: string;
 }
 
 interface Occupant {
@@ -51,13 +49,11 @@ interface Prepared {
   sort: string;
   geom: Coord[];
   runs: EdgeRun[];
-  bbox: [number, number, number, number];
 }
 
 interface LaneCache {
   lines: TransitLine[];
   stops: Stop[] | undefined;
-  collapse: boolean;
   roadN: number;
   tramN: number;
   pieces: Prepared[];
@@ -70,9 +66,9 @@ export function buildRenderSegments(
   lines: TransitLine[],
   opts?: { collapseDirections?: boolean; stops?: Stop[]; metersPerPx?: number },
 ): RenderSegment[] {
-  const collapse = opts?.collapseDirections ?? false;
   const metersPerPx = opts?.metersPerPx ?? 2;
-  const prepared = prepare(lines, opts?.stops, collapse);
+  if (opts?.collapseDirections) return buildNetworkRenderSegments(lines, opts.stops, metersPerPx);
+  const prepared = prepare(lines, opts?.stops);
   return prepared.pieces.map((piece) => ({
     id: piece.segId,
     lineId: piece.lineId,
@@ -80,18 +76,18 @@ export function buildRenderSegments(
     width: piece.width,
     offset: 0,
     geometry: bakePiece(piece, prepared.lanes, metersPerPx),
-    number: collapse && piece.direction === "inbound" ? "" : piece.number,
+    number: piece.number,
+    oneWay: false,
   }));
 }
 
-function prepare(lines: TransitLine[], stops: Stop[] | undefined, collapse: boolean): LaneCache {
+function prepare(lines: TransitLine[], stops: Stop[] | undefined): LaneCache {
   const roadN = roadGraph.edgeCount();
   const tramN = tramGraph.edgeCount();
   if (
     cache &&
     cache.lines === lines &&
     cache.stops === stops &&
-    cache.collapse === collapse &&
     cache.roadN === roadN &&
     cache.tramN === tramN
   ) {
@@ -99,7 +95,7 @@ function prepare(lines: TransitLine[], stops: Stop[] | undefined, collapse: bool
   }
 
   const stopById = new Map((stops ?? []).map((s) => [s.id, s]));
-  let pieces: Prepared[] = [];
+  const pieces: Prepared[] = [];
 
   for (const line of lines) {
     if (!line.visible) continue;
@@ -110,7 +106,7 @@ function prepare(lines: TransitLine[], stops: Stop[] | undefined, collapse: bool
       if (clipped.length < 2) continue;
       const geom = densifyLine(clipped, OFFSET_SAMPLE_M);
       const runs = graph.isEmpty() ? [] : graph.tracePolyline(geom);
-      const strokeId = collapse ? line.id : `${line.id}:${seg.direction}`;
+      const strokeId = `${line.id}:${seg.direction}`;
       pieces.push({
         segId: seg.id,
         lineId: line.id,
@@ -119,18 +115,15 @@ function prepare(lines: TransitLine[], stops: Stop[] | undefined, collapse: bool
         number: line.number,
         color: line.color,
         width,
-        sort: sortKey(line.number, seg.direction, collapse),
+        sort: sortKey(line.number, seg.direction),
         geom,
         runs,
-        bbox: bboxOf(geom),
       });
     }
   }
 
-  if (collapse) pieces = dropMirroredInbound(pieces);
-
   const lanes = assignLanes(pieces);
-  cache = { lines, stops, collapse, roadN, tramN, pieces, lanes };
+  cache = { lines, stops, roadN, tramN, pieces, lanes };
   return cache;
 }
 
@@ -269,17 +262,6 @@ function clipToNetwork(line: TransitLine, seg: LineSegment, stops: Map<string, S
   return graph.anchorLine(seg.geometry, [a.lon, a.lat], [b.lon, b.lat]);
 }
 
-function dropMirroredInbound(pieces: Prepared[]): Prepared[] {
-  const outbound = pieces.filter((p) => p.direction === "outbound");
-  return pieces.filter((p) => {
-    if (p.direction !== "inbound") return true;
-    const same = outbound.filter((o) => o.lineId === p.lineId);
-    return !same.some(
-      (o) => bboxesOverlap(o.bbox, p.bbox) && corridorsShare(p.geom, o.geom, DIRECTION_COLLAPSE_M),
-    );
-  });
-}
-
 function centeredOffsets(widths: number[]): number[] {
   if (widths.length <= 1) return [0];
   const total = widths.reduce((s, w) => s + w, 0) + OFFSET_GAP_PX * (widths.length - 1);
@@ -291,25 +273,11 @@ function centeredOffsets(widths: number[]): number[] {
   });
 }
 
-function sortKey(number: string, direction: string, collapse: boolean): string {
+function sortKey(number: string, direction: string): string {
   const m = number.match(/(\d+)/);
   const n = (m ? m[1] : "999999").padStart(6, "0");
-  if (collapse) return `${n}\0${number}`;
   const dir = direction === "outbound" ? "0" : "1";
   return `${n}\0${number}\0${dir}`;
-}
-
-function corridorsShare(a: Coord[], b: Coord[], tolerance = INTERLINE_TOLERANCE_M): boolean {
-  return samplesHit(a, b, tolerance) || samplesHit(b, a, tolerance);
-}
-
-function samplesHit(a: Coord[], b: Coord[], tolerance: number): boolean {
-  const samples = [0.2, 0.4, 0.6, 0.8].map((t) => pointAlong(a, t));
-  let hits = 0;
-  for (const p of samples) {
-    if (distToLine(p, b) < tolerance) hits++;
-  }
-  return hits >= 2;
 }
 
 function mix(a: number, b: number, t: number): number {

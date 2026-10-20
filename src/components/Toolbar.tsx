@@ -24,6 +24,7 @@ export function Toolbar() {
 
       <nav className="tools" aria-label="Narzędzia">
         <ToolBtn active={tool === "select" && !drawing} onClick={() => setTool("select")} label="Wybór" kbd="V" />
+        <ToolBtn active={tool === "isochrones"} onClick={() => setTool(tool === "isochrones" ? "select" : "isochrones")} label="Izochrony" />
         <ToolBtn
           active={tool === "draw-bus" || drawing?.mode === "bus"}
           onClick={() => setDialog("bus")}
@@ -38,6 +39,7 @@ export function Toolbar() {
         />
         <span className="tools-split" />
         <ToolBtn active={tool === "add-stop"} onClick={() => setTool("add-stop")} label="Nowy przystanek" />
+        <ToolBtn active={tool === "move-stop"} onClick={() => setTool("move-stop")} label="Przesuń przystanek" />
         <ToolBtn active={tool === "draw-track"} onClick={() => setTool("draw-track")} label="Rysuj torowisko" />
         <ToolBtn
           active={tool === "toggle-construction"}
@@ -85,7 +87,7 @@ function ToolBtn({
   kbd?: string;
 }) {
   return (
-    <button className={active ? "tool on" : "tool"} onClick={onClick} type="button">
+    <button className={active ? "tool on" : "tool"} onClick={onClick} type="button" aria-pressed={active}>
       {label}
       {kbd && <kbd>{kbd}</kbd>}
     </button>

@@ -11,6 +11,8 @@ import { useStore } from "./store";
 
 export default function App() {
   const loadOsm = useStore((s) => s.loadOsm);
+  const hasInspector = useStore((s) => s.lines.some((l) => l.id === s.selectedLineId));
+  const movingStop = useStore((s) => s.tool === "move-stop");
   const selectedStopId = useStore((s) => s.selectedStopId);
   const setTool = useStore((s) => s.setTool);
 
@@ -31,13 +33,13 @@ export default function App() {
   return (
     <div className="app">
       <Toolbar />
-      <div className="workspace">
+      <div className={hasInspector ? "workspace" : "workspace without-inspector"}>
         <Sidebar />
         <main className="map-wrap">
           <MapView />
           <DrawWizard />
           <StopPicker />
-          {selectedStopId && <StopPanel />}
+          {selectedStopId && !movingStop && <StopPanel />}
         </main>
         <LinePanel />
       </div>

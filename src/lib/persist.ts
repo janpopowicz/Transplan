@@ -5,6 +5,7 @@ const KEY = "transplan-krakow-v1";
 interface PersistShape {
   lines: TransitLine[];
   localStops: Stop[];
+  movedStops?: Stop[];
   localTracks: TramTrack[];
   constructionOverrides: Record<string, boolean>;
 }

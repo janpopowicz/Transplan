@@ -3,7 +3,6 @@ import { nanoid } from "nanoid";
 import {
   DEFAULT_LAYOVER_MIN,
   DEFAULT_TAKT,
-  DEFAULT_TRAVEL_MIN,
   LINE_COLORS,
   SNAP_METERS,
 } from "./constants";
@@ -27,7 +26,9 @@ import { fetchOsmRoads, fetchOsmStops, fetchTramTracks, findOppositeStops, readO
 import { routeBetween } from "./lib/routing";
 import { roadGraph, tramGraph } from "./lib/tramGraph";
 import { exportProposal, loadState, saveState } from "./lib/persist";
-import { haversine } from "./lib/geo";
+import { mergeStopPositions } from "./lib/stopEditing";
+import { haversine, nearestPointOnLine, pathDistances } from "./lib/geo";
+import { estimateTravelMinutes } from "./lib/travelTime";
 
 interface AppState {
   tool: EditorTool;
@@ -57,6 +58,8 @@ interface AppState {
 
   startLine: (mode: Mode, number: string, name: string) => void;
   addStopToDrawing: (stopId: string) => Promise<void>;
+  toggleWaypointMode: () => void;
+  addDrawingWaypoint: (coord: Coord) => Promise<void>;
   markTerminus2: () => void;
   finishInbound: () => void;
   undoDrawingStop: () => void;
@@ -70,6 +73,7 @@ interface AppState {
   setTakt: (lineId: string, period: PeriodId, value: number | null) => void;
   setVehicle: (lineId: string, vehicle: VehicleId) => void;
   setSegmentTime: (lineId: string, segmentId: string, minutes: number) => void;
+  resetSegmentTime: (lineId: string, segmentId: string) => void;
   toggleLineVisible: (id: string) => void;
   deleteLine: (id: string) => void;
   removeStopFromLine: (lineId: string, stopId: string, direction?: "outbound" | "inbound") => Promise<void>;
@@ -79,6 +83,7 @@ interface AppState {
   confirmAddStop: (name: string, modes: Mode[]) => void;
   cancelAddStop: () => void;
   deleteLocalStop: (id: string) => void;
+  moveStop: (id: string, coord: Coord) => Promise<void>;
 
   startTrackDraft: (coord: Coord) => void;
   appendTrackVertex: (coord: Coord) => void;
@@ -95,6 +100,7 @@ function persistSlice(s: AppState): void {
   saveState({
     lines: s.lines,
     localStops: s.stops.filter((x) => x.source === "local"),
+    movedStops: s.stops.filter((x) => x.source === "osm" && x.originalPosition),
     localTracks: s.tracks.filter((x) => x.source === "local"),
     constructionOverrides: s.constructionOverrides,
   });
@@ -187,13 +193,16 @@ async function rebuildSegments(
     const a = stopById(stops, fromId);
     const b = stopById(stops, toId);
     if (!a || !b) continue;
-    const geometry = await routeBetween([a.lon, a.lat], [b.lon, b.lat], line.mode);
+    const waypoints = inheritedWaypoints(old, ids, i, a, b);
+    const geometry = await routeBetween([a.lon, a.lat], [b.lon, b.lat], line.mode, waypoints);
     next.push({
       id: nanoid(8),
       fromStopId: fromId,
       toStopId: toId,
       geometry,
-      travelMin: DEFAULT_TRAVEL_MIN,
+      waypoints,
+      travelMin: estimateTravelMinutes(geometry, line.mode),
+      travelTimeSource: "auto" as const,
       direction,
     });
   }
@@ -202,11 +211,39 @@ async function rebuildSegments(
 
 type LineSegs = TransitLine["segments"];
 
+/** Preserve shaping points when removing a stop or splitting an existing leg. */
+function inheritedWaypoints(old: LineSegs, ids: string[], index: number, from: Stop, to: Stop): Coord[] {
+  let cursor = from.id;
+  const merged: Coord[] = [];
+  const seen = new Set<string>();
+  while (!seen.has(cursor)) {
+    seen.add(cursor);
+    const segment = old.find((s) => s.fromStopId === cursor);
+    if (!segment) break;
+    merged.push(...(segment.waypoints ?? []));
+    cursor = segment.toStopId;
+    if (cursor === to.id) return merged;
+  }
+  const parent = old.find((segment) => {
+    const a = ids.indexOf(segment.fromStopId), b = ids.indexOf(segment.toStopId);
+    return a >= 0 && a <= index && b > index;
+  });
+  if (!parent?.waypoints?.length || parent.geometry.length < 2) return [];
+  const distances = pathDistances(parent.geometry);
+  const along = (coord: Coord) => {
+    const near = nearestPointOnLine(coord, parent.geometry);
+    return distances[near.index] + haversine(parent.geometry[near.index], near.coord);
+  };
+  const lower = from.id === parent.fromStopId ? -Infinity : along([from.lon, from.lat]);
+  const upper = to.id === parent.toStopId ? Infinity : along([to.lon, to.lat]);
+  return parent.waypoints.filter((point) => { const position = along(point); return position > lower && position <= upper; });
+}
+
 const boot = loadState();
 
 export const useStore = create<AppState>((set, get) => ({
   tool: "select",
-  stops: boot?.localStops ?? [],
+  stops: mergeStopPositions([], boot?.localStops ?? [], boot?.movedStops ?? []),
   tracks: (boot?.localTracks ?? []).map(withKind),
   constructionOverrides: boot?.constructionOverrides ?? {},
   lines: boot?.lines ?? [],
@@ -238,7 +275,7 @@ export const useStore = create<AppState>((set, get) => ({
     const cache = force ? null : readOsmCache();
 
     if (cache) {
-      const mergedStops = [...cache.stops, ...localStops];
+      const mergedStops = mergeStopPositions(cache.stops, localStops, get().stops.filter((s) => s.originalPosition));
       const mergedTracks = applyOverrides(
         [...cache.tracks.map(withKind), ...localTracks.map(withKind)],
         overrides,
@@ -266,7 +303,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const [osmStops, osmTracks] = await Promise.all([fetchOsmStops(), fetchTramTracks()]);
       writeOsmCache(osmStops, osmTracks);
-      const mergedStops = [...osmStops, ...localStops];
+      const mergedStops = mergeStopPositions(osmStops, get().stops.filter((s) => s.source === "local"), get().stops.filter((s) => s.originalPosition));
       const mergedTracks = applyOverrides(
         [...osmTracks.map(withKind), ...localTracks.map(withKind)],
         overrides,
@@ -307,6 +344,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
     set({
       tool,
+      ...(tool === "isochrones" ? { selectedLineId: null, selectedStopId: null } : {}),
       pendingStop: null,
       trackDraft: tool === "draw-track" ? get().trackDraft : null,
       stopPicker: null,
@@ -316,7 +354,11 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   setHoverStop: (id) => set({ hoverStopId: id }),
-  selectLine: (id) => set({ selectedLineId: id, selectedStopId: id ? get().selectedStopId : get().selectedStopId }),
+  selectLine: (id) => {
+    const next = id === get().selectedLineId ? null : id;
+    set({ selectedLineId: next, drawing: null, insertSlot: null, oppositeHintIds: [],
+      tool: get().tool === "draw-bus" || get().tool === "draw-tram" ? "select" : get().tool });
+  },
   selectStop: (id) => set({ selectedStopId: id, stopPicker: null }),
   setStopPicker: (stops) => set({ stopPicker: stops }),
 
@@ -393,13 +435,17 @@ export const useStore = create<AppState>((set, get) => ({
         [prev.lon, prev.lat],
         [stop.lon, stop.lat],
         line.mode,
+        drawing.waypoints,
       );
+      if (get().drawing !== drawing) { set({ routing: false }); return; }
       const seg = {
         id: nanoid(8),
         fromStopId: prevId,
         toStopId: stopId,
         geometry,
-        travelMin: DEFAULT_TRAVEL_MIN,
+        waypoints: drawing.waypoints ?? [],
+        travelMin: estimateTravelMinutes(geometry, line.mode),
+        travelTimeSource: "auto" as const,
         direction: (drawing.phase === "inbound" ? "inbound" : "outbound") as
           | "outbound"
           | "inbound",
@@ -430,6 +476,7 @@ export const useStore = create<AppState>((set, get) => ({
         routing: false,
         oppositeHintIds: hints,
         selectedStopId: stopId,
+        drawing: { ...drawing, placingWaypoint: false, waypoints: [], waypointLegs: [] },
       });
       persistSlice(get());
     } catch (e) {
@@ -440,9 +487,38 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
+  toggleWaypointMode: () => {
+    const { drawing, routing } = get();
+    if (!drawing || drawing.phase === "terminus1" || routing) return;
+    set({ drawing: { ...drawing, placingWaypoint: !drawing.placingWaypoint }, stopPicker: null });
+  },
+
+  addDrawingWaypoint: async (coord) => {
+    const { drawing, routing, lines, stops } = get();
+    if (!drawing || drawing.phase === "terminus1" || routing || !coord.every(Number.isFinite)) return;
+    const line = lines.find((l) => l.id === drawing.lineId);
+    if (!line) return;
+    const ids = currentStops(line, drawing);
+    const lastId = ids.at(-1) ?? line.terminus2Id;
+    const stop = lastId ? stopById(stops, lastId) : undefined;
+    if (!stop) return;
+    const waypoints = drawing.waypoints ?? [];
+    const from: Coord = waypoints.at(-1) ?? [stop.lon, stop.lat];
+    if (haversine(from, coord) < 1) return;
+    set({ routing: true, routingError: null });
+    try {
+      const geometry = await routeBetween(from, coord, line.mode);
+      if (get().drawing !== drawing) { set({ routing: false }); return; }
+      set({ routing: false, drawing: { ...drawing, placingWaypoint: false,
+        waypoints: [...waypoints, coord], waypointLegs: [...(drawing.waypointLegs ?? []), geometry] } });
+    } catch (e) {
+      set({ routing: false, routingError: e instanceof Error ? e.message : "Nie udało się dodać punktu trasy." });
+    }
+  },
+
   markTerminus2: () => {
     const { drawing, lines, stops } = get();
-    if (!drawing || drawing.phase !== "outbound") return;
+    if (!drawing || drawing.phase !== "outbound" || get().routing || drawing.waypoints?.length) return;
     const line = lines.find((l) => l.id === drawing.lineId);
     if (!line || line.outboundStopIds.length < 2) return;
     const t2 = line.outboundStopIds[line.outboundStopIds.length - 1];
@@ -452,7 +528,7 @@ export const useStore = create<AppState>((set, get) => ({
       lines: lines.map((l) =>
         l.id === line.id ? { ...l, terminus2Id: t2, inboundStopIds: [] } : l,
       ),
-      drawing: { ...drawing, phase: "inbound" },
+      drawing: { ...drawing, phase: "inbound", placingWaypoint: false, waypoints: [], waypointLegs: [] },
       oppositeHintIds: hints,
       routingError: null,
     });
@@ -461,7 +537,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   finishInbound: () => {
     const { drawing, lines } = get();
-    if (!drawing) return;
+    if (!drawing || get().routing || drawing.waypoints?.length) return;
     const line = lines.find((l) => l.id === drawing.lineId);
     if (!line) return;
     if (drawing.phase === "inbound" && line.inboundStopIds.length < 1) return;
@@ -476,7 +552,12 @@ export const useStore = create<AppState>((set, get) => ({
 
   undoDrawingStop: () => {
     const { drawing, lines } = get();
-    if (!drawing) return;
+    if (!drawing || get().routing) return;
+    if (drawing.waypoints?.length) {
+      set({ drawing: { ...drawing, waypoints: drawing.waypoints.slice(0, -1),
+        waypointLegs: drawing.waypointLegs?.slice(0, -1), placingWaypoint: false }, routingError: null });
+      return;
+    }
     const line = lines.find((l) => l.id === drawing.lineId);
     if (!line) return;
 
@@ -658,6 +739,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   setSegmentTime: (lineId, segmentId, minutes) => {
+    if (!Number.isFinite(minutes)) return;
     const v = Math.max(0.5, minutes);
     set({
       lines: get().lines.map((l) =>
@@ -665,12 +747,19 @@ export const useStore = create<AppState>((set, get) => ({
           ? {
               ...l,
               segments: l.segments.map((s) =>
-                s.id === segmentId ? { ...s, travelMin: v } : s,
+                s.id === segmentId ? { ...s, travelMin: v, travelTimeSource: "manual" } : s,
               ),
             }
           : l,
       ),
     });
+    persistSlice(get());
+  },
+
+  resetSegmentTime: (lineId, segmentId) => {
+    set({ lines: get().lines.map((line) => line.id !== lineId ? line : { ...line,
+      segments: line.segments.map((segment) => segment.id !== segmentId ? segment : { ...segment,
+        travelMin: estimateTravelMinutes(segment.geometry, line.mode), travelTimeSource: "auto" }) }) });
     persistSlice(get());
   },
 
@@ -762,6 +851,52 @@ export const useStore = create<AppState>((set, get) => ({
   },
   cancelAddStop: () => set({ pendingStop: null }),
 
+  moveStop: async (id, coord) => {
+    const snapshot = get();
+    const stop = snapshot.stops.find((s) => s.id === id);
+    if (!stop || snapshot.routing || !coord.every(Number.isFinite) ||
+      Math.abs(coord[0]) > 180 || Math.abs(coord[1]) > 85 || haversine([stop.lon, stop.lat], coord) < 0.1) return;
+    const moved: Stop = { ...stop, lon: coord[0], lat: coord[1],
+      ...(stop.source === "osm" ? { originalPosition: stop.originalPosition ?? [stop.lon, stop.lat] as Coord } : {}) };
+    const stops = new Map(snapshot.stops.map((s) => [s.id, s.id === id ? moved : s]));
+    set({ routing: true, routingError: null });
+    try {
+      const replacements = new Map<string, { before: TransitLine["segments"][number]; geometry: Coord[] }>();
+      const segmentKey = (lineId: string, segmentId: string) => JSON.stringify([lineId, segmentId]);
+      for (const line of snapshot.lines) for (const segment of line.segments) {
+        if (segment.fromStopId !== id && segment.toStopId !== id) continue;
+        const from = stops.get(segment.fromStopId), to = stops.get(segment.toStopId);
+        if (!from || !to) throw new Error("Brakuje przystanku potrzebnego do przeliczenia trasy.");
+        replacements.set(segmentKey(line.id, segment.id), { before: segment,
+          geometry: await routeBetween([from.lon, from.lat], [to.lon, to.lat], line.mode, segment.waypoints) });
+      }
+      // Commit position and routes together. Preserve changes to other lines
+      // made while routing, and never resurrect a deleted stop or segment.
+      if (!get().stops.some((s) => s.id === id)) { set({ routing: false }); return; }
+      for (const line of get().lines) for (const segment of line.segments) {
+        if (segment.fromStopId !== id && segment.toStopId !== id) continue;
+        const replacement = replacements.get(segmentKey(line.id, segment.id));
+        if (!replacement || replacement.before.geometry !== segment.geometry ||
+          replacement.before.fromStopId !== segment.fromStopId || replacement.before.toStopId !== segment.toStopId) {
+          throw new Error("Trasa została zmieniona podczas przesuwania. Spróbuj ponownie.");
+        }
+      }
+      set({
+        stops: get().stops.map((s) => s.id === id ? { ...s, lon: moved.lon, lat: moved.lat,
+          originalPosition: moved.originalPosition } : s),
+        lines: get().lines.map((line) => ({ ...line, segments: line.segments.map((segment) => {
+          const replacement = replacements.get(segmentKey(line.id, segment.id));
+          return replacement ? { ...segment, geometry: replacement.geometry,
+            travelMin: segment.travelTimeSource === "auto" ? estimateTravelMinutes(replacement.geometry, line.mode) : segment.travelMin } : segment;
+        }) })),
+        routing: false,
+      });
+      persistSlice(get());
+    } catch (e) {
+      set({ routing: false, routingError: `Nie przesunięto przystanku: ${e instanceof Error ? e.message : "błąd trasy"}` });
+    }
+  },
+
   deleteLocalStop: (id) => {
     const used = get().lines.some(
       (l) => l.outboundStopIds.includes(id) || l.inboundStopIds.includes(id),
@@ -840,6 +975,7 @@ export const useStore = create<AppState>((set, get) => ({
     exportProposal({
       lines: s.lines,
       localStops: s.stops.filter((x) => x.source === "local"),
+      movedStops: s.stops.filter((x) => x.source === "osm" && x.originalPosition),
       localTracks: s.tracks.filter((t) => t.source === "local"),
       constructionOverrides: s.constructionOverrides,
     });
@@ -855,7 +991,7 @@ export const useStore = create<AppState>((set, get) => ({
     rebuildGraph(tracks, data.constructionOverrides ?? {});
     set({
       lines: data.lines ?? [],
-      stops: [...osmStops, ...(data.localStops ?? [])],
+      stops: mergeStopPositions(osmStops, data.localStops ?? [], data.movedStops ?? []),
       tracks,
       constructionOverrides: data.constructionOverrides ?? {},
     });

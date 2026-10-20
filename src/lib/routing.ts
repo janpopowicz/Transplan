@@ -13,7 +13,22 @@ export async function routeBetween(
   from: Coord,
   to: Coord,
   mode: Mode,
+  waypoints: Coord[] = [],
 ): Promise<Coord[]> {
+  if (waypoints.length) {
+    const points = [from, ...waypoints, to];
+    const geometry: Coord[] = [];
+    for (let i = 1; i < points.length; i++) {
+      const leg = await routeLeg(points[i - 1], points[i], mode, true);
+      const last = geometry.at(-1);
+      geometry.push(...(last && haversine(last, leg[0]) < 0.1 ? leg.slice(1) : leg));
+    }
+    return geometry;
+  }
+  return routeLeg(from, to, mode);
+}
+
+async function routeLeg(from: Coord, to: Coord, mode: Mode, preserveEndpoints = false): Promise<Coord[]> {
   if (mode === "tram") {
     const path = tramGraph.route(from, to);
     if (path && path.length >= 2) return path;
@@ -21,10 +36,10 @@ export async function routeBetween(
       "Brak połączenia torowego między przystankami. Dorysuj torowisko albo wybierz inny przystanek.",
     );
   }
-  return routeBus(from, to);
+  return routeBus(from, to, preserveEndpoints);
 }
 
-async function routeBus(from: Coord, to: Coord): Promise<Coord[]> {
+async function routeBus(from: Coord, to: Coord, preserveEndpoints: boolean): Promise<Coord[]> {
   if (!roadGraph.isEmpty()) {
     const path = roadGraph.route(from, to);
     if (path && path.length >= 2) return path;
@@ -34,13 +49,13 @@ async function routeBus(from: Coord, to: Coord): Promise<Coord[]> {
   }
   let last: Error | null = null;
   try {
-    return await routeValhallaBus(from, to);
+    return await routeValhallaBus(from, to, preserveEndpoints);
   } catch (e) {
     last = e instanceof Error ? e : new Error(String(e));
   }
   for (const base of OSRM) {
     try {
-      return await routeOsrm(base, from, to);
+      return await routeOsrm(base, from, to, preserveEndpoints);
     } catch (e) {
       last = e instanceof Error ? e : new Error(String(e));
     }
@@ -48,7 +63,7 @@ async function routeBus(from: Coord, to: Coord): Promise<Coord[]> {
   throw last ?? new Error("Nie udało się wyznaczyć trasy");
 }
 
-async function routeValhallaBus(from: Coord, to: Coord): Promise<Coord[]> {
+async function routeValhallaBus(from: Coord, to: Coord, preserveEndpoints: boolean): Promise<Coord[]> {
   const body = {
     locations: [
       { lon: from[0], lat: from[1] },
@@ -77,7 +92,8 @@ async function routeValhallaBus(from: Coord, to: Coord): Promise<Coord[]> {
       if (json.error) throw new Error(json.error);
       const shape = json.trip?.legs?.[0]?.shape;
       if (!shape) throw new Error("Brak trasy");
-      const geom = trimStopSpurs(decodePolyline(shape, 6), from, to);
+      const decoded = decodePolyline(shape, 6);
+      const geom = preserveEndpoints ? decoded : trimStopSpurs(decoded, from, to);
       if (geom.length < 2) throw new Error("Brak trasy");
       return geom;
     } catch (e) {
@@ -87,7 +103,7 @@ async function routeValhallaBus(from: Coord, to: Coord): Promise<Coord[]> {
   throw last ?? new Error("Valhalla niedostępna");
 }
 
-async function routeOsrm(base: string, from: Coord, to: Coord): Promise<Coord[]> {
+async function routeOsrm(base: string, from: Coord, to: Coord, preserveEndpoints: boolean): Promise<Coord[]> {
   const coords = `${from[0]},${from[1]};${to[0]},${to[1]}`;
   const res = await fetch(
     `${base}/${coords}?overview=full&geometries=geojson&continue_straight=false`,
@@ -98,7 +114,7 @@ async function routeOsrm(base: string, from: Coord, to: Coord): Promise<Coord[]>
   };
   const geom = json.routes?.[0]?.geometry?.coordinates;
   if (!geom || geom.length < 2) throw new Error("Brak trasy");
-  return trimStopSpurs(geom, from, to);
+  return preserveEndpoints ? geom : trimStopSpurs(geom, from, to);
 }
 
 /**

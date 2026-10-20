@@ -11,6 +11,7 @@ export function DrawWizard() {
   const markTerminus2 = useStore((s) => s.markTerminus2);
   const finishInbound = useStore((s) => s.finishInbound);
   const undoDrawingStop = useStore((s) => s.undoDrawingStop);
+  const toggleWaypointMode = useStore((s) => s.toggleWaypointMode);
   const cancelDrawing = useStore((s) => s.cancelDrawing);
   const finishTrackDraft = useStore((s) => s.finishTrackDraft);
   const cancelTrackDraft = useStore((s) => s.cancelTrackDraft);
@@ -21,6 +22,7 @@ export function DrawWizard() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
       if (e.key === "Escape") {
         if (insertSlot) cancelInsert();
         else if (drawing) cancelDrawing();
@@ -166,6 +168,12 @@ export function DrawWizard() {
         </p>
         <h2>{titles[step - 1]}</h2>
         <p>{texts[step - 1]}</p>
+        {drawing.phase !== "terminus1" && <p className={drawing.placingWaypoint ? "live" : "muted"}>
+          {drawing.placingWaypoint
+            ? "Kliknij drogę lub tor, przez który ma przebiegać trasa. Potem wybierz następny przystanek."
+            : "Aby zmienić przebieg odcinka, wybierz „Dodaj punkt trasy” i wskaż miejsce na mapie."}
+          {!!drawing.waypoints?.length && ` Punkty przed następnym przystankiem: ${drawing.waypoints.length}.`}
+        </p>}
         {routing && <p className="live">Wyznaczam trasę OSM…</p>}
         {routingError && <p className="err">{routingError}</p>}
         {drawing.phase === "outbound" && lastOut && (
@@ -174,17 +182,22 @@ export function DrawWizard() {
         {nearHome && <p className="ok">Jesteś przy krańcówce 1 — możesz zakończyć linię.</p>}
       </div>
       <div className="wizard-actions">
+        {drawing.phase !== "terminus1" && <button type="button"
+          className={drawing.placingWaypoint ? "tool on" : "ghost"}
+          aria-pressed={Boolean(drawing.placingWaypoint)} disabled={routing} onClick={toggleWaypointMode}>
+          {drawing.placingWaypoint ? "Wybieraj przystanki" : "Dodaj punkt trasy"}
+        </button>}
         <button type="button" className="ghost" onClick={cancelDrawing}>
           Anuluj
         </button>
         <button type="button" className="ghost" onClick={undoDrawingStop} disabled={routing}>
-          Cofnij przystanek
+          {drawing.waypoints?.length ? "Cofnij punkt trasy" : "Cofnij przystanek"}
         </button>
         {drawing.phase === "outbound" && (
           <button
             type="button"
             className="primary"
-            disabled={line.outboundStopIds.length < 2 || routing}
+            disabled={line.outboundStopIds.length < 2 || routing || !!drawing.waypoints?.length}
             onClick={markTerminus2}
           >
             To jest krańcówka 2
@@ -194,7 +207,7 @@ export function DrawWizard() {
           <button
             type="button"
             className="primary"
-            disabled={line.inboundStopIds.length < 1 || routing}
+            disabled={line.inboundStopIds.length < 1 || routing || !!drawing.waypoints?.length}
             onClick={finishInbound}
           >
             Zakończ linię
