@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 const dir = await mkdtemp(join(tmpdir(), "transplan-tests-"));
 try {
   const outfile = join(dir, "interline.test.mjs");
-  await build({ stdin: { contents: 'import "./tests/interline.test.ts"; import "./tests/editor.test.ts"; import "./tests/routing.test.ts"; import "./tests/isochrones.test.ts"; import "./tests/waypoints.test.ts";', resolveDir: process.cwd(), loader: "ts" }, outfile, bundle: true, platform: "node", format: "esm" });
+  await build({ stdin: { contents: 'import "./tests/interline.test.ts"; import "./tests/editor.test.ts"; import "./tests/routing.test.ts"; import "./tests/isochrones.test.ts"; import "./tests/waypoints.test.ts"; import "./tests/planning.test.ts"; import "./tests/walkingDownload.test.ts";', resolveDir: process.cwd(), loader: "ts" }, outfile, bundle: true, platform: "node", format: "esm" });
   const result = spawnSync(process.execPath, [outfile], { stdio: "inherit" });
   process.exitCode = result.status ?? 1;
 } finally {

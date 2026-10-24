@@ -32,6 +32,7 @@ export interface Stop {
   lon: number;
   modes: Mode[];
   source: "osm" | "local";
+  groupId?: string;
   osmId?: number;
   /** Original OSM position, retained when a project moves this stop. */
   originalPosition?: Coord;

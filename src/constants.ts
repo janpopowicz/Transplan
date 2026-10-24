@@ -135,7 +135,7 @@ export const LINE_WIDTH_MAX_PX = 26;
 /** Below this zoom the map collapses into a network diagram. */
 export const NETWORK_ZOOM = 13.5;
 /** Same-name stops (Kraków platform numbers stripped) within this distance merge. */
-export const STOP_GROUP_METERS = 420;
+export const STOP_GROUP_METERS = 150;
 
 export const DEFAULT_TAKT: Record<PeriodId, number | null> = {
   wd_early: 20,

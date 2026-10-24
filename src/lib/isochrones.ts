@@ -1,200 +1,175 @@
-import type { PeriodId } from "../constants";
-import type { Coord, Stop, TransitLine } from "../types";
-import { haversine } from "./geo";
+import type { Coord } from "../types";
+import { calculateAccessibility, projection, WALK_METERS_PER_MIN, type AccessibilityRequest } from "./pedestrianRouting";
 
-export const ISOCHRONE_BANDS = [
-  { minutes: 10, color: "#059669" },
-  { minutes: 20, color: "#65a30d" },
-  { minutes: 30, color: "#eab308" },
-  { minutes: 45, color: "#ea580c" },
-  { minutes: 60, color: "#9333ea" },
-];
-export const WALK_METERS_PER_MIN = 80;
-const TRANSFER_METERS = 600;
-
-export interface IsochroneRequest {
-  origin: Coord;
-  stops: Stop[];
-  lines: TransitLine[];
-  period: PeriodId;
+export type IsochroneRequest = AccessibilityRequest;
+export interface IsochroneBand { minutes: number; color: string }
+export interface IsochroneResult {
+  contours: GeoJSON.FeatureCollection<GeoJSON.MultiLineString>;
+  fills: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>;
+  bands: IsochroneBand[];
+  reachableStops: number;
+  activeLines: number;
+  unconnectedStops: number;
+  resolutionMeters: number;
   maxMinutes: number;
 }
 
-export interface ReachablePoint {
-  coord: Coord;
-  minutes: number;
-  stopId?: string;
+export function isochroneBands(maxMinutes: number): IsochroneBand[] {
+  const maximum = Math.max(1, Math.ceil(maxMinutes));
+  const levels: number[] = [];
+  for (let minutes = 10; minutes < maximum; minutes += 10) levels.push(minutes);
+  levels.push(maximum);
+  return levels.map((minutes) => {
+    // A stable progression for the first hour, then purple for longer journeys.
+    const hue = minutes <= 60 ? 150 - minutes * 2.5 : 360 - Math.min(90, (minutes - 60) * 1.5);
+    const lightness = minutes <= 120 ? 43 : Math.max(22, 43 - (minutes - 120) / 20);
+    return { minutes, color: `hsl(${Math.round(hue)}, 72%, ${Math.round(lightness)}%)` };
+  });
 }
 
-export interface IsochroneResult {
-  areas: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>;
-  reachableStops: number;
-  activeLines: number;
-  resolutionMeters: number;
-}
-
-type Edge = { to: number; minutes: number };
-
-/** Off-board stop nodes and separate on-board nodes for each direction/occurrence.
- * Waiting is paid on boarding only, including after a transfer. Visibility is
- * deliberately ignored: hiding a line is a display preference, not a service cut.
- */
-export function reachablePoints(request: IsochroneRequest) {
-  const { origin, stops, lines, period, maxMinutes } = request;
-  const byId = new Map(stops.map((stop) => [stop.id, stop]));
-  const graph: Edge[][] = [];
-  const ground = new Map<string, number>();
-  let activeLines = 0;
-  const node = () => { graph.push([]); return graph.length - 1; };
-  const groundNode = (id: string) => {
-    if (!ground.has(id)) ground.set(id, node());
-    return ground.get(id)!;
-  };
-  for (const line of lines) {
-    const takt = line.takt[period];
-    if (takt == null || !Number.isFinite(takt) || takt <= 0) continue;
-    let served = false;
-    for (const direction of ["outbound", "inbound"] as const) {
-      const ids = direction === "outbound" ? line.outboundStopIds : line.inboundStopIds;
-      const onboard = new Map<number, number>();
-      const boardNode = (index: number) => {
-        if (!onboard.has(index)) {
-          const ride = node();
-          const stop = groundNode(ids[index]);
-          onboard.set(index, ride);
-          graph[stop].push({ to: ride, minutes: takt / 2 });
-          graph[ride].push({ to: stop, minutes: 0 });
-        }
-        return onboard.get(index)!;
-      };
-      for (let i = 0; i < ids.length - 1; i++) {
-        if (!byId.has(ids[i]) || !byId.has(ids[i + 1])) continue;
-        const segment = line.segments.find((s) => s.direction === direction &&
-          s.fromStopId === ids[i] && s.toStopId === ids[i + 1]);
-        if (!segment || !Number.isFinite(segment.travelMin) || segment.travelMin < 0) continue;
-        const from = boardNode(i);
-        const to = boardNode(i + 1);
-        graph[from].push({ to, minutes: segment.travelMin });
-        served = true;
-      }
-    }
-    if (served) activeLines++;
-  }
-
-  const servedStops = [...ground].map(([id, index]) => ({ stop: byId.get(id)!, index }));
-  const project = projection(origin);
-  const buckets = new Map<string, typeof servedStops>();
-  for (const item of servedStops) {
-    const coord: Coord = [item.stop.lon, item.stop.lat];
-    const xy = project.toXY(coord);
-    const x = Math.floor(xy[0] / TRANSFER_METERS);
-    const y = Math.floor(xy[1] / TRANSFER_METERS);
-    // Two cells of padding also cover the small projection distortion.
-    for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++) {
-      for (const other of buckets.get(`${x + dx},${y + dy}`) ?? []) {
-        const meters = haversine(coord, [other.stop.lon, other.stop.lat]);
-        if (meters > TRANSFER_METERS) continue;
-        graph[item.index].push({ to: other.index, minutes: meters / WALK_METERS_PER_MIN });
-        graph[other.index].push({ to: item.index, minutes: meters / WALK_METERS_PER_MIN });
-      }
-    }
-    const key = `${x},${y}`;
-    const bucket = buckets.get(key) ?? [];
-    bucket.push(item);
-    buckets.set(key, bucket);
-  }
-
-  const times = new Float64Array(graph.length).fill(Infinity);
-  const heap = new MinHeap();
-  const relax = (index: number, minutes: number) => {
-    if (minutes >= times[index] || minutes > maxMinutes) return;
-    times[index] = minutes;
-    heap.push(index, minutes);
-  };
-  for (const { stop, index } of servedStops) {
-    relax(index, haversine(origin, [stop.lon, stop.lat]) / WALK_METERS_PER_MIN);
-  }
-  while (heap.size) {
-    const current = heap.pop();
-    if (current.minutes !== times[current.to]) continue;
-    for (const edge of graph[current.to]) relax(edge.to, current.minutes + edge.minutes);
-  }
-  const points: ReachablePoint[] = [{ coord: origin, minutes: 0 }];
-  for (const { stop, index } of servedStops) {
-    if (times[index] <= maxMinutes) points.push({
-      coord: [stop.lon, stop.lat], minutes: times[index], stopId: stop.id,
-    });
-  }
-  return { points, activeLines };
-}
-
+/** Times follow OSM ways. The raster only widens their display into a narrow
+ * corridor; it never adds walking edges across rivers or disconnected streets. */
 export function calculateIsochrones(request: IsochroneRequest): IsochroneResult {
-  const { points, activeLines } = reachablePoints(request);
-  const { areas, resolutionMeters } = contourAreas(points, request.origin, request.maxMinutes);
-  return { areas, resolutionMeters, activeLines, reachableStops: points.length - 1 };
-}
-
-/** Sample the fastest transit + final walk time, then interpolate contour rings.
- * The grid covers all reachable destinations, independently of the map viewport.
- */
-export function contourAreas(points: ReachablePoint[], origin: Coord, maxMinutes: number) {
-  const project = projection(origin);
-  const seeds = points.filter((p) => p.minutes <= maxMinutes).map((p) => ({
-    xy: project.toXY(p.coord), minutes: p.minutes,
-    radius: (maxMinutes - p.minutes) * WALK_METERS_PER_MIN,
-  }));
-  let west = Infinity, south = Infinity, east = -Infinity, north = -Infinity;
-  for (const { xy: [x, y], radius } of seeds) {
-    west = Math.min(west, x - radius); east = Math.max(east, x + radius);
-    south = Math.min(south, y - radius); north = Math.max(north, y + radius);
+  const accessibility = calculateAccessibility(request);
+  const { xy, walkEdges, times, activeLines, unconnectedStops, stopTimes } = accessibility;
+  const project = projection(request.origin);
+  let west = Infinity, east = -Infinity, south = Infinity, north = -Infinity;
+  for (const edge of walkEdges) {
+    if (!Number.isFinite(times[edge.from]) && !Number.isFinite(times[edge.to])) continue;
+    for (const index of [edge.from, edge.to]) {
+      const [x, y] = xy[index];
+      west = Math.min(west, x); east = Math.max(east, x);
+      south = Math.min(south, y); north = Math.max(north, y);
+    }
   }
-  const step = Math.max(120, Math.sqrt((east - west) * (north - south) / 180_000));
+  if (!Number.isFinite(west)) throw new Error("Brak osiągalnych dróg pieszych z tego punktu.");
+  const step = Math.max(60, Math.sqrt((east - west) * (north - south) / 220_000));
+  const corridor = step * 0.8;
   west -= step * 2; south -= step * 2;
   const width = Math.ceil((east - west) / step) + 3;
   const height = Math.ceil((north - south) / step) + 3;
-  const values = new Float64Array(width * height).fill(maxMinutes + 10);
-  for (const { xy: [x, y], radius, minutes } of seeds) {
-    const pad = radius + step * 2;
-    const x0 = Math.max(0, Math.floor((x - pad - west) / step));
-    const x1 = Math.min(width - 1, Math.ceil((x + pad - west) / step));
-    const y0 = Math.max(0, Math.floor((y - pad - south) / step));
-    const y1 = Math.min(height - 1, Math.ceil((y + pad - south) / step));
+  const values = new Float64Array(width * height).fill(Infinity);
+  let maxMinutes = 0;
+  for (const edge of walkEdges) {
+    const ta = edge.forward ? times[edge.from] : Infinity;
+    const tb = edge.backward ? times[edge.to] : Infinity;
+    if (!Number.isFinite(ta) && !Number.isFinite(tb)) continue;
+    const a = xy[edge.from], b = xy[edge.to];
+    const dx = b[0] - a[0], dy = b[1] - a[1], length2 = dx * dx + dy * dy;
+    const x0 = Math.max(0, Math.floor((Math.min(a[0], b[0]) - corridor - west) / step));
+    const x1 = Math.min(width - 1, Math.ceil((Math.max(a[0], b[0]) + corridor - west) / step));
+    const y0 = Math.max(0, Math.floor((Math.min(a[1], b[1]) - corridor - south) / step));
+    const y1 = Math.min(height - 1, Math.ceil((Math.max(a[1], b[1]) + corridor - south) / step));
     for (let row = y0; row <= y1; row++) for (let col = x0; col <= x1; col++) {
-      const time = minutes + Math.hypot(west + col * step - x, south + row * step - y) / WALK_METERS_PER_MIN;
+      const x = west + col * step, y = south + row * step;
+      const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (length2 || 1)));
+      if (Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy) > corridor) continue;
+      const minutes = Math.min(ta + t * edge.meters / WALK_METERS_PER_MIN, tb + (1 - t) * edge.meters / WALK_METERS_PER_MIN);
       const index = row * width + col;
-      if (time < values[index]) values[index] = time;
+      if (minutes < values[index]) values[index] = minutes;
     }
   }
-  const areas: IsochroneResult["areas"] = { type: "FeatureCollection", features: [] };
-  // Largest polygons first: smaller time bands are painted on top.
-  for (const band of ISOCHRONE_BANDS.filter((b) => b.minutes <= maxMinutes).reverse()) {
-    const rings = traceContours(values, width, height, band.minutes);
-    const shells = rings.filter((ring) => signedArea(ring) > 0);
-    const holes = rings.filter((ring) => signedArea(ring) < 0);
-    const polygons = shells.map((shell) => [shell]);
-    for (const hole of holes) {
-      let owner = -1, area = Infinity;
-      for (let i = 0; i < shells.length; i++) {
-        const size = signedArea(shells[i]);
-        if (size < area && insideRing(hole[0], shells[i])) { owner = i; area = size; }
-      }
-      if (owner >= 0) polygons[owner].push(hole);
-    }
-    if (polygons.length) areas.features.push({
-      type: "Feature", properties: { minutes: band.minutes, color: band.color },
-      geometry: { type: "MultiPolygon", coordinates: polygons.map((polygon) =>
-        polygon.map((ring) => ring.map(([x, y]) => project.toCoord([west + x * step, south + y * step])))),
-      },
-    });
+  for (const value of values) if (Number.isFinite(value)) maxMinutes = Math.max(maxMinutes, value);
+  // Include farthest reachable endpoints even when a grid cell lies slightly before them.
+  for (const edge of walkEdges) for (const index of [edge.from, edge.to]) {
+    if (Number.isFinite(times[index])) maxMinutes = Math.max(maxMinutes, times[index]);
   }
-  return { areas, resolutionMeters: step };
+  const bands = isochroneBands(maxMinutes);
+  const contours: IsochroneResult["contours"] = { type: "FeatureCollection", features: [] };
+  const fills: IsochroneResult["fills"] = { type: "FeatureCollection", features: [] };
+  const toCoord = ([x, y]: Coord) => project.toCoord([west + x * step, south + y * step]);
+  const bandCells = new Int16Array(values.length).fill(-1);
+  for (let i = 0; i < values.length; i++) if (Number.isFinite(values[i])) {
+    bandCells[i] = Math.min(bands.length - 1, Math.max(0, Math.ceil(values[i] / 10) - 1));
+  }
+  for (let index = 0; index < bands.length; index++) {
+    const band = bands[index];
+    const paths = traceIsolines(values, width, height, band.minutes);
+    if (paths.length) contours.features.push({ type: "Feature", properties: band,
+      geometry: { type: "MultiLineString", coordinates: paths.map((path) => path.map(toCoord)) } });
+    const rings = traceCells(bandCells, width, height, index);
+    if (rings.length) fills.features.push({ type: "Feature", properties: band,
+      geometry: { type: "MultiPolygon", coordinates: polygonsFromRings(rings).map((polygon) => polygon.map((ring) => ring.map(toCoord))) } });
+  }
+  return { contours, fills, bands, activeLines, unconnectedStops, resolutionMeters: step, maxMinutes,
+    reachableStops: [...stopTimes.values()].filter(Number.isFinite).length };
 }
 
-/** Marching triangles avoids ambiguous saddle cells. Directed edges keep land
- * on the left, giving CCW shells and CW holes, including disconnected islands. */
-function traceContours(values: Float64Array, width: number, height: number, level: number): Coord[][] {
-  const next = new Map<string, string>();
-  const coords = new Map<string, Coord>();
+/** Join cell boundaries into disjoint colour bands without overlapping alpha. */
+function traceCells(cells: Int16Array, width: number, height: number, band: number): Coord[][] {
+  const stride = width + 1;
+  const next = new Map<number, number[]>();
+  const edge = (a: number, b: number) => { const list = next.get(a) ?? []; list.push(b); next.set(a, list); };
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const i = y * width + x;
+    if (cells[i] !== band) continue;
+    const a = y * stride + x, b = a + 1, c = b + stride, d = a + stride;
+    if (y === 0 || cells[i - width] !== band) edge(a, b);
+    if (x === width - 1 || cells[i + 1] !== band) edge(b, c);
+    if (y === height - 1 || cells[i + width] !== band) edge(c, d);
+    if (x === 0 || cells[i - 1] !== band) edge(d, a);
+  }
+  const point = (key: number): Coord => [key % stride - 0.5, Math.floor(key / stride) - 0.5];
+  const rings: Coord[][] = [];
+  while (next.size) {
+    const start = next.keys().next().value!;
+    let current = start, previous: number | undefined;
+    const ring: Coord[] = [];
+    do {
+      ring.push(point(current));
+      const exits = next.get(current);
+      if (!exits?.length) break;
+      let choice = 0;
+      if (previous !== undefined && exits.length > 1) {
+        const p = point(previous), q = point(current), dx = q[0] - p[0], dy = q[1] - p[1];
+        let best = -Infinity;
+        for (let i = 0; i < exits.length; i++) {
+          const r = point(exits[i]), ex = r[0] - q[0], ey = r[1] - q[1];
+          const angle = Math.atan2(dx * ey - dy * ex, dx * ex + dy * ey);
+          if (angle > best) { best = angle; choice = i; }
+        }
+      }
+      const target = exits.splice(choice, 1)[0];
+      if (!exits.length) next.delete(current);
+      previous = current; current = target;
+    } while (current !== start);
+    if (current === start && ring.length >= 4) {
+      // Drop collinear grid corners to keep city-wide GeoJSON compact.
+      const simple = ring.filter((p, i) => {
+        const a = ring[(i + ring.length - 1) % ring.length], b = ring[(i + 1) % ring.length];
+        return (p[0] - a[0]) * (b[1] - p[1]) !== (p[1] - a[1]) * (b[0] - p[0]);
+      });
+      if (simple.length >= 3) { simple.push(simple[0]); rings.push(simple); }
+    }
+  }
+  return rings;
+}
+
+function polygonsFromRings(rings: Coord[][]): Coord[][][] {
+  const shells = rings.filter((ring) => signedArea(ring) > 0);
+  const polygons = shells.map((shell) => [shell]);
+  const sizes = shells.map(signedArea);
+  const bounds = shells.map((ring) => {
+    let west = Infinity, south = Infinity, east = -Infinity, north = -Infinity;
+    for (const [x, y] of ring) { west = Math.min(west, x); south = Math.min(south, y); east = Math.max(east, x); north = Math.max(north, y); }
+    return { west, south, east, north };
+  });
+  for (const hole of rings.filter((ring) => signedArea(ring) < 0)) {
+    let owner = -1, area = Infinity;
+    const [x, y] = hole[0];
+    for (let i = 0; i < shells.length; i++) {
+      const box = bounds[i];
+      if (sizes[i] >= area || x < box.west || x > box.east || y < box.south || y > box.north) continue;
+      if (insideRing(hole[0], shells[i])) { owner = i; area = sizes[i]; }
+    }
+    if (owner >= 0) polygons[owner].push(hole);
+  }
+  return polygons;
+}
+
+/** True equal-time lines only. Unknown cells cannot create labelled boundaries. */
+function traceIsolines(values: Float64Array, width: number, height: number, level: number): Coord[][] {
+  const next = new Map<string, string>(), incoming = new Set<string>(), coords = new Map<string, Coord>();
   const threshold = level + 1e-7;
   const crossing = (a: number, b: number) => {
     const key = a < b ? `${a}:${b}` : `${b}:${a}`;
@@ -206,6 +181,7 @@ function traceContours(values: Float64Array, width: number, height: number, leve
     return key;
   };
   const triangle = (a: number, b: number, c: number) => {
+    if (![a, b, c].every((i) => Number.isFinite(values[i]))) return;
     const ids = [a, b, c];
     let entry: string | undefined, exit: string | undefined;
     for (let i = 0; i < 3; i++) {
@@ -213,32 +189,29 @@ function traceContours(values: Float64Array, width: number, height: number, leve
       if (values[from] <= threshold && values[to] > threshold) exit = crossing(from, to);
       if (values[from] > threshold && values[to] <= threshold) entry = crossing(from, to);
     }
-    if (entry && exit) next.set(exit, entry);
+    if (entry && exit) { next.set(exit, entry); incoming.add(entry); }
   };
   for (let y = 0; y < height - 1; y++) for (let x = 0; x < width - 1; x++) {
     const a = y * width + x, b = a + 1, c = b + width, d = a + width;
-    const below = [a, b, c, d].map((i) => values[i] <= threshold);
-    if (below.every(Boolean) || below.every((v) => !v)) continue;
+    if (values[a] > threshold && values[b] > threshold && values[c] > threshold && values[d] > threshold) continue;
+    if (values[a] <= threshold && values[b] <= threshold && values[c] <= threshold && values[d] <= threshold) continue;
     triangle(a, b, c); triangle(a, c, d);
   }
-  const rings: Coord[][] = [];
-  while (next.size) {
-    const first = next.keys().next().value!;
-    let key = first;
-    const ring: Coord[] = [];
-    do {
-      ring.push(coords.get(key)!);
-      const following = next.get(key);
-      next.delete(key);
-      if (!following) break;
-      key = following;
-    } while (key !== first);
-    if (key === first && ring.length >= 3) {
-      ring.push(ring[0]);
-      if (Math.abs(signedArea(ring)) > 1e-8) rings.push(ring);
+  const paths: Coord[][] = [];
+  const trace = (start: string) => {
+    const path: Coord[] = [coords.get(start)!];
+    let key = start;
+    while (next.has(key)) {
+      const target = next.get(key)!;
+      next.delete(key); key = target;
+      path.push(coords.get(key)!);
+      if (key === start) break;
     }
-  }
-  return rings;
+    if (path.length >= 2) paths.push(path);
+  };
+  for (const start of [...next.keys()].filter((key) => !incoming.has(key))) trace(start);
+  while (next.size) trace(next.keys().next().value!);
+  return paths;
 }
 
 function signedArea(ring: Coord[]) {
@@ -254,42 +227,4 @@ function insideRing([x, y]: Coord, ring: Coord[]) {
     if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
   }
   return inside;
-}
-
-function projection(origin: Coord) {
-  const lonScale = 111195 * Math.max(0.01, Math.cos(origin[1] * Math.PI / 180));
-  return {
-    toXY: (p: Coord): Coord => [(p[0] - origin[0]) * lonScale, (p[1] - origin[1]) * 111195],
-    toCoord: (p: Coord): Coord => [origin[0] + p[0] / lonScale, origin[1] + p[1] / 111195],
-  };
-}
-
-class MinHeap {
-  private items: Edge[] = [];
-  get size() { return this.items.length; }
-  push(to: number, minutes: number) {
-    const item = { to, minutes };
-    let i = this.items.length;
-    this.items.push(item);
-    while (i > 0) {
-      const parent = (i - 1) >> 1;
-      if (this.items[parent].minutes <= minutes) break;
-      this.items[i] = this.items[parent]; i = parent;
-    }
-    this.items[i] = item;
-  }
-  pop(): Edge {
-    const first = this.items[0], last = this.items.pop()!;
-    if (this.items.length) {
-      let i = 0;
-      while (i * 2 + 1 < this.items.length) {
-        let child = i * 2 + 1;
-        if (child + 1 < this.items.length && this.items[child + 1].minutes < this.items[child].minutes) child++;
-        if (last.minutes <= this.items[child].minutes) break;
-        this.items[i] = this.items[child]; i = child;
-      }
-      this.items[i] = last;
-    }
-    return first;
-  }
 }

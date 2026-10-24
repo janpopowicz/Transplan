@@ -1,4 +1,5 @@
 import type { Stop, TramTrack, TransitLine } from "../types";
+import { wholeMinuteTimes } from "./travelTime";
 
 const KEY = "transplan-krakow-v1";
 
@@ -14,7 +15,8 @@ export function loadState(): PersistShape | null {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as PersistShape;
+    const data = JSON.parse(raw) as PersistShape;
+    return { ...data, lines: wholeMinuteTimes(data.lines ?? []) };
   } catch {
     return null;
   }

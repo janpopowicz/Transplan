@@ -5,7 +5,7 @@ import { KRAKOW_CENTER } from "../constants";
 import { buildRenderSegments } from "../lib/interline";
 import { buildNetworkStopMarkers } from "../lib/networkStops";
 import { isNetworkView } from "../lib/mapViewMode";
-import { bearing, pointAlong, distToLine, metersPerPixel, stopGroupLabel } from "../lib/geo";
+import { distToLine, metersPerPixel, stopGroupLabel } from "../lib/geo";
 import { useStore } from "../store";
 import type { Coord, Stop } from "../types";
 import { IsochroneOverlay } from "./IsochroneOverlay";
@@ -30,7 +30,6 @@ const STYLE: maplibregl.StyleSpecification = {
 const TRACKS = "tracks";
 const DRAFT = "draft";
 const LINES = "lines";
-const ARROWS = "line-arrows";
 const STOPS = "stops";
 const HINTS = "hints";
 const PENDING = "pending";
@@ -169,25 +168,6 @@ function ensureSources(map: Map): void {
   add(TRACKS);
   add(DRAFT);
   add(LINES);
-  add(ARROWS);
-  if (!map.hasImage("direction-arrow")) {
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 32;
-    const ctx = canvas.getContext("2d")!;
-    ctx.beginPath();
-    ctx.moveTo(16, 3);
-    ctx.lineTo(27, 27);
-    ctx.lineTo(16, 21);
-    ctx.lineTo(5, 27);
-    ctx.closePath();
-    ctx.fillStyle = "#1a1714";
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 3;
-    ctx.lineJoin = "round";
-    ctx.stroke();
-    ctx.fill();
-    map.addImage("direction-arrow", ctx.getImageData(0, 0, 32, 32), { pixelRatio: 2 });
-  }
   add(STOPS);
   add(HINTS);
   add(PENDING);
@@ -287,18 +267,6 @@ function ensureSources(map: Map): void {
       },
     });
     map.addLayer({
-      id: "lines-arrows",
-      type: "symbol",
-      source: ARROWS,
-      layout: {
-        "icon-image": "direction-arrow",
-        "icon-rotate": ["get", "bearing"],
-        "icon-rotation-alignment": "map",
-        "icon-allow-overlap": true,
-        "icon-ignore-placement": true,
-      },
-    });
-    map.addLayer({
       id: "lines-label",
       type: "symbol",
       source: LINES,
@@ -331,6 +299,7 @@ function ensureSources(map: Map): void {
       id: "stops-circle",
       type: "circle",
       source: STOPS,
+      filter: ["==", ["get", "directional"], false],
       paint: {
         "circle-radius": [
           "interpolate",
@@ -364,6 +333,20 @@ function ensureSources(map: Map): void {
           13,
           ["case", ["==", ["get", "network"], 1], 1, 0.95],
         ],
+      },
+    });
+    map.addLayer({
+      id: "stops-direction",
+      type: "symbol",
+      source: STOPS,
+      filter: ["==", ["get", "directional"], true],
+      layout: {
+        "icon-image": ["get", "triangleImage"],
+        "icon-size": ["/", ["+", ["*", ["get", "radius"], 2], 3], 16],
+        "icon-rotate": ["get", "direction"],
+        "icon-rotation-alignment": "map",
+        "icon-allow-overlap": true,
+        "icon-ignore-placement": true,
       },
     });
     map.addLayer({
@@ -520,15 +503,6 @@ function syncLayersInner(map: Map): void {
     })),
   });
 
-  setData(map, ARROWS, {
-    type: "FeatureCollection",
-    features: render.filter((r) => r.oneWay).map((r) => ({
-      type: "Feature",
-      properties: { bearing: bearing(pointAlong(r.geometry, 0.62), pointAlong(r.geometry, 0.68)) },
-      geometry: { type: "Point", coordinates: pointAlong(r.geometry, 0.65) },
-    })),
-  });
-
   const visibleStops = s.stops.filter((st) => {
     if (!modeFilter) return true;
     return st.modes.includes(modeFilter);
@@ -538,8 +512,19 @@ function syncLayersInner(map: Map): void {
   const markers = network
     ? projected.map((marker) => ({ ...marker, network: 1 }))
     : visibleStops.map((stop) => ({ group: [stop], coord: [stop.lon, stop.lat] as Coord,
-      network: 0, lineId: "", color: "#fff", radius: 0 }));
-  const stopFeatures: GeoJSON.Feature[] = markers.map(({ group, coord, network, lineId, color, radius }) => ({
+      network: 0, lineId: "", color: "#fff", radius: 0, direction: null }));
+  for (const marker of markers) {
+    if (marker.direction === null || map.hasImage(`stop-triangle-${marker.color}`)) continue;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 32;
+    const ctx = canvas.getContext("2d")!;
+    ctx.beginPath();
+    ctx.moveTo(16, 3); ctx.lineTo(29, 28); ctx.lineTo(3, 28); ctx.closePath();
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = marker.color; ctx.lineWidth = 3;
+    ctx.lineJoin = "round"; ctx.fill(); ctx.stroke();
+    map.addImage(`stop-triangle-${marker.color}`, ctx.getImageData(0, 0, 32, 32), { pixelRatio: 2 });
+  }
+  const stopFeatures: GeoJSON.Feature[] = markers.map(({ group, coord, network, lineId, color, radius, direction }) => ({
     type: "Feature",
     properties: {
       id: group[0].id,
@@ -547,7 +532,8 @@ function syncLayersInner(map: Map): void {
       members: group.map((st) => st.id).join("|"),
       count: group.length,
       grouped: network && group.length > 1 ? 1 : 0,
-      network, lineId, color, radius,
+      network, lineId, color, radius, direction: direction ?? 0,
+      directional: direction !== null, triangleImage: `stop-triangle-${color}`,
       local: group.every((st) => st.source === "local") ? 1 : 0,
       tram: group.every((st) => st.modes.includes("tram") && !st.modes.includes("bus")) ? 1 : 0,
     },

@@ -1,16 +1,9 @@
 import { useCallback, useId, useRef } from "react";
-import { PERIODS, TAKT_OPTIONS } from "../constants";
+import { PERIODS } from "../constants";
 import type { PeriodId } from "../constants";
 import { formatTakt, tripsPerHour } from "../lib/geo";
-import { MAX_TRIPS_PER_HOUR, snapTaktFromTrips, tripsPerHourNum } from "../lib/takt";
+import { TAKT_STEPS, taktFromPosition, taktStepIndex } from "../lib/takt";
 
-const Y_TICKS = [
-  { trips: 15, label: "15" },
-  { trips: 10, label: "10" },
-  { trips: 6, label: "6" },
-  { trips: 3, label: "3" },
-  { trips: 0, label: "0" },
-];
 
 export function TaktGrid({
   value,
@@ -28,7 +21,7 @@ export function TaktGrid({
   return (
     <div className="takt" style={{ ["--takt-fill" as string]: color ?? "var(--accent)" }}>
       <h3>Takt w ciągu dnia</h3>
-      <p className="muted">Wyżej = więcej kursów. Przeciągnij słupki — skaczą po taktach 4–60 min.</p>
+      <p className="muted">Przeciągnij słupki. Każdy takt ma równy odstęp; wyżej = częściej.</p>
       <ProfileBand title="Dzień powszedni" periods={weekday} value={value} onChange={onChange} />
       <ProfileBand title="Weekend" periods={weekend} value={value} onChange={onChange} />
       <p className="takt-foot">
@@ -76,6 +69,7 @@ function ProfileBand({
         onPointerDown={(e) => {
           if (e.button !== 0) return;
           dragging.current = true;
+          last.current = {};
           e.currentTarget.setPointerCapture(e.pointerId);
           paint(e.clientX, e.clientY);
         }}
@@ -91,17 +85,17 @@ function ProfileBand({
         }}
       >
         <div className="takt-yaxis" aria-hidden>
-          <span className="takt-unit">kurs./h</span>
-          {Y_TICKS.map((t) => (
-            <span key={t.trips} style={{ bottom: `${(t.trips / MAX_TRIPS_PER_HOUR) * 100}%` }}>
-              {t.label}
+          <span className="takt-unit">min</span>
+          {TAKT_STEPS.map((t, index) => (
+            <span key={index} style={{ bottom: `${index / (TAKT_STEPS.length - 1) * 100}%` }}>
+              {t == null ? "—" : String(t).replace(".", ",")}
             </span>
           ))}
         </div>
         <div className="takt-plot">
           <div className="takt-gridlines" aria-hidden>
-            {Y_TICKS.filter((t) => t.trips > 0).map((t) => (
-              <i key={t.trips} style={{ bottom: `${(t.trips / MAX_TRIPS_PER_HOUR) * 100}%` }} />
+            {TAKT_STEPS.map((_, index) => (
+              <i key={index} style={{ bottom: `${index / (TAKT_STEPS.length - 1) * 100}%` }} />
             ))}
           </div>
           {periods.map((p) => (
@@ -123,8 +117,8 @@ function TaktColumn({
   onChange: (period: PeriodId, v: number | null) => void;
 }) {
   const labelId = useId();
-  const trips = tripsPerHourNum(takt);
-  const pct = (trips / MAX_TRIPS_PER_HOUR) * 100;
+  const index = taktStepIndex(takt);
+  const pct = index / (TAKT_STEPS.length - 1) * 100;
   const peakish = period.id === "wd_am" || period.id === "wd_pm";
 
   return (
@@ -140,11 +134,10 @@ function TaktColumn({
         className="takt-track"
         role="slider"
         tabIndex={0}
-        aria-labelledby={labelId}
         aria-label={`${period.label} ${period.hours}`}
         aria-valuemin={0}
-        aria-valuemax={MAX_TRIPS_PER_HOUR}
-        aria-valuenow={Math.round(trips * 10) / 10}
+        aria-valuemax={TAKT_STEPS.length - 1}
+        aria-valuenow={index}
         aria-valuetext={
           takt == null ? "brak kursów" : `${formatTakt(takt)}, ${tripsPerHour(takt)} kursów na godzinę`
         }
@@ -152,14 +145,14 @@ function TaktColumn({
           if (e.key !== "ArrowUp" && e.key !== "ArrowDown" && e.key !== "Home" && e.key !== "End") return;
           e.preventDefault();
           if (e.key === "Home") {
-            onChange(period.id, 4);
-            return;
-          }
-          if (e.key === "End") {
             onChange(period.id, null);
             return;
           }
-          onChange(period.id, stepTakt(takt, e.key === "ArrowUp" ? -1 : 1));
+          if (e.key === "End") {
+            onChange(period.id, TAKT_STEPS.at(-1)!);
+            return;
+          }
+          onChange(period.id, TAKT_STEPS[Math.max(0, Math.min(TAKT_STEPS.length - 1, index + (e.key === "ArrowUp" ? 1 : -1)))]);
         }}
       >
         <div className="takt-bar" style={{ height: `${pct}%` }} />
@@ -172,20 +165,10 @@ function TaktColumn({
   );
 }
 
-function stepTakt(current: number | null, dir: -1 | 1): number | null {
-  const ladder: (number | null)[] = [...TAKT_OPTIONS, null];
-  const i = ladder.findIndex((x) => x === current);
-  const idx = i < 0 ? 0 : i;
-  const next = idx + dir;
-  if (next < 0) return ladder[0];
-  if (next >= ladder.length) return null;
-  return ladder[next];
-}
-
 function taktFromY(clientY: number, rect: DOMRect): number | null {
   if (rect.height <= 0) return null;
   const t = (rect.bottom - clientY) / rect.height;
-  return snapTaktFromTrips(t * MAX_TRIPS_PER_HOUR);
+  return taktFromPosition(t);
 }
 
 function shortHours(hours: string): string {

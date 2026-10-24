@@ -1,29 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { GeoJSONSource, Map as MapLibre } from "maplibre-gl";
 import { PERIODS, type PeriodId } from "../constants";
-import { ISOCHRONE_BANDS, type IsochroneResult } from "../lib/isochrones";
+import type { IsochroneResult } from "../lib/isochrones";
 import { useIsochroneState } from "../lib/isochroneState";
-import type { IsochroneReply } from "../lib/isochrones.worker";
+import type { IsochroneJob, IsochroneReply } from "../lib/isochrones.worker";
+import { getIsochroneWorker, nextIsochroneRequestId, resetIsochroneWorker } from "../lib/isochroneClient";
 import { useStore } from "../store";
 
 const AREAS = "isochrone-areas";
+const FILLS = "isochrone-fills";
 const ORIGIN = "isochrone-origin";
 const LAYERS = ["isochrone-fill", "isochrone-contours", "isochrone-labels", "isochrone-origin-dot"];
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 
 export function IsochroneOverlay({ map }: { map: MapLibre }) {
-  const { origin, period, maxMinutes, setOrigin, setPeriod, setMaxMinutes } = useIsochroneState();
-  const stops = useStore((s) => s.stops);
-  const lines = useStore((s) => s.lines);
+  const { origin, period, setOrigin, setPeriod } = useIsochroneState();
+  const workerRef = useRef<Worker | null>(null);
+  const requestId = useRef(0);
+  const [progress, setProgress] = useState("");
+  const [retry, setRetry] = useState(0);
   const [result, setResult] = useState<IsochroneResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     map.addSource(AREAS, { type: "geojson", data: EMPTY });
+    map.addSource(FILLS, { type: "geojson", data: EMPTY });
     map.addSource(ORIGIN, { type: "geojson", data: EMPTY });
     const before = map.getLayer("tracks-construction") ? "tracks-construction" : undefined;
-    map.addLayer({ id: LAYERS[0], type: "fill", source: AREAS,
+    map.addLayer({ id: LAYERS[0], type: "fill", source: FILLS,
       paint: { "fill-color": ["get", "color"], "fill-opacity": 0.23, "fill-antialias": false },
     }, before);
     map.addLayer({ id: LAYERS[1], type: "line", source: AREAS,
@@ -43,40 +48,57 @@ export function IsochroneOverlay({ map }: { map: MapLibre }) {
       // The parent may already have removed the map during application teardown.
       if (!map.getStyle()) return;
       for (const id of [...LAYERS].reverse()) if (map.getLayer(id)) map.removeLayer(id);
-      for (const id of [AREAS, ORIGIN]) if (map.getSource(id)) map.removeSource(id);
+      for (const id of [AREAS, FILLS, ORIGIN]) if (map.getSource(id)) map.removeSource(id);
     };
   }, [map]);
 
   useEffect(() => {
+    try {
+      const worker = getIsochroneWorker();
+      workerRef.current = worker;
+      const onMessage = (event: MessageEvent<IsochroneReply>) => {
+        const reply = event.data;
+        if (reply.id !== requestId.current) return;
+        if (reply.progress) { setProgress(reply.progress); return; }
+        setLoading(false);
+        if (reply.result) {
+          setResult(reply.result);
+          (map.getSource(AREAS) as GeoJSONSource | undefined)?.setData(reply.result.contours);
+          (map.getSource(FILLS) as GeoJSONSource | undefined)?.setData(reply.result.fills);
+        } else setError(reply.error ?? "Nie udało się obliczyć izochron.");
+      };
+      const onError = () => {
+        resetIsochroneWorker();
+        setLoading(false);
+        setError("Nie udało się obliczyć izochron. Spróbuj ponownie.");
+      };
+      worker.addEventListener("message", onMessage);
+      worker.addEventListener("error", onError);
+      return () => {
+        worker.removeEventListener("message", onMessage);
+        worker.removeEventListener("error", onError);
+        workerRef.current = null;
+      };
+    } catch {
+      setError("Nie udało się uruchomić obliczeń.");
+    }
+  }, [map, retry]);
+
+  useEffect(() => {
     const data = (id: string, value: GeoJSON.GeoJSON) => (map.getSource(id) as GeoJSONSource | undefined)?.setData(value);
-    data(AREAS, EMPTY);
+    requestId.current = nextIsochroneRequestId();
+    data(AREAS, EMPTY); data(FILLS, EMPTY);
     data(ORIGIN, origin ? { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: origin } } : EMPTY);
     setResult(null);
     setError(null);
-    setLoading(Boolean(origin));
+    setLoading(Boolean(origin && workerRef.current));
     if (!origin) return;
-    let worker: Worker | undefined;
-    try {
-      worker = new Worker(new URL("../lib/isochrones.worker.ts", import.meta.url), { type: "module" });
-      worker.onmessage = (event: MessageEvent<IsochroneReply>) => {
-        setLoading(false);
-        if (event.data.result) {
-          setResult(event.data.result);
-          data(AREAS, event.data.result.areas);
-        } else setError(event.data.error);
-      };
-      worker.onerror = () => {
-        setLoading(false);
-        setError("Nie udało się obliczyć izochron. Wybierz punkt ponownie.");
-      };
-      worker.postMessage({ origin, stops, lines, period, maxMinutes });
-    } catch {
-      setLoading(false);
-      setError("Nie udało się uruchomić obliczeń. Wybierz punkt ponownie.");
-    }
-    // Terminating prevents older clicks/settings from overwriting newer results.
-    return () => worker?.terminate();
-  }, [map, origin, stops, lines, period, maxMinutes]);
+    if (!workerRef.current) { setError("Nie udało się uruchomić obliczeń."); return; }
+    setProgress("Wczytuję sieć pieszą OSM. Pierwsze pobranie: do 30 sekund, kolejne obliczenia korzystają z pamięci…");
+    const { stops, lines } = useStore.getState();
+    workerRef.current.postMessage({ id: requestId.current, request: { origin, stops, lines, period } } satisfies IsochroneJob);
+    // One snapshot per chosen origin/period; zoom and unrelated edits do not rerun it.
+  }, [map, origin, period, retry]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -99,30 +121,30 @@ export function IsochroneOverlay({ map }: { map: MapLibre }) {
         </optgroup>)}
       </select>
     </label>
-    <label className="field">Maksymalny czas podróży
-      <select value={maxMinutes} onChange={(e) => setMaxMinutes(Number(e.target.value))}>
-        {[30, 45, 60].map((minutes) => <option key={minutes} value={minutes}>{minutes} min</option>)}
-      </select>
-    </label>
-    <ul className="isochrone-legend" aria-label="Legenda czasu dojazdu">
-      {ISOCHRONE_BANDS.filter((b) => b.minutes <= maxMinutes).map((band, index) => <li key={band.minutes}>
+    {result && <ul className="isochrone-legend" aria-label="Legenda czasu dojazdu">
+      {result.bands.map((band, index) => <li key={band.minutes}>
         <i style={{ background: band.color }} aria-hidden="true" />
-        <span>{index === 0 ? "0" : ISOCHRONE_BANDS[index - 1].minutes}–{band.minutes} min</span>
+        <span>{index === 0 ? "0" : result.bands[index - 1].minutes}–{band.minutes} min</span>
       </li>)}
-    </ul>
+    </ul>}
     <div role="status" aria-live="polite">
-      {loading && <p className="live">Obliczam dostępność…</p>}
+      {loading && <p className="live">{progress}</p>}
       {result && <p>{result.activeLines === 0 ? "Brak kursujących linii w projekcie o tej porze — pokazuję zasięg pieszy." :
         `Czynne linie: ${result.activeLines} · osiągalne przystanki: ${result.reachableStops}`}</p>}
     </div>
-    {error && <p className="err" role="alert">{error}</p>}
+    {result && <p className="muted">Cała osiągalna sieć w obszarze Krakowa i okolic · do {Math.ceil(result.maxMinutes)} min.
+      {result.unconnectedStops > 0 && ` Bez połączenia z siecią pieszą: ${result.unconnectedStops} przystanków.`}</p>}
+    {error && <><p className="err" role="alert">{error}</p>
+      <button className="ghost compact" onClick={() => setRetry((value) => value + 1)}>Spróbuj ponownie</button></>}
     <details className="isochrone-assumptions">
       <summary>Jak liczymy czas?</summary>
       <p>Linie z tego projektu, także ukryte na mapie. Dojście i odejście pieszo: 4,8 km/h.
-        Oczekiwanie: połowa taktu przy każdym wejściu do pojazdu. Przesiadki piesze do 600 m.
+        Oczekiwanie: połowa taktu przy każdym wejściu do pojazdu. Dojścia, odejścia i przesiadki po drogach, chodnikach i przejściach OSM.
         Czas jazdy pochodzi z odcinków linii.</p>
-      <p>Wynik szacunkowy: pieszo w linii prostej, bez uwzględnienia rzek, ogrodzeń i przejść.
-        Bez bieżącego rozkładu i opóźnień.{result && ` Dokładność siatki: około ${Math.round(result.resolutionMeters)} m.`}</p>
+      <p>Punkt startowy łączymy z najbliższą drogą pieszą do 150 m, a przystanki do 80 m.
+        Te krótkie łączniki są szacunkowe. Braki w OSM mogą ograniczyć zasięg.
+        Bez bieżącego rozkładu i opóźnień. Kolory pokazują otoczenie osiągalnych dróg,
+        a nie dostępność każdego budynku.{result && ` Dokładność rysunku: około ${Math.round(result.resolutionMeters)} m.`}</p>
     </details>
     {origin && <div className="isochrone-point"><span>Start: {origin[1].toFixed(4)}, {origin[0].toFixed(4)}</span>
       <button className="ghost compact" onClick={() => setOrigin(null)}>Wyczyść</button>

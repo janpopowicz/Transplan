@@ -2,6 +2,7 @@ import { AVERAGE_SPEED_KMH, BUS_VEHICLES, LINE_COLORS, TRAM_VEHICLES } from "../
 import { cycleMinutes, peakTakt, vehiclesNeeded } from "../lib/takt";
 import { formatTakt } from "../lib/geo";
 import { useStore } from "../store";
+import { dailyLineCost, formatMoney } from "../lib/costs";
 import { TaktGrid } from "./TaktGrid";
 
 export function LinePanel() {
@@ -29,22 +30,16 @@ export function LinePanel() {
   return (
     <aside className="inspector">
       <header className="insp-h">
-        <span className="badge lg" style={{ background: line.color }}>
-          {line.number}
-        </span>
-        <div>
-          <input
-            className="title-input"
-            value={line.name}
-            placeholder="Nazwa linii"
-            onChange={(e) => updateLine(line.id, { name: e.target.value })}
-          />
-          <p className="muted">{line.mode === "bus" ? "Autobus" : "Tramwaj"}</p>
-        </div>
+        <span className="badge" style={{ background: line.color }}>{line.number}</span>
+        <strong className="inspector-title" title={line.name}>{line.name || (line.mode === "bus" ? "Autobus" : "Tramwaj")}</strong>
         <button type="button" className="icon-btn close-inspector"
           aria-label="Zamknij panel linii" title="Zamknij panel linii" onClick={() => selectLine(null)}>×</button>
       </header>
 
+      <label className="field">Nazwa linii
+        <input className="title-input" value={line.name} placeholder="Nazwa linii"
+          onChange={(e) => updateLine(line.id, { name: e.target.value })} />
+      </label>
       <label className="field">
         Numer
         <input value={line.number} onChange={(e) => updateLine(line.id, { number: e.target.value })} />
@@ -89,7 +84,7 @@ export function LinePanel() {
           {line.segments.length > 0 && <span>{line.segments.length}</span>}
         </summary>
         <p className="muted">Nowe odcinki: długość trasy przy {String(AVERAGE_SPEED_KMH[line.mode]).replace(".", ",")} km/h,
-          zaokrąglona do 0,5 min. Możesz zmienić czas ręcznie lub przywrócić obliczenie przyciskiem ↻.</p>
+          zaokrąglona do 1 min. Możesz zmienić czas ręcznie lub przywrócić obliczenie przyciskiem ↻.</p>
         {line.segments.length === 0 ? (
           <p className="empty-hint">Brak odcinków — pojawią się po dodaniu przystanków.</p>
         ) : (
@@ -103,8 +98,8 @@ export function LinePanel() {
                   aria-label={`Czas: ${nameOf(seg.fromStopId)} → ${nameOf(seg.toStopId)}`}
                   title={seg.travelTimeSource === "auto" ? "Czas obliczony z długości trasy" : "Czas ustawiony ręcznie"}
                   type="number"
-                  min={0.5}
-                  step={0.5}
+                  min={1}
+                  step={1}
                   value={seg.travelMin}
                   onChange={(e) => setSegmentTime(line.id, seg.id, Number(e.target.value))}
                 />
@@ -118,6 +113,15 @@ export function LinePanel() {
         )}
       </details>
 
+      <details className="fold">
+        <summary>Koszt kursowania</summary>
+        <dl className="cost-breakdown">
+          <dt>Dzień roboczy</dt><dd>{formatMoney(dailyLineCost(line, "weekday").cost)}</dd>
+          <dt>Dzień weekendu</dt><dd>{formatMoney(dailyLineCost(line, "weekend").cost)}</dd>
+        </dl>
+        <p className="muted">Długość obu kierunków × liczba kursów wynikająca z taktów.
+          Stawka: {line.mode === "bus" ? "14,09" : "28,33"} zł/wozokm. Bez dojazdów do zajezdni.</p>
+      </details>
       <fieldset className="seg">
         <legend>Tabor</legend>
         <div className="pills">

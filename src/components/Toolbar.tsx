@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useStore } from "../store";
+import { NetworkCost } from "./NetworkCost";
 import type { Mode } from "../types";
 
 export function Toolbar() {
@@ -11,6 +12,9 @@ export function Toolbar() {
   const exportJson = useStore((s) => s.exportJson);
   const importJson = useStore((s) => s.importJson);
   const [dialog, setDialog] = useState<Mode | null>(null);
+
+  const menuRef = useRef<HTMLDetailsElement>(null);
+  const lineMenuRef = useRef<HTMLDetailsElement>(null);
 
   return (
     <header className="topbar">
@@ -25,50 +29,52 @@ export function Toolbar() {
       <nav className="tools" aria-label="Narzędzia">
         <ToolBtn active={tool === "select" && !drawing} onClick={() => setTool("select")} label="Wybór" kbd="V" />
         <ToolBtn active={tool === "isochrones"} onClick={() => setTool(tool === "isochrones" ? "select" : "isochrones")} label="Izochrony" />
-        <ToolBtn
-          active={tool === "draw-bus" || drawing?.mode === "bus"}
-          onClick={() => setDialog("bus")}
-          label="Linia autobusowa"
-          kbd="A"
-        />
-        <ToolBtn
-          active={tool === "draw-tram" || drawing?.mode === "tram"}
-          onClick={() => setDialog("tram")}
-          label="Linia tramwajowa"
-          kbd="T"
-        />
-        <span className="tools-split" />
+        <details className="toolbar-menu new-line-menu" ref={lineMenuRef}>
+          <summary className={drawing ? "tool on" : "tool"}>Nowa linia ▾</summary>
+          <div className="toolbar-popover menu-tools">
+            {(["bus", "tram"] as const).map((mode) => (
+              <button key={mode} className="tool" onClick={() => {
+                setDialog(mode);
+                if (lineMenuRef.current) lineMenuRef.current.open = false;
+              }}>{mode === "bus" ? "Autobusowa" : "Tramwajowa"}</button>
+            ))}
+          </div>
+        </details>
+        <span className="tools-split" aria-hidden />
         <ToolBtn active={tool === "add-stop"} onClick={() => setTool("add-stop")} label="Nowy przystanek" />
         <ToolBtn active={tool === "move-stop"} onClick={() => setTool("move-stop")} label="Przesuń przystanek" />
         <ToolBtn active={tool === "draw-track"} onClick={() => setTool("draw-track")} label="Rysuj torowisko" />
-        <ToolBtn
-          active={tool === "toggle-construction"}
-          onClick={() => setTool("toggle-construction")}
-          label="Budowa ↔ ruch"
-        />
+        <ToolBtn active={tool === "toggle-construction"} onClick={() => setTool("toggle-construction")} label="Budowa ↔ ruch" />
       </nav>
 
-      <div className="top-actions">
-        <button className="ghost" onClick={() => loadOsm(true)} disabled={osm.loading}>
-          {osm.loading ? "Wczytuję OSM…" : "Odśwież OSM"}
-        </button>
-        <button className="ghost" onClick={exportJson}>
-          Eksportuj
-        </button>
-        <label className="ghost file-btn">
-          Importuj
-          <input
-            type="file"
-            accept="application/json"
-            hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void importJson(f);
-              e.target.value = "";
-            }}
-          />
-        </label>
-      </div>
+      <NetworkCost />
+      <details className="toolbar-menu more-tools" ref={menuRef}>
+        <summary className="tool" aria-label="Plik i dane projektu">Plik ▾</summary>
+        <div className="toolbar-popover">
+          <p className="kicker">Dane projektu</p>
+          <div className="menu-file-actions">
+            <button className="ghost" onClick={() => loadOsm(true)} disabled={osm.loading}>
+              {osm.loading ? "Wczytuję OSM…" : "Odśwież OSM"}
+            </button>
+            <button className="ghost" onClick={() => { exportJson(); if (menuRef.current) menuRef.current.open = false; }}>
+              Eksportuj
+            </button>
+            <label className="ghost file-btn">
+              Importuj
+              <input
+                type="file"
+                accept="application/json"
+                hidden
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void importJson(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+        </div>
+      </details>
 
       {dialog && <NewLineDialog mode={dialog} onClose={() => setDialog(null)} />}
     </header>

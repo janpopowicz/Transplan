@@ -1,6 +1,8 @@
+import { StopGroupSuggestions } from "./StopGroupSuggestions";
 import { useStore, linesAtStop } from "../store";
 
 export function StopPanel() {
+  const joinStopGroup = useStore((s) => s.joinStopGroup);
   const id = useStore((s) => s.selectedStopId);
   const stop = useStore((s) => s.stops.find((x) => x.id === id));
   const allLines = useStore((s) => s.lines);
@@ -31,6 +33,8 @@ export function StopPanel() {
 
       <button type="button" className="ghost" onClick={() => setTool("move-stop")}>Przesuń przystanek</button>
 
+      <StopGroupSuggestions lon={stop.lon} lat={stop.lat} stopId={stop.id}
+        onChoose={(nearbyId) => joinStopGroup(stop.id, nearbyId)} />
       <h3>Linie na tym przystanku</h3>
       {lines.length === 0 && <p className="empty-hint">Żadna linia tu nie zatrzymuje.</p>}
       <ul className="stop-lines">

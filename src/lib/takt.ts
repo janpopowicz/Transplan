@@ -16,6 +16,22 @@ export function vehiclesNeeded(line: TransitLine, takt: number | null): number |
 
 export const MAX_TRIPS_PER_HOUR = 15; // takt 4 min
 
+/** Equal-sized steps, from no service at the bottom to the shortest headway. */
+export const TAKT_STEPS: (number | null)[] = [null, ...[...TAKT_OPTIONS].reverse()];
+
+export function taktStepIndex(takt: number | null): number {
+  if (takt == null) return 0;
+  let best = 1;
+  for (let i = 2; i < TAKT_STEPS.length; i++) {
+    if (Math.abs(TAKT_STEPS[i]! - takt) < Math.abs(TAKT_STEPS[best]! - takt)) best = i;
+  }
+  return best;
+}
+
+export function taktFromPosition(fraction: number): number | null {
+  return TAKT_STEPS[Math.round(Math.max(0, Math.min(1, fraction)) * (TAKT_STEPS.length - 1))];
+}
+
 export function tripsPerHourNum(takt: number | null): number {
   if (takt == null || takt <= 0) return 0;
   return 60 / takt;

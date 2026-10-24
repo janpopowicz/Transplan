@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "../store";
+import { StopGroupSuggestions } from "./StopGroupSuggestions";
 import type { Mode } from "../types";
 
 export function AddStopDialog() {
@@ -9,6 +10,11 @@ export function AddStopDialog() {
   const [name, setName] = useState("");
   const [bus, setBus] = useState(true);
   const [tram, setTram] = useState(false);
+
+  const [nearbyId, setNearbyId] = useState("");
+  useEffect(() => {
+    setName(""); setBus(true); setTram(false); setNearbyId("");
+  }, [pending]);
 
   if (!pending) return null;
 
@@ -23,7 +29,7 @@ export function AddStopDialog() {
         onClick={(e) => e.stopPropagation()}
         onSubmit={(e) => {
           e.preventDefault();
-          confirmAddStop(name, modes.length ? modes : ["bus"]);
+          confirmAddStop(name, modes, nearbyId || undefined);
           setName("");
           setBus(true);
           setTram(false);
@@ -38,21 +44,19 @@ export function AddStopDialog() {
           Nazwa
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="np. Os. nowy" />
         </label>
-        <div className="checks">
-          <label className="check">
-            <input type="checkbox" checked={bus} onChange={(e) => setBus(e.target.checked)} />
-            Autobus
-          </label>
-          <label className="check">
-            <input type="checkbox" checked={tram} onChange={(e) => setTram(e.target.checked)} />
-            Tramwaj
-          </label>
+        <div className="mode-choices" role="group" aria-label="Rodzaj przystanku">
+          <button type="button" className={bus ? "mode-choice selected" : "mode-choice"}
+            aria-pressed={bus} onClick={() => setBus(!bus)}>Autobus {bus && "✓"}</button>
+          <button type="button" className={tram ? "mode-choice selected" : "mode-choice"}
+            aria-pressed={tram} onClick={() => setTram(!tram)}>Tramwaj {tram && "✓"}</button>
         </div>
+        {!modes.length && <p className="muted">Wybierz co najmniej jeden rodzaj transportu.</p>}
+        <StopGroupSuggestions lon={pending.lon} lat={pending.lat} selectedId={nearbyId} onChoose={setNearbyId} />
         <div className="modal-actions">
           <button type="button" className="ghost" onClick={cancelAddStop}>
             Anuluj
           </button>
-          <button type="submit" className="primary">
+          <button type="submit" className="primary" disabled={!modes.length}>
             Dodaj
           </button>
         </div>

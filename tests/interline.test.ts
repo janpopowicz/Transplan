@@ -20,7 +20,7 @@ function segment(a: Stop, b: Stop, direction: LineSegment["direction"] = "outbou
 function line(id: string, segments: LineSegment[]): TransitLine {
   return { id, number: id, color: "#c41e3a", name: id, mode: "bus", vehicle: "12m", visible: true,
     outboundStopIds: [], inboundStopIds: [], terminus1Id: null, terminus2Id: null,
-    segments, takt: { ...DEFAULT_TAKT }, layoverMin: 5 };
+    segments, takt: { ...DEFAULT_TAKT, wd_am: 10, wd_pm: 10 }, layoverMin: 5 };
 }
 const render = (lines: TransitLine[], stops: Stop[], metersPerPx = 1) =>
   buildRenderSegments(lines, { stops, metersPerPx, collapseDirections: true });
@@ -203,4 +203,51 @@ test("screen offsets use MapLibre's 512-pixel zoom convention", () => {
   const geographicMeters = haversine([19, latitude], [19.001, latitude]);
   const screenPixels = 0.001 / 360 * 512 * 2 ** zoom;
   assert.ok(Math.abs(metersPerPixel(latitude, zoom) * screenPixels / geographicMeters - 1) < 0.002);
+});
+
+test("automatic groups match full base names within 150m, including manually assigned platforms", async () => {
+  const { clusterStops, stopGroupKey } = await import("../src/lib/geo");
+  const { STOP_GROUP_METERS } = await import("../src/constants");
+  assert.equal(STOP_GROUP_METERS, 150);
+  const p = [
+    { ...stop("r1", 0, 0, "Rondo Młyńskie 02"), groupId: "manual" },
+    stop("r2", 140, 0, "Rondo Młyńśkie 03"),
+    stop("r3", 310, 0, "Rondo Młyńskie 04"),
+    stop("p1", 0, 0, "Prokocim 01"),
+    stop("p2", 10, 0, "Prokocim Szpitale Uniwersyteckie 02"),
+    stop("p3", 20, 0, "Prokocim 03"),
+  ];
+  const groups = clusterStops(p, STOP_GROUP_METERS).map((g) => g.map((s) => s.id).sort());
+  assert.deepEqual(groups, [["r1", "r2"], ["r3"], ["p1", "p3"], ["p2"]]);
+  assert.notEqual(stopGroupKey("Prokocim"), stopGroupKey("Prokocim Szpitale Uniwersyteckie"));
+  assert.equal(stopGroupKey("Rondo Młyńskie 02"), stopGroupKey("Rondo Młyńśkie 03"));
+  assert.notEqual(stopGroupKey("Aleja 29 Listopada 01"), stopGroupKey("Aleja 3 Maja 01"));
+});
+
+test("one-direction calls get triangles even on a collapsed two-way corridor", () => {
+  for (const onlyInbound of [false, true]) {
+    const segments = onlyInbound
+      ? [segment(a, c), segment(c, b, "inbound"), segment(b, a, "inbound")]
+      : [segment(a, b), segment(b, c), segment(c, a, "inbound")];
+    const route = { ...line("asymmetric", segments),
+      outboundStopIds: onlyInbound ? [a.id, c.id] : [a.id, b.id, c.id],
+      inboundStopIds: onlyInbound ? [c.id, b.id, a.id] : [c.id, a.id] };
+    const rendered = render([route], [a, b, c]);
+    assert.ok(rendered.every((r) => !r.oneWay));
+    const markers = buildNetworkStopMarkers([route], [a, b, c], rendered);
+    const atB = markers.find((m) => m.group[0].id === b.id)!;
+    assert.ok(atB.direction !== null);
+    assert.ok(Math.abs(atB.direction! - (onlyInbound ? 270 : 90)) < 1);
+    assert.ok(markers.filter((m) => m !== atB).every((m) => m.direction === null));
+  }
+});
+
+test("opposite platforms served in different directions retain a circular group marker", () => {
+  const b1 = stop("b1", 300, -10, "Beta 01"), b2 = stop("b2", 300, 10, "Beta 02");
+  const route = line("both", [segment(a, b1), segment(b1, c),
+    segment(c, b2, "inbound"), segment(b2, a, "inbound")]);
+  const platforms = [a, b1, b2, c];
+  const markers = buildNetworkStopMarkers([route], platforms, render([route], platforms));
+  assert.equal(markers.length, 3);
+  assert.ok(markers.every((m) => m.direction === null));
 });

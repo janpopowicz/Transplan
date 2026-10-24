@@ -5,6 +5,7 @@ import {
   DEFAULT_TAKT,
   LINE_COLORS,
   SNAP_METERS,
+  STOP_GROUP_METERS,
 } from "./constants";
 import type { PeriodId } from "./constants";
 import type {
@@ -27,8 +28,8 @@ import { routeBetween } from "./lib/routing";
 import { roadGraph, tramGraph } from "./lib/tramGraph";
 import { exportProposal, loadState, saveState } from "./lib/persist";
 import { mergeStopPositions } from "./lib/stopEditing";
-import { haversine, nearestPointOnLine, pathDistances } from "./lib/geo";
-import { estimateTravelMinutes } from "./lib/travelTime";
+import { clusterStops, haversine, nearestPointOnLine, pathDistances } from "./lib/geo";
+import { estimateTravelMinutes, wholeMinuteTimes } from "./lib/travelTime";
 
 interface AppState {
   tool: EditorTool;
@@ -80,7 +81,8 @@ interface AppState {
   removeLineFromStop: (stopId: string, lineId: string) => Promise<void>;
 
   openAddStop: (coord: Coord) => void;
-  confirmAddStop: (name: string, modes: Mode[]) => void;
+  confirmAddStop: (name: string, modes: Mode[], nearbyStopId?: string) => void;
+  joinStopGroup: (stopId: string, nearbyStopId: string) => void;
   cancelAddStop: () => void;
   deleteLocalStop: (id: string) => void;
   moveStop: (id: string, coord: Coord) => Promise<void>;
@@ -100,7 +102,7 @@ function persistSlice(s: AppState): void {
   saveState({
     lines: s.lines,
     localStops: s.stops.filter((x) => x.source === "local"),
-    movedStops: s.stops.filter((x) => x.source === "osm" && x.originalPosition),
+    movedStops: s.stops.filter((x) => x.source === "osm" && (x.originalPosition || x.groupId)),
     localTracks: s.tracks.filter((x) => x.source === "local"),
     constructionOverrides: s.constructionOverrides,
   });
@@ -275,7 +277,7 @@ export const useStore = create<AppState>((set, get) => ({
     const cache = force ? null : readOsmCache();
 
     if (cache) {
-      const mergedStops = mergeStopPositions(cache.stops, localStops, get().stops.filter((s) => s.originalPosition));
+      const mergedStops = mergeStopPositions(cache.stops, localStops, get().stops.filter((s) => s.originalPosition || s.groupId));
       const mergedTracks = applyOverrides(
         [...cache.tracks.map(withKind), ...localTracks.map(withKind)],
         overrides,
@@ -303,7 +305,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const [osmStops, osmTracks] = await Promise.all([fetchOsmStops(), fetchTramTracks()]);
       writeOsmCache(osmStops, osmTracks);
-      const mergedStops = mergeStopPositions(osmStops, get().stops.filter((s) => s.source === "local"), get().stops.filter((s) => s.originalPosition));
+      const mergedStops = mergeStopPositions(osmStops, get().stops.filter((s) => s.source === "local"), get().stops.filter((s) => s.originalPosition || s.groupId));
       const mergedTracks = applyOverrides(
         [...osmTracks.map(withKind), ...localTracks.map(withKind)],
         overrides,
@@ -740,7 +742,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   setSegmentTime: (lineId, segmentId, minutes) => {
     if (!Number.isFinite(minutes)) return;
-    const v = Math.max(0.5, minutes);
+    const v = Math.max(1, Math.round(minutes));
     set({
       lines: get().lines.map((l) =>
         l.id === lineId
@@ -830,7 +832,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   openAddStop: (coord) => set({ pendingStop: { lon: coord[0], lat: coord[1] }, tool: "add-stop" }),
-  confirmAddStop: (name, modes) => {
+  confirmAddStop: (name, modes, nearbyStopId) => {
     const p = get().pendingStop;
     if (!p) return;
     const stop: Stop = {
@@ -847,6 +849,17 @@ export const useStore = create<AppState>((set, get) => ({
       selectedStopId: stop.id,
       tool: "select",
     });
+    if (nearbyStopId) get().joinStopGroup(stop.id, nearbyStopId);
+    persistSlice(get());
+  },
+  joinStopGroup: (stopId, nearbyStopId) => {
+    const stops = get().stops;
+    const target = stops.find((s) => s.id === nearbyStopId);
+    if (!target || stopId === nearbyStopId || !stops.some((s) => s.id === stopId)) return;
+    const members = clusterStops(stops, STOP_GROUP_METERS).find((group) => group.some((s) => s.id === nearbyStopId)) ?? [target];
+    const ids = new Set([...members.map((s) => s.id), stopId]);
+    const groupId = target.groupId ?? `group-${nanoid(8)}`;
+    set({ stops: stops.map((s) => ids.has(s.id) ? { ...s, groupId } : s) });
     persistSlice(get());
   },
   cancelAddStop: () => set({ pendingStop: null }),
@@ -975,7 +988,7 @@ export const useStore = create<AppState>((set, get) => ({
     exportProposal({
       lines: s.lines,
       localStops: s.stops.filter((x) => x.source === "local"),
-      movedStops: s.stops.filter((x) => x.source === "osm" && x.originalPosition),
+      movedStops: s.stops.filter((x) => x.source === "osm" && (x.originalPosition || x.groupId)),
       localTracks: s.tracks.filter((t) => t.source === "local"),
       constructionOverrides: s.constructionOverrides,
     });
@@ -990,7 +1003,7 @@ export const useStore = create<AppState>((set, get) => ({
     const tracks = [...osmTracks, ...(data.localTracks ?? [])];
     rebuildGraph(tracks, data.constructionOverrides ?? {});
     set({
-      lines: data.lines ?? [],
+      lines: wholeMinuteTimes(data.lines ?? []),
       stops: mergeStopPositions(osmStops, data.localStops ?? [], data.movedStops ?? []),
       tracks,
       constructionOverrides: data.constructionOverrides ?? {},

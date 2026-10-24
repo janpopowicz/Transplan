@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { AVERAGE_SPEED_KMH } from "../src/constants";
 import { useStore } from "../src/store";
 import { roadGraph, tramGraph } from "../src/lib/tramGraph";
 import { routeBetween } from "../src/lib/routing";
@@ -48,11 +49,11 @@ test("bus and tram routes follow ordered waypoints without introducing stops", a
   }
 });
 
-test("speed defaults use 20.5 km/h for buses and 19 km/h for trams", () => {
-  const geometry: Coord[] = [[19.9, 50], [19.9, 50 + 20500 / 111194.9266]];
+test("speed defaults use configured speeds and whole-minute precision", () => {
+  const geometry: Coord[] = [[19.9, 50], [19.9, 50 + AVERAGE_SPEED_KMH.bus * 1000 / 111194.9266]];
   assert.equal(estimateTravelMinutes(geometry, "bus"), 60);
-  assert.equal(estimateTravelMinutes(geometry, "tram"), 64.5);
-  assert.equal(estimateTravelMinutes([a, a], "bus"), 0.5);
+  assert.equal(estimateTravelMinutes(geometry, "tram"), Math.round(60 * AVERAGE_SPEED_KMH.bus / AVERAGE_SPEED_KMH.tram));
+  assert.equal(estimateTravelMinutes([a, a], "bus"), 1);
 });
 
 test("external routing keeps waypoint endpoints instead of trimming them as stop spurs", async () => {

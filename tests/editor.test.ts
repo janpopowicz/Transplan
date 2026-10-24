@@ -135,3 +135,59 @@ test("move mode always exposes individual stops, and concurrent moves are ignore
   await useStore.getState().moveStop("s1", [19.942, 50.06]);
   assert.equal(useStore.getState().stops, before);
 });
+
+test("joining a stop creates or reuses a persistent group including OSM platforms", async () => {
+  reset();
+  const osm = { ...stops[0], source: "osm" as const };
+  useStore.setState({ stops: [osm, ...stops.slice(1)] });
+  useStore.getState().joinStopGroup("s1", "s0");
+  const groupId = useStore.getState().stops[0].groupId;
+  assert.ok(groupId);
+  assert.equal(useStore.getState().stops[1].groupId, groupId);
+  assert.equal(loadState()!.movedStops![0].groupId, groupId);
+  const saved = loadState()!;
+  assert.equal(mergeStopPositions([osm], saved.localStops, saved.movedStops!)[0].groupId, groupId);
+  useStore.getState().openAddStop([19.94, 50.06]);
+  useStore.getState().confirmAddStop("New platform", ["bus", "tram"], "s1");
+  assert.equal(useStore.getState().stops.at(-1)!.groupId, groupId);
+  assert.equal(useStore.getState().stops[2].groupId, undefined);
+});
+
+test("direction markers only appear at served one-way stops and follow reverse travel", () => {
+  for (const [from, to, expected] of [[0, 3, 90], [3, 0, 270]]) {
+    const one = route("one", [seg(from, to)]);
+    const lines = [local, one];
+    const render = buildRenderSegments(lines, { collapseDirections: true, stops });
+    const markers = buildNetworkStopMarkers(lines, stops, render);
+    assert.ok(markers.filter((m) => m.lineId === local.id).every((m) => m.direction === null));
+    const directional = markers.filter((m) => m.lineId === one.id);
+    assert.equal(directional.length, 2);
+    assert.ok(directional.every((m) => Math.abs(m.direction! - expected) < 1));
+    assert.deepEqual(directional.map((m) => m.group[0].id).sort(), ["s0", "s3"]);
+  }
+});
+
+test("disused tram tracks load as closed and can toggle into service and back", async () => {
+  reset();
+  const { fetchTramTracks } = await import("../src/lib/overpass");
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, init) => {
+    assert.match(decodeURIComponent(String(init?.body)), /disused:railway/);
+    return new Response(JSON.stringify({ elements: [{
+      type: "way", id: 42, tags: { "disused:railway": "tram" },
+      geometry: [{ lon: 19.93, lat: 50.06 }, { lon: 19.94, lat: 50.06 }],
+    }] }), { status: 200 });
+  };
+  try {
+    const tracks = await fetchTramTracks();
+    assert.equal(tracks[0].construction, true);
+    useStore.setState({ tracks });
+    useStore.getState().toggleConstruction(tracks[0].id);
+    assert.equal(useStore.getState().tracks[0].construction, false);
+    assert.equal(useStore.getState().constructionOverrides[tracks[0].id], false);
+    useStore.getState().toggleConstruction(tracks[0].id);
+    assert.equal(useStore.getState().tracks[0].construction, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

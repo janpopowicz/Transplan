@@ -10,7 +10,7 @@ const OVERPASS_ENDPOINTS = [
   "https://overpass-api.de/api/interpreter",
 ];
 
-const OSM_CACHE_KEY = "transplan-osm-cache-v2";
+const OSM_CACHE_KEY = "transplan-osm-cache-v3";
 const OSM_CACHE_MS = 7 * 24 * 60 * 60 * 1000;
 
 interface OsmNode {
@@ -184,6 +184,9 @@ export async function fetchTramTracks(): Promise<TramTrack[]> {
 [out:json][timeout:120];
 (
   way["railway"="tram"](${b});
+  way["disused:railway"="tram"](${b});
+  way["railway"="disused"]["disused"="tram"](${b});
+  way["railway"="disused"]["tram"="yes"](${b});
   way["railway"="construction"]["construction"="tram"](${b});
 );
 out geom;
@@ -193,7 +196,7 @@ out geom;
   for (const el of data.elements) {
     if (el.type !== "way" || !el.geometry || el.geometry.length < 2) continue;
     const tags = el.tags ?? {};
-    const construction = tags.railway === "construction" || tags.construction === "tram";
+    const construction = tags.railway === "construction" || tags.construction === "tram" || tags["disused:railway"] === "tram" || tags.railway === "disused" || tags.disused === "yes";
     const geometry: Coord[] = el.geometry.map((g) => [g.lon, g.lat]);
     tracks.push({
       id: `osm-way-${el.id}`,

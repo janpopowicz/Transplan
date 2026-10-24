@@ -13,8 +13,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/overpass": {
-        target: "https://overpass.openstreetmap.fr",
+        target: "https://overpass.kumi.systems",
         changeOrigin: true,
+        headers: { "User-Agent": "Transplan/1.0 (local public transport planner; OpenStreetMap pedestrian routing)" },
         rewrite: () => "/api/interpreter",
       },
       "/valhalla": {

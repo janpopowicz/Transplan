@@ -16,17 +16,32 @@ Waypoint checks cover ordered route shaping for buses and trams, external routin
 undo and cancellation, persistence, splitting/merging legs and moving stops.
 While drawing a line, choose **Dodaj punkt trasy**, click a road or track, then
 choose the next stop. Repeat the button to add more points before that stop.
-The points affect geometry only. New segment times use route length at 20.5 km/h
-for buses and 19 km/h for trams, rounded to 0.5 minutes (minimum 0.5).
-Manual and legacy times survive rerouting; ↻ restores automatic calculation.
+The points affect geometry only. New segment times use route length using `AVERAGE_SPEED_KMH`
+(currently 24 km/h for buses and 19 km/h for trams), rounded to whole minutes (minimum 1).
+Manual times survive rerouting; saved/imported times are normalized to whole minutes; ↻ restores automatic calculation.
 
 Isochrone checks cover boarding waits, transfers, service periods, directionality,
-missing segments, walking access, inactive services, closed contours, disconnected
-islands and inaccessible holes. In the main app, choose **Izochrony**, click the map,
-change the period and the 30/45/60-minute limit, then clear or close the analysis.
-The estimate uses all project lines (including hidden ones), half-headway waits,
-segment travel times and straight-line walking at 4.8 km/h. It does not route walks
-around physical barriers or use a live timetable.
+OSM pedestrian access restrictions, bridges, disconnected crossings, foot one-way
+rules, edge snapping and full reachable coverage beyond 200 minutes. In the main
+app, choose **Izochrony**, click the map and choose the service period.
+All time bands are shown across the reachable network inside the configured BBOX.
+Walking follows the OSM graph at 4.8 km/h; boarding adds half-headway waiting time.
+Short origin/stop connectors (up to 150/80 m) remain approximate. The display grid
+widens road corridors for visibility without adding shortcuts to the routing graph.
+Entering the isochrone tool starts downloading OSM through two independent providers.
+The first complete response wins; the download deadline is 30 seconds including the
+response body. Closing the panel preserves the worker, graph and active download.
+Subsequent clicks reuse the graph; IndexedDB preserves it across reloads. Snapshots
+older than seven days are used immediately and refreshed in the background. Downloads require a working public Overpass endpoint;
+failures show a retry action and never fall back to straight-line walking.
+
+Planning checks cover whole-minute segment edits, evenly spaced takt options and
+weekday/weekend operating costs (tram 28.33 PLN/km, bus 14.09 PLN/km). Costs include
+both directions and hidden lines during configured service periods, without depot
+runs. Check the header cost disclosure and collapsed per-line cost details.
+For editor layout checks, scroll a long line: its compact title and close button
+should remain visible. Takt sliders are taller and every configured option occupies
+an equal interval. Less frequent header tools live in the **⋯** menu.
 
 Routing regression checks cover Rondo Matecznego 03 → Bonarka 01, pedestrian-area snapping and preservation of closely spaced junctions. `fixtures/matecznego-bonarka.json` is a small extract of actual OSM stop/way geometry downloaded on 2026-10-19 from the [OSM API](https://api.openstreetmap.org/api/0.6/map?bbox=19.938,50.024,19.958,50.039), © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), ODbL. It includes pedestrian area [309423742](https://www.openstreetmap.org/way/309423742), which reproduced the original routing failure. Tests use the saved fixture and do not contact external services.
 

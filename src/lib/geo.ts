@@ -121,7 +121,9 @@ export function normalizeStopName(name: string): string {
 
 /** Group key: same name, Kraków platform number at the end removed ("Bagatela 01"). */
 export function stopGroupKey(name: string): string {
-  return normalizeStopName(name).replace(/\s+\d{1,3}$/, "").trim();
+  return normalizeStopName(name)
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l")
+    .replace(/\s+\d{1,3}$/, "").trim();
 }
 
 export function stopGroupLabel(name: string): string {
@@ -133,52 +135,41 @@ export function stopGroupLabel(name: string): string {
 }
 
 export function clusterStops(stops: Stop[], maxMeters: number): Stop[][] {
-  const named = new Map<string, Stop[]>();
-  const singles: Stop[][] = [];
-  for (const stop of stops) {
+  const parent = stops.map((_, i) => i);
+  const find = (i: number): number => {
+    while (parent[i] !== i) {
+      parent[i] = parent[parent[i]];
+      i = parent[i];
+    }
+    return i;
+  };
+  const union = (a: number, b: number) => { parent[find(b)] = find(a); };
+  const named = new Map<string, number[]>();
+  const explicit = new Map<string, number>();
+  stops.forEach((stop, i) => {
+    // Manual membership must not suppress nearby matching platforms.
+    if (stop.groupId) {
+      const other = explicit.get(stop.groupId);
+      if (other !== undefined) union(other, i);
+      else explicit.set(stop.groupId, i);
+    }
     const key = stopGroupKey(stop.name);
-    if (!key || key === "bez nazwy") {
-      singles.push([stop]);
-      continue;
+    if (!key || key === "bez nazwy") return;
+    const previous = named.get(key) ?? [];
+    for (const j of previous) {
+      if (haversine([stop.lon, stop.lat], [stops[j].lon, stops[j].lat]) <= maxMeters) union(j, i);
     }
-    const list = named.get(key);
-    if (list) list.push(stop);
-    else named.set(key, [stop]);
-  }
-  const out = [...singles];
-  for (const list of named.values()) {
-    const parent = list.map((_, i) => i);
-    const find = (i: number): number => {
-      let x = i;
-      while (parent[x] !== x) x = parent[x];
-      let y = i;
-      while (parent[y] !== x) {
-        const next = parent[y];
-        parent[y] = x;
-        y = next;
-      }
-      return x;
-    };
-    const union = (i: number, j: number) => {
-      const a = find(i);
-      const b = find(j);
-      if (a !== b) parent[b] = a;
-    };
-    for (let i = 0; i < list.length; i++) {
-      const ai: Coord = [list[i].lon, list[i].lat];
-      for (let j = i + 1; j < list.length; j++) {
-        if (haversine(ai, [list[j].lon, list[j].lat]) <= maxMeters) union(i, j);
-      }
-    }
-    const groups = new Map<number, Stop[]>();
-    for (let i = 0; i < list.length; i++) {
-      const root = find(i);
-      const g = groups.get(root);
-      if (g) g.push(list[i]);
-      else groups.set(root, [list[i]]);
-    }
-    for (const g of groups.values()) out.push(g);
-  }
+    previous.push(i);
+    named.set(key, previous);
+  });
+  const groups = new Map<number, Stop[]>();
+  stops.forEach((stop, i) => {
+    const root = find(i);
+    const group = groups.get(root) ?? [];
+    group.push(stop);
+    groups.set(root, group);
+  });
+  const out = [...groups.values()];
   return out;
 }
 
