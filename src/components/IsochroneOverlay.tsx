@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { GeoJSONSource, Map as MapLibre } from "maplibre-gl";
 import { PERIODS, type PeriodId } from "../constants";
+import type { AccessibilityScenario } from "../lib/pedestrianRouting";
 import type { IsochroneResult } from "../lib/isochrones";
 import { useIsochroneState } from "../lib/isochroneState";
 import type { IsochroneJob, IsochroneReply } from "../lib/isochrones.worker";
@@ -14,7 +15,9 @@ const LAYERS = ["isochrone-fill", "isochrone-contours", "isochrone-labels", "iso
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 
 export function IsochroneOverlay({ map }: { map: MapLibre }) {
-  const { origin, period, setOrigin, setPeriod } = useIsochroneState();
+  const { origin, period, scenario, setOrigin, setPeriod, setScenario } = useIsochroneState();
+  const lines = useStore((s) => s.lines);
+  const stops = useStore((s) => s.stops);
   const workerRef = useRef<Worker | null>(null);
   const requestId = useRef(0);
   const [progress, setProgress] = useState("");
@@ -95,10 +98,10 @@ export function IsochroneOverlay({ map }: { map: MapLibre }) {
     if (!origin) return;
     if (!workerRef.current) { setError("Nie udało się uruchomić obliczeń."); return; }
     setProgress("Wczytuję sieć pieszą OSM. Pierwsze pobranie: do 30 sekund, kolejne obliczenia korzystają z pamięci…");
-    const { stops, lines } = useStore.getState();
-    workerRef.current.postMessage({ id: requestId.current, request: { origin, stops, lines, period } } satisfies IsochroneJob);
-    // One snapshot per chosen origin/period; zoom and unrelated edits do not rerun it.
-  }, [map, origin, period, retry]);
+    const id = requestId.current;
+    const timer = window.setTimeout(() => workerRef.current?.postMessage({ id, request: { origin, stops, lines, period, scenario } } satisfies IsochroneJob), 200);
+    return () => window.clearTimeout(timer);
+  }, [map, origin, period, scenario, lines, stops, retry]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -121,6 +124,18 @@ export function IsochroneOverlay({ map }: { map: MapLibre }) {
         </optgroup>)}
       </select>
     </label>
+    <label className="field">Scenariusz dostępności
+      <select value={scenario} onChange={(e) => setScenario(e.target.value as AccessibilityScenario)}>
+        <option value="mean">Średni czas dojazdu</option>
+        <option value="p90">90. percentyl (P90)</option>
+        <option value="best">Najlepszy przypadek</option>
+        <option value="worst">Najgorszy przypadek</option>
+      </select>
+    </label>
+    <p className="muted">120 momentów startu co 30 sekund, przez pierwsze 60 minut wybranej pory dnia.
+      {scenario === "p90" && " P90: w 90% prób dojazd trwa co najwyżej tyle."}
+      {(scenario === "best" || scenario === "worst") && " Skrajny wynik spośród próbek, osobno dla każdego miejsca."}
+    </p>
     {result && <ul className="isochrone-legend" aria-label="Legenda czasu dojazdu">
       {result.bands.map((band, index) => <li key={band.minutes}>
         <i style={{ background: band.color }} aria-hidden="true" />
@@ -139,11 +154,15 @@ export function IsochroneOverlay({ map }: { map: MapLibre }) {
     <details className="isochrone-assumptions">
       <summary>Jak liczymy czas?</summary>
       <p>Linie z tego projektu, także ukryte na mapie. Dojście i odejście pieszo: 4,8 km/h.
-        Oczekiwanie: połowa taktu przy każdym wejściu do pojazdu. Dojścia, odejścia i przesiadki po drogach, chodnikach i przejściach OSM.
+        Rozkłady generujemy z taktów, przesunięć i czasów przejazdu linii w projekcie.
+        Dla każdego momentu startu szukamy najszybszej podróży z konkretnymi odjazdami i przesiadkami.
+        Koordynacja automatycznie ustawia przesunięcia, aby przeplatać odjazdy na wspólnym odcinku.
+        Wybrany scenariusz podsumowuje czas do każdego miejsca osobno.
+        Dojścia, odejścia i przesiadki prowadzą po drogach, chodnikach i przejściach OSM.
         Czas jazdy pochodzi z odcinków linii.</p>
       <p>Punkt startowy łączymy z najbliższą drogą pieszą do 150 m, a przystanki do 80 m.
         Te krótkie łączniki są szacunkowe. Braki w OSM mogą ograniczyć zasięg.
-        Bez bieżącego rozkładu i opóźnień. Kolory pokazują otoczenie osiągalnych dróg,
+        Takty z wybranej pory obowiązują przez całą symulowaną podróż. Bez opóźnień i zmian pory dnia. Kolory pokazują otoczenie osiągalnych dróg,
         a nie dostępność każdego budynku.{result && ` Dokładność rysunku: około ${Math.round(result.resolutionMeters)} m.`}</p>
     </details>
     {origin && <div className="isochrone-point"><span>Start: {origin[1].toFixed(4)}, {origin[0].toFixed(4)}</span>

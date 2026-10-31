@@ -1,7 +1,9 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useStore } from "../store";
 import { NetworkCost } from "./NetworkCost";
 import type { Mode } from "../types";
+import { ShareDialog } from "./ShareDialog";
+import { GtfsImportDialog } from "./GtfsImportDialog";
 
 export function Toolbar() {
   const tool = useStore((s) => s.tool);
@@ -12,6 +14,12 @@ export function Toolbar() {
   const exportJson = useStore((s) => s.exportJson);
   const importJson = useStore((s) => s.importJson);
   const [dialog, setDialog] = useState<Mode | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [gtfs, setGtfs] = useState(false);
+  const closeGtfs = useCallback(() => setGtfs(false), []);
+  const closeSharing = useCallback(() => setSharing(false), []);
+  const readOnly = useStore((s) => s.access === "read");
+  const routing = useStore((s) => s.routing);
 
   const menuRef = useRef<HTMLDetailsElement>(null);
   const lineMenuRef = useRef<HTMLDetailsElement>(null);
@@ -29,7 +37,8 @@ export function Toolbar() {
       <nav className="tools" aria-label="Narzędzia">
         <ToolBtn active={tool === "select" && !drawing} onClick={() => setTool("select")} label="Wybór" kbd="V" />
         <ToolBtn active={tool === "isochrones"} onClick={() => setTool(tool === "isochrones" ? "select" : "isochrones")} label="Izochrony" />
-        <details className="toolbar-menu new-line-menu" ref={lineMenuRef}>
+        <ToolBtn active={tool === "journey"} onClick={() => setTool(tool === "journey" ? "select" : "journey")} label="Trasa" />
+        {!readOnly && <details className="toolbar-menu new-line-menu" ref={lineMenuRef}>
           <summary className={drawing ? "tool on" : "tool"}>Nowa linia ▾</summary>
           <div className="toolbar-popover menu-tools">
             {(["bus", "tram"] as const).map((mode) => (
@@ -39,12 +48,17 @@ export function Toolbar() {
               }}>{mode === "bus" ? "Autobusowa" : "Tramwajowa"}</button>
             ))}
           </div>
-        </details>
+        </details>}
+        {!readOnly && <>
         <span className="tools-split" aria-hidden />
         <ToolBtn active={tool === "add-stop"} onClick={() => setTool("add-stop")} label="Nowy przystanek" />
         <ToolBtn active={tool === "move-stop"} onClick={() => setTool("move-stop")} label="Przesuń przystanek" />
         <ToolBtn active={tool === "draw-track"} onClick={() => setTool("draw-track")} label="Rysuj torowisko" />
         <ToolBtn active={tool === "toggle-construction"} onClick={() => setTool("toggle-construction")} label="Budowa ↔ ruch" />
+        </>}
+        <button className="tool share-button" onClick={() => setSharing(true)} disabled={routing}>
+          Udostępnij
+        </button>
       </nav>
 
       <NetworkCost />
@@ -54,12 +68,13 @@ export function Toolbar() {
           <p className="kicker">Dane projektu</p>
           <div className="menu-file-actions">
             <button className="ghost" onClick={() => loadOsm(true)} disabled={osm.loading}>
-              {osm.loading ? "Wczytuję OSM…" : "Odśwież OSM"}
+              {osm.loading ? "Wczytuję dane…" : "Odśwież dane"}
             </button>
             <button className="ghost" onClick={() => { exportJson(); if (menuRef.current) menuRef.current.open = false; }}>
               Eksportuj
             </button>
-            <label className="ghost file-btn">
+            {!readOnly && <button className="ghost" disabled={routing || !!drawing} onClick={() => { setGtfs(true); if (menuRef.current) menuRef.current.open = false; }}>Importuj bieżący GTFS</button>}
+            {!readOnly && <label className="ghost file-btn">
               Importuj
               <input
                 type="file"
@@ -71,12 +86,14 @@ export function Toolbar() {
                   e.target.value = "";
                 }}
               />
-            </label>
+            </label>}
           </div>
         </div>
       </details>
 
       {dialog && <NewLineDialog mode={dialog} onClose={() => setDialog(null)} />}
+      {sharing && <ShareDialog onClose={closeSharing} />}
+      {gtfs && <GtfsImportDialog onClose={closeGtfs} />}
     </header>
   );
 }

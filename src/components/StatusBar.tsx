@@ -9,7 +9,7 @@ export function StatusBar() {
   return (
     <footer className="status">
       <span>
-        OSM: {osm.loading ? "wczytywanie…" : osm.error ? osm.error : `${osm.stops} przystanków · ${osm.tracks} torów${osm.roads ? ` · ${osm.roads} dróg` : ""}`}
+        {osm.loading ? "Wczytuję dane…" : osm.error ? osm.error : `GTFS: ${osm.stops} stanowisk · OSM: ${osm.tracks} torów${osm.roads ? ` · ${osm.roads} dróg` : ""}`}
       </span>
       <span>{lines} linii</span>
       <span>

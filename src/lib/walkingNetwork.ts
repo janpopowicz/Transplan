@@ -101,23 +101,20 @@ async function writeCache(network: WalkingNetwork) {
   } catch { /* Analysis still works when browser storage is unavailable. */ }
 }
 
-/** Race independent providers: a stalled primary must not block a healthy backup.
- * The deadline includes response-body download; unsuccessful requests are cancelled. */
+/** All clients share the server's persistent OSM cache and upstream fallback.
+ * The deadline includes downloading and parsing the response body. */
 export async function fetchWalkingNetwork(fetcher: typeof fetch = fetch, timeoutMs = 30_000): Promise<WalkingNetwork> {
   const bbox = `${BBOX.south},${BBOX.west},${BBOX.north},${BBOX.east}`;
   const query = `[out:json][timeout:25];way["highway"~"^(${HIGHWAYS})$"]["area"!="yes"]["indoor"!="yes"]["foot"!~"^(no|private|use_sidepath)$"](${bbox})->.paths;
     (.paths;node(w.paths)["barrier"];node(w.paths)["access"];node(w.paths)["foot"];);out body geom qt;`;
-  // /overpass uses Kumi; do not send a second identical job to that provider.
-  const controllers = [new AbortController(), new AbortController()];
+  const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout>;
   const deadline = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new Error("timeout")), timeoutMs);
   });
   try {
-    return await Promise.race([deadline, Promise.any([
-      "/overpass", "https://overpass-api.de/api/interpreter",
-    ].map(async (endpoint, index) => {
-      const response = await fetcher(endpoint, { method: "POST", signal: controllers[index].signal,
+    return await Promise.race([deadline, (async () => {
+      const response = await fetcher("/overpass", { method: "POST", signal: controller.signal,
         headers: { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
         body: `data=${encodeURIComponent(query)}` });
       if (!response.ok) throw new Error(`Overpass ${response.status}`);
@@ -126,12 +123,12 @@ export async function fetchWalkingNetwork(fetcher: typeof fetch = fetch, timeout
       const network = parseWalkingNetwork(data.elements);
       if (!network.edges.length) throw new Error("Empty pedestrian network");
       return network;
-    }))]);
+    })()]);
   } catch {
     throw new Error("Serwery OSM nie odpowiedziały na czas lub są niedostępne. Spróbuj ponownie — pobieranie trwa najwyżej 30 sekund.");
   } finally {
     clearTimeout(timer!);
-    controllers.forEach((controller) => controller.abort());
+    controller.abort();
   }
 }
 

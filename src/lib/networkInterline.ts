@@ -1,5 +1,5 @@
 import {
-  DIRECTION_COLLAPSE_M, LINE_WIDTH_FACTOR, LINE_WIDTH_MAX_PX, LINE_WIDTH_MIN_PX,
+  DIRECTION_COLLAPSE_M,
   OFFSET_BLEND_MAX_M, OFFSET_BLEND_MIN_M, OFFSET_BLEND_PX, OFFSET_GAP_PX,
   OFFSET_SAMPLE_M, STOP_GROUP_METERS,
 } from "../constants";
@@ -9,7 +9,7 @@ import {
   bboxOf, clusterCentroid, clusterStops, densifyLine, haversine,
   nearestPointOnLine, offsetLine, pathDistances,
 } from "./geo";
-import { peakTakt, tripsPerHourNum } from "./takt";
+import { lineStrokeWidth } from "./lineWidth";
 
 interface Group {
   id: string;
@@ -110,6 +110,20 @@ function prepare(lines: TransitLine[], stops: Stop[] | undefined): Stroke[] {
     }
   }
   const used = groups.filter((g) => g.used);
+  // Spatial candidates keep a full GTFS network from scanning every stop group
+  // for every leg. Index platforms as well as centroids of wide stop groups.
+  const cells = new Map<string, Set<Group>>(), cellX = .004, cellY = .003;
+  for (const group of used) for (const [x,y] of [group.coord, ...group.stops.map((s): Coord => [s.lon,s.lat])]) {
+    const key = `${Math.floor(x/cellX)}:${Math.floor(y/cellY)}`, bucket = cells.get(key) ?? new Set<Group>();
+    bucket.add(group); cells.set(key,bucket);
+  }
+  const nearby = (bounds: number[]) => {
+    const found = new Set<Group>(), padY = DIRECTION_COLLAPSE_M/110540, padX = padY/.6;
+    for(let x=Math.floor((bounds[0]-padX)/cellX);x<=Math.floor((bounds[2]+padX)/cellX);x++)
+      for(let y=Math.floor((bounds[1]-padY)/cellY);y<=Math.floor((bounds[3]+padY)/cellY);y++)
+        for(const group of cells.get(`${x}:${y}`) ?? []) found.add(group);
+    return found;
+  };
   const corridors = new Map<string, Corridor>();
   for (const line of visible) for (const seg of line.segments) {
     const from = byStop.get(seg.fromStopId);
@@ -122,7 +136,7 @@ function prepare(lines: TransitLine[], stops: Stop[] | undefined): Stroke[] {
     const bounds = bboxOf(geom);
     const cuts = [{ group: from, at: 0, coord: geom[0], index: 0 },
       { group: to, at: length, coord: geom.at(-1)!, index: geom.length - 2 }];
-    for (const group of used) {
+    for (const group of nearby(bounds)) {
       if (group === from || group === to) continue;
       // Nearby stops split the shared corridor regardless of transport mode.
       // A virtual cut does not add a served stop to this line.
@@ -173,16 +187,17 @@ function prepare(lines: TransitLine[], stops: Stop[] | undefined): Stroke[] {
       const line = legs[0].line;
       const forward = legs.some((l) => l.from === corridor.from);
       const backward = legs.some((l) => l.from === corridor.to);
-      const vehicleLength = parseFloat(line.vehicle);
-      const fullWidth = Math.min(LINE_WIDTH_MAX_PX, Math.max(LINE_WIDTH_MIN_PX,
-        tripsPerHourNum(peakTakt(line)) * (Number.isFinite(vehicleLength) ? vehicleLength : 12) * LINE_WIDTH_FACTOR));
+      const fullWidth = lineStrokeWidth(line);
       return { corridor, line, width: fullWidth * (forward && backward ? 1 : 0.5),
         offset: 0, oneWay: !(forward && backward), reverse: !forward };
     });
-    let cursor = -(bundle.reduce((sum, s) => sum + s.width, 0) + OFFSET_GAP_PX * (bundle.length - 1)) / 2;
+    const total = bundle.reduce((sum, s) => sum + s.width, 0) + OFFSET_GAP_PX * (bundle.length - 1);
+    const scale = Math.min(1, 48 / total), gap = OFFSET_GAP_PX * scale;
+    for (const stroke of bundle) stroke.width *= scale;
+    let cursor = -total * scale / 2;
     for (const stroke of bundle) {
       stroke.offset = cursor + stroke.width / 2;
-      cursor += stroke.width + OFFSET_GAP_PX;
+      cursor += stroke.width + gap;
       strokes.push(stroke);
     }
   }

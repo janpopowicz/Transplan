@@ -1,5 +1,5 @@
 import type { Coord } from "../types";
-import { calculateAccessibility, projection, WALK_METERS_PER_MIN, type AccessibilityRequest } from "./pedestrianRouting";
+import { calculateAccessibility, WALK_METERS_PER_MIN, type AccessibilityRequest } from "./pedestrianRouting";
 
 export type IsochroneRequest = AccessibilityRequest;
 export interface IsochroneBand { minutes: number; color: string }
@@ -32,7 +32,7 @@ export function isochroneBands(maxMinutes: number): IsochroneBand[] {
 export function calculateIsochrones(request: IsochroneRequest): IsochroneResult {
   const accessibility = calculateAccessibility(request);
   const { xy, walkEdges, times, activeLines, unconnectedStops, stopTimes } = accessibility;
-  const project = projection(request.origin);
+  const project = accessibility.project;
   let west = Infinity, east = -Infinity, south = Infinity, north = -Infinity;
   for (const edge of walkEdges) {
     if (!Number.isFinite(times[edge.from]) && !Number.isFinite(times[edge.to])) continue;

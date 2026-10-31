@@ -9,6 +9,8 @@ import { distToLine, metersPerPixel, stopGroupLabel } from "../lib/geo";
 import { useStore } from "../store";
 import type { Coord, Stop } from "../types";
 import { IsochroneOverlay } from "./IsochroneOverlay";
+import { JourneyPlanner } from "./JourneyPlanner";
+import { useJourneyState } from "../lib/journeyState";
 import { useIsochroneState } from "../lib/isochroneState";
 
 const STYLE: maplibregl.StyleSpecification = {
@@ -42,6 +44,7 @@ export function MapView() {
   const mapRef = useRef<Map | null>(null);
   const readyRef = useRef(false);
   const [readyMap, setReadyMap] = useState<Map | null>(null);
+  const journey = useStore((s) => s.tool === "journey");
   const isochrones = useStore((s) => s.tool === "isochrones");
   const moveMarkerRef = useRef<maplibregl.Marker | null>(null);
   const moving = useStore((s) => s.tool === "move-stop");
@@ -147,6 +150,7 @@ export function MapView() {
 
   return <>
     <div ref={rootRef} className="map" />
+    {journey && readyMap && <JourneyPlanner map={readyMap} />}
     {isochrones && readyMap && <IsochroneOverlay map={readyMap} />}
     {moving && <div className="move-stop-hint" role="status">
       <p>{routing ? "Przeliczam trasy…" : selectedStop
@@ -595,7 +599,7 @@ function setData(map: Map, id: string, data: GeoJSON.GeoJSON): void {
 
 function onMove(e: maplibregl.MapMouseEvent): void {
   const map = e.target;
-  if (useStore.getState().tool === "isochrones") {
+  if (["isochrones", "journey"].includes(useStore.getState().tool)) {
     popupRefSingleton.current?.remove();
     return;
   }
@@ -658,6 +662,13 @@ function onClick(e: maplibregl.MapMouseEvent): void {
   const map = e.target;
   const st = useStore.getState();
   const coord: Coord = [e.lngLat.lng, e.lngLat.lat];
+
+  if (st.tool === "journey") {
+    popupRefSingleton.current?.remove();
+    const state = useJourneyState.getState();
+    if (state.picking !== null) state.setPoint(state.picking, { coord, name: `Punkt na mapie (${coord[1].toFixed(4)}, ${coord[0].toFixed(4)})` });
+    return;
+  }
 
   if (st.tool === "isochrones") {
     popupRefSingleton.current?.remove();

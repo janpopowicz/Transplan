@@ -23,15 +23,22 @@ import type {
   TransitLine,
   VehicleId,
 } from "./types";
-import { fetchOsmRoads, fetchOsmStops, fetchTramTracks, findOppositeStops, readOsmCache, writeOsmCache } from "./lib/overpass";
+import { fetchOsmRoads, fetchTramTracks, findOppositeStops, readOsmCache, writeOsmCache } from "./lib/overpass";
 import { routeBetween } from "./lib/routing";
 import { roadGraph, tramGraph } from "./lib/tramGraph";
 import { exportProposal, loadState, saveState } from "./lib/persist";
-import { mergeStopPositions } from "./lib/stopEditing";
+import { hasStopOverrides, mergeStopPositions, mergeStopCatalogue } from "./lib/stopEditing";
+import { fetchGtfsStops } from "./lib/gtfsStops";
 import { clusterStops, haversine, nearestPointOnLine, pathDistances } from "./lib/geo";
-import { estimateTravelMinutes, wholeMinuteTimes } from "./lib/travelTime";
+import { automaticTravelTime, refreshAutomaticTravelTimes, wholeMinuteTimes } from "./lib/travelTime";
+import { loadGtfsTravelTimes } from "./lib/gtfsTravelTimes";
+import { parseProposal, type Proposal } from "./lib/proposal";
+import type { GtfsNetwork } from "./lib/gtfsNetwork";
+
+import { cleanCoordination, findSharedSections, shiftDeparture, periodStartMinute, periodEndMinute } from "./lib/timetable";
 
 interface AppState {
+  access: "local" | "read" | "write";
   tool: EditorTool;
   stops: Stop[];
   tracks: TramTrack[];
@@ -76,7 +83,11 @@ interface AppState {
   setSegmentTime: (lineId: string, segmentId: string, minutes: number) => void;
   resetSegmentTime: (lineId: string, segmentId: string) => void;
   toggleLineVisible: (id: string) => void;
+  setModeVisible: (mode: Mode, visible: boolean) => void;
   deleteLine: (id: string) => void;
+  coordinateLines: (id: string, otherId: string) => void;
+  uncoordinateLine: (id: string, otherId?: string) => void;
+  setDepartureOffset: (id: string, value: number, period: PeriodId, direction: LineDirection) => void;
   removeStopFromLine: (lineId: string, stopId: string, direction?: "outbound" | "inbound") => Promise<void>;
   removeLineFromStop: (stopId: string, lineId: string) => Promise<void>;
 
@@ -86,6 +97,7 @@ interface AppState {
   cancelAddStop: () => void;
   deleteLocalStop: (id: string) => void;
   moveStop: (id: string, coord: Coord) => Promise<void>;
+  updateStop: (id: string, name: string, modes: Mode[]) => boolean;
 
   startTrackDraft: (coord: Coord) => void;
   appendTrackVertex: (coord: Coord) => void;
@@ -96,16 +108,44 @@ interface AppState {
 
   exportJson: () => void;
   importJson: (file: File) => Promise<void>;
+  importGtfs: (network: GtfsNetwork) => void;
+  openProposal: (proposal: Proposal, preserveEditor?: boolean) => void;
+}
+
+export function projectSnapshot(s: AppState, includeReferencedStops = false): Proposal {
+  includeReferencedStops ||= s.lines.some((l) => l.gtfsImport);
+  const referenced = new Set(s.lines.flatMap((line) => [...line.outboundStopIds, ...line.inboundStopIds,
+    ...line.segments.flatMap((segment) => [segment.fromStopId, segment.toStopId])]));
+  return {
+    lines: s.lines,
+    localStops: s.stops.filter((x) => x.source === "local"),
+    movedStops: s.stops.filter((x) => x.source !== "local" && (hasStopOverrides(x) || (includeReferencedStops && referenced.has(x.id))))
+      .map((stop) => includeReferencedStops ? { ...stop, originalPosition: stop.originalPosition ?? [stop.lon, stop.lat] } : stop),
+    localTracks: s.tracks.filter((x) => x.source === "local"),
+    constructionOverrides: s.constructionOverrides,
+  };
+}
+
+/** Ignore selection, hover and routing status changes when reading a shared document. */
+export function createProjectSnapshotReader() {
+  let previous: AppState | undefined;
+  let snapshot: Proposal;
+  return () => {
+    const state = useStore.getState();
+    if (!previous || previous.lines !== state.lines || previous.stops !== state.stops
+      || previous.tracks !== state.tracks || previous.constructionOverrides !== state.constructionOverrides) {
+      snapshot = projectSnapshot(state, true);
+      previous = state;
+    }
+    return snapshot;
+  };
 }
 
 function persistSlice(s: AppState): void {
-  saveState({
-    lines: s.lines,
-    localStops: s.stops.filter((x) => x.source === "local"),
-    movedStops: s.stops.filter((x) => x.source === "osm" && (x.originalPosition || x.groupId)),
-    localTracks: s.tracks.filter((x) => x.source === "local"),
-    constructionOverrides: s.constructionOverrides,
-  });
+  // Shared sessions persist both the merge base and local edits via their checkpoint
+  // worker. Compressing another full draft here would still block every edit.
+  if (s.access === "write") return;
+  saveState(projectSnapshot(s));
 }
 
 function wayKind(t: TramTrack): "tram" | "road" {
@@ -118,7 +158,7 @@ function withKind(t: TramTrack): TramTrack {
 
 function applyOverrides(tracks: TramTrack[], overrides: Record<string, boolean>): TramTrack[] {
   return tracks.map((t) =>
-    t.id in overrides ? { ...t, construction: overrides[t.id] } : t,
+    Object.hasOwn(overrides, t.id) ? { ...t, construction: overrides[t.id] } : t,
   );
 }
 
@@ -203,8 +243,7 @@ async function rebuildSegments(
       toStopId: toId,
       geometry,
       waypoints,
-      travelMin: estimateTravelMinutes(geometry, line.mode),
-      travelTimeSource: "auto" as const,
+      ...automaticTravelTime(a, b, geometry, line.mode),
       direction,
     });
   }
@@ -244,6 +283,7 @@ function inheritedWaypoints(old: LineSegs, ids: string[], index: number, from: S
 const boot = loadState();
 
 export const useStore = create<AppState>((set, get) => ({
+  access: "local",
   tool: "select",
   stops: mergeStopPositions([], boot?.localStops ?? [], boot?.movedStops ?? []),
   tracks: (boot?.localTracks ?? []).map(withKind),
@@ -263,31 +303,32 @@ export const useStore = create<AppState>((set, get) => ({
   insertSlot: null,
 
   loadOsm: async (force = false) => {
-    const { osm, stops, constructionOverrides } = get();
+    const { osm, stops } = get();
     if (osm.loading) return;
-    if (!force && osm.loadedAt && stops.some((s) => s.source === "osm")) {
+    if (!force && osm.loadedAt && stops.some((s) => s.source !== "local")) {
       pullOsmRoads(get, set);
       return;
     }
 
-    const saved = loadState();
-    const localStops = saved?.localStops ?? get().stops.filter((s) => s.source === "local");
-    const localTracks = saved?.localTracks ?? get().tracks.filter((t) => t.source === "local");
-    const overrides = saved?.constructionOverrides ?? constructionOverrides;
+    set({ osm: { ...get().osm, loading: true, error: null } });
+    await loadGtfsTravelTimes(force);
+    const localTracks = get().tracks.filter((t) => t.source === "local");
+    const overrides = get().constructionOverrides;
     const cache = force ? null : readOsmCache();
+    const projectStops = () => [...new Map([...(cache?.legacyStops ?? []), ...get().stops].map((s) => [s.id, s])).values()];
 
-    if (cache) {
-      const mergedStops = mergeStopPositions(cache.stops, localStops, get().stops.filter((s) => s.originalPosition || s.groupId));
+    if (cache?.stops.length) {
+      const merged = mergeStopCatalogue(cache.stops, projectStops(), get().lines);
+      merged.lines = refreshAutomaticTravelTimes(merged.lines, merged.stops);
       const mergedTracks = applyOverrides(
         [...cache.tracks.map(withKind), ...localTracks.map(withKind)],
         overrides,
       );
       rebuildGraph(mergedTracks, overrides);
       set({
-        stops: mergedStops,
+        ...merged,
         tracks: mergedTracks,
         constructionOverrides: overrides,
-        lines: get().lines.length ? get().lines : saved?.lines ?? [],
         osm: {
           loading: false,
           error: null,
@@ -297,26 +338,27 @@ export const useStore = create<AppState>((set, get) => ({
           loadedAt: cache.at,
         },
       });
+      persistSlice(get());
       pullOsmRoads(get, set);
       return;
     }
 
     set({ osm: { ...osm, loading: true, error: null } });
     try {
-      const [osmStops, osmTracks] = await Promise.all([fetchOsmStops(), fetchTramTracks()]);
+      const [osmStops, osmTracks] = await Promise.all([
+        fetchGtfsStops(), cache?.tracks.length ? Promise.resolve(cache.tracks) : fetchTramTracks(),
+      ]);
       writeOsmCache(osmStops, osmTracks);
-      const mergedStops = mergeStopPositions(osmStops, get().stops.filter((s) => s.source === "local"), get().stops.filter((s) => s.originalPosition || s.groupId));
+      const merged = mergeStopCatalogue(osmStops, projectStops(), get().lines);
+      merged.lines = refreshAutomaticTravelTimes(merged.lines, merged.stops);
       const mergedTracks = applyOverrides(
-        [...osmTracks.map(withKind), ...localTracks.map(withKind)],
-        overrides,
+        [...osmTracks.map(withKind), ...get().tracks.filter((t) => t.source === "local").map(withKind)],
+        get().constructionOverrides,
       );
-      rebuildGraph(mergedTracks, overrides);
-      const lines = get().lines.length ? get().lines : saved?.lines ?? [];
+      rebuildGraph(mergedTracks, get().constructionOverrides);
       set({
-        stops: mergedStops,
+        ...merged,
         tracks: mergedTracks,
-        constructionOverrides: overrides,
-        lines,
         osm: {
           loading: false,
           error: null,
@@ -340,13 +382,14 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   setTool: (tool) => {
+    if (get().access === "read" && tool !== "select" && tool !== "isochrones" && tool !== "journey") return;
     const drawing = get().drawing;
     if (drawing && tool !== "draw-bus" && tool !== "draw-tram") {
       get().cancelDrawing();
     }
     set({
       tool,
-      ...(tool === "isochrones" ? { selectedLineId: null, selectedStopId: null } : {}),
+      ...((tool === "isochrones" || tool === "journey") ? { selectedLineId: null, selectedStopId: null } : {}),
       pendingStop: null,
       trackDraft: tool === "draw-track" ? get().trackDraft : null,
       stopPicker: null,
@@ -446,8 +489,7 @@ export const useStore = create<AppState>((set, get) => ({
         toStopId: stopId,
         geometry,
         waypoints: drawing.waypoints ?? [],
-        travelMin: estimateTravelMinutes(geometry, line.mode),
-        travelTimeSource: "auto" as const,
+        ...automaticTravelTime(prev, stop, geometry, line.mode),
         direction: (drawing.phase === "inbound" ? "inbound" : "outbound") as
           | "outbound"
           | "inbound",
@@ -727,7 +769,10 @@ export const useStore = create<AppState>((set, get) => ({
   setTakt: (lineId, period, value) => {
     set({
       lines: get().lines.map((l) =>
-        l.id === lineId ? { ...l, takt: { ...l.takt, [period]: value } } : l,
+        l.id === lineId ? { ...l, takt: { ...l.takt, [period]: value },
+          ...(l.serviceWindows && l.takt[period] == null && value !== null ? { serviceWindows: { ...l.serviceWindows,
+            [period]: Object.fromEntries((["outbound", "inbound"] as const).filter((d) => l.segments.some((s) => s.direction === d))
+              .map((d) => [d, [0, periodEndMinute(period) - periodStartMinute(period)]])) } } : {}) } : l,
       ),
     });
     persistSlice(get());
@@ -749,7 +794,7 @@ export const useStore = create<AppState>((set, get) => ({
           ? {
               ...l,
               segments: l.segments.map((s) =>
-                s.id === segmentId ? { ...s, travelMin: v, travelTimeSource: "manual" } : s,
+                s.id === segmentId ? { ...s, travelMin: v, travelTimeSource: "manual", gtfsSamples: undefined } : s,
               ),
             }
           : l,
@@ -761,7 +806,13 @@ export const useStore = create<AppState>((set, get) => ({
   resetSegmentTime: (lineId, segmentId) => {
     set({ lines: get().lines.map((line) => line.id !== lineId ? line : { ...line,
       segments: line.segments.map((segment) => segment.id !== segmentId ? segment : { ...segment,
-        travelMin: estimateTravelMinutes(segment.geometry, line.mode), travelTimeSource: "auto" }) }) });
+        ...automaticTravelTime(stopById(get().stops, segment.fromStopId), stopById(get().stops, segment.toStopId), segment.geometry, line.mode) }) }) });
+    persistSlice(get());
+  },
+
+  setModeVisible: (mode, visible) => {
+    if (!get().lines.some((l) => l.mode === mode && l.visible !== visible)) return;
+    set({ lines: get().lines.map((l) => l.mode === mode && l.visible !== visible ? { ...l, visible } : l) });
     persistSlice(get());
   },
 
@@ -774,9 +825,30 @@ export const useStore = create<AppState>((set, get) => ({
     persistSlice(get());
   },
 
+  coordinateLines: (id, otherId) => {
+    const lines = cleanCoordination(get().lines), a = lines.find((l) => l.id === id), b = lines.find((l) => l.id === otherId);
+    if (!a || !b || a === b || !findSharedSections([a, b]).length) return;
+    set({ lines: lines.map((l) => l.id === id ? { ...l, coordinatedLineIds: [...new Set([...(l.coordinatedLineIds ?? []), otherId])] }
+      : l.id === otherId ? { ...l, coordinatedLineIds: [...new Set([...(l.coordinatedLineIds ?? []), id])] } : l) });
+    persistSlice(get());
+  },
+
+  uncoordinateLine: (id, otherId) => {
+    const lines = cleanCoordination(get().lines);
+    set({ lines: cleanCoordination(lines.map((l) => ({ ...l, coordinatedLineIds: (l.coordinatedLineIds ?? [])
+      .filter((partner) => otherId ? !((l.id === id && partner === otherId) || (l.id === otherId && partner === id))
+        : l.id !== id && partner !== id) }))) });
+    persistSlice(get());
+  },
+
+  setDepartureOffset: (id, value, period, direction) => {
+    set({ lines: shiftDeparture(get().lines, id, value, period, direction) });
+    persistSlice(get());
+  },
+
   deleteLine: (id) => {
     set({
-      lines: get().lines.filter((l) => l.id !== id),
+      lines: cleanCoordination(get().lines.filter((l) => l.id !== id)),
       selectedLineId: get().selectedLineId === id ? null : get().selectedLineId,
       drawing: get().drawing?.lineId === id ? null : get().drawing,
     });
@@ -864,13 +936,32 @@ export const useStore = create<AppState>((set, get) => ({
   },
   cancelAddStop: () => set({ pendingStop: null }),
 
+  updateStop: (id, name, modes) => {
+    const stop = get().stops.find((s) => s.id === id);
+    const nextName = name.trim();
+    const nextModes = (["bus", "tram"] as const).filter((mode) => modes.includes(mode));
+    if (!stop || get().routing || !nextName || nextName.length > 10000 || !nextModes.length
+      || modes.some((mode) => mode !== "bus" && mode !== "tram")) return false;
+    const changed: Stop = { ...stop, name: nextName, modes: nextModes };
+    if (stop.source !== "local") {
+      const originalName = stop.originalName ?? stop.name;
+      const originalModes = stop.originalModes ?? stop.modes;
+      changed.originalName = nextName === originalName ? undefined : originalName;
+      changed.originalModes = nextModes.length === originalModes.length && nextModes.every((mode) => originalModes.includes(mode))
+        ? undefined : originalModes;
+    }
+    set({ stops: get().stops.map((s) => s.id === id ? changed : s) });
+    persistSlice(get());
+    return true;
+  },
+
   moveStop: async (id, coord) => {
     const snapshot = get();
     const stop = snapshot.stops.find((s) => s.id === id);
     if (!stop || snapshot.routing || !coord.every(Number.isFinite) ||
       Math.abs(coord[0]) > 180 || Math.abs(coord[1]) > 85 || haversine([stop.lon, stop.lat], coord) < 0.1) return;
     const moved: Stop = { ...stop, lon: coord[0], lat: coord[1],
-      ...(stop.source === "osm" ? { originalPosition: stop.originalPosition ?? [stop.lon, stop.lat] as Coord } : {}) };
+      ...(stop.source !== "local" ? { originalPosition: stop.originalPosition ?? [stop.lon, stop.lat] as Coord } : {}) };
     const stops = new Map(snapshot.stops.map((s) => [s.id, s.id === id ? moved : s]));
     set({ routing: true, routingError: null });
     try {
@@ -900,7 +991,8 @@ export const useStore = create<AppState>((set, get) => ({
         lines: get().lines.map((line) => ({ ...line, segments: line.segments.map((segment) => {
           const replacement = replacements.get(segmentKey(line.id, segment.id));
           return replacement ? { ...segment, geometry: replacement.geometry,
-            travelMin: segment.travelTimeSource === "auto" ? estimateTravelMinutes(replacement.geometry, line.mode) : segment.travelMin } : segment;
+            ...(["auto", "gtfs"].includes(segment.travelTimeSource ?? "") ? automaticTravelTime(
+              stops.get(segment.fromStopId), stops.get(segment.toStopId), replacement.geometry, line.mode) : {}) } : segment;
         }) })),
         routing: false,
       });
@@ -984,33 +1076,60 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   exportJson: () => {
-    const s = get();
-    exportProposal({
-      lines: s.lines,
-      localStops: s.stops.filter((x) => x.source === "local"),
-      movedStops: s.stops.filter((x) => x.source === "osm" && (x.originalPosition || x.groupId)),
-      localTracks: s.tracks.filter((t) => t.source === "local"),
-      constructionOverrides: s.constructionOverrides,
-    });
+    exportProposal(projectSnapshot(get()));
+  },
+
+  importGtfs: (network) => {
+    const previous = projectSnapshot(get());
+    const merged = mergeStopCatalogue(network.stops, get().stops.filter((s) => s.source === "local" || hasStopOverrides(s)), network.lines);
+    const proposal = parseProposal({ ...previous, lines: merged.lines,
+      movedStops: merged.stops.filter((s) => s.source !== "local").map((s) => ({ ...s, originalPosition: s.originalPosition ?? [s.lon, s.lat] })),
+      localStops: merged.stops.filter((s) => s.source === "local") });
+    // Download a restorable copy before replacing any lines.
+    exportProposal(previous);
+    saveState(proposal, true);
+    set({ stops: merged.stops });
+    get().openProposal(proposal);
   },
 
   importJson: async (file) => {
     const text = await file.text();
-    const data = JSON.parse(text) as ReturnType<typeof loadState>;
-    if (!data) return;
-    const osmStops = get().stops.filter((s) => s.source === "osm");
+    get().openProposal(parseProposal(JSON.parse(text)));
+  },
+
+  openProposal: (proposal, preserveEditor = false) => {
+    const data = parseProposal(proposal);
+    const osmStops = get().stops.filter((s) => s.source !== "local");
     const osmTracks = get().tracks.filter((t) => t.source === "osm");
-    const tracks = [...osmTracks, ...(data.localTracks ?? [])];
+    const tracks = applyOverrides([...osmTracks, ...data.localTracks.map(withKind)], data.constructionOverrides);
     rebuildGraph(tracks, data.constructionOverrides ?? {});
+    const merged = mergeStopCatalogue(osmStops, [...(data.localStops ?? []), ...(data.movedStops ?? [])], wholeMinuteTimes(data.lines ?? []));
+    merged.lines = refreshAutomaticTravelTimes(merged.lines, merged.stops);
     set({
-      lines: wholeMinuteTimes(data.lines ?? []),
-      stops: mergeStopPositions(osmStops, data.localStops ?? [], data.movedStops ?? []),
+      ...merged,
       tracks,
       constructionOverrides: data.constructionOverrides ?? {},
+      ...(preserveEditor ? {
+        selectedLineId: data.lines.some((line) => line.id === get().selectedLineId) ? get().selectedLineId : null,
+        drawing: data.lines.some((line) => line.id === get().drawing?.lineId) ? get().drawing : null,
+      } : { tool: "select" as const, selectedLineId: null, selectedStopId: null, drawing: null, insertSlot: null,
+        trackDraft: null, pendingStop: null, stopPicker: null, oppositeHintIds: [], routingError: null }),
     });
     persistSlice(get());
   },
 }));
+
+// UI controls and keyboard/map actions share the same permission boundary.
+const editingActions = ["startLine", "addStopToDrawing", "toggleWaypointMode", "addDrawingWaypoint", "markTerminus2",
+  "finishInbound", "undoDrawingStop", "cancelDrawing", "resumeDrawing", "beginInsert", "cancelInsert", "insertStopAtSlot",
+  "updateLine", "setTakt", "setVehicle", "setSegmentTime", "resetSegmentTime", "toggleLineVisible", "setModeVisible", "deleteLine", "coordinateLines", "uncoordinateLine", "setDepartureOffset",
+  "removeStopFromLine", "removeLineFromStop", "openAddStop", "confirmAddStop", "joinStopGroup", "cancelAddStop",
+  "deleteLocalStop", "moveStop", "updateStop", "startTrackDraft", "appendTrackVertex", "finishTrackDraft", "cancelTrackDraft",
+  "toggleConstruction", "deleteLocalTrack", "importJson", "importGtfs"] as const;
+useStore.setState(Object.fromEntries(editingActions.map((name) => {
+  const action = useStore.getState()[name] as (...args: never[]) => unknown;
+  return [name, (...args: never[]) => { if (useStore.getState().access !== "read") return action(...args); }];
+})));
 
 function snapToTracks(coord: Coord, tracks: TramTrack[]): Coord {
   let best: Coord = coord;

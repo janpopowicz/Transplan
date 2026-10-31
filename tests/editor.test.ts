@@ -9,6 +9,7 @@ import { DEFAULT_TAKT } from "../src/constants";
 import { distToLine } from "../src/lib/geo";
 import { loadState } from "../src/lib/persist";
 import { mergeStopPositions } from "../src/lib/stopEditing";
+import { coordinationMembers } from "../src/lib/timetable";
 import { writeOsmCache } from "../src/lib/overpass";
 import type { Coord, LineSegment, Stop, TransitLine, TramTrack } from "../src/types";
 
@@ -58,6 +59,7 @@ test("white markers project onto each served line and exclude skipped express st
 test("opposite platforms produce a single marker per line and hidden lines have none", () => {
   const platforms = stops.map((s) => ({ ...s, name: `${s.name} 01` }));
   platforms.push({ ...stops[1], id: "s1-reverse", name: `${stops[1].name} 02`, lat: 50.0601 });
+  platforms[1].groupId = platforms.at(-1)!.groupId = "manual-platforms";
   const line = { ...local, inboundStopIds: ["s1-reverse"] };
   const lines = [line, { ...express, visible: false }];
   const markers = buildNetworkStopMarkers(lines, platforms, buildRenderSegments(lines, { collapseDirections: true, stops: platforms }));
@@ -190,4 +192,109 @@ test("disused tram tracks load as closed and can toggle into service and back", 
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("GTFS names and modes persist through save, catalogue refresh and import without changing line geometry", async () => {
+  reset();
+  const catalogueStop: Stop = { ...stops[0], source: "gtfs", stationName: "Stop A", platformNumber: "01" };
+  useStore.setState({ stops: [catalogueStop, ...stops.slice(1)] });
+  const originalLines = useStore.getState().lines;
+  assert.equal(useStore.getState().updateStop(catalogueStop.id, "Nowa nazwa 01", ["bus", "tram"]), true);
+  let changed = useStore.getState().stops[0];
+  assert.equal(changed.name, "Nowa nazwa 01");
+  assert.deepEqual(changed.modes, ["bus", "tram"]);
+  assert.equal(changed.originalName, catalogueStop.name);
+  assert.deepEqual(changed.originalModes, ["bus"]);
+  assert.equal(changed.originalPosition, undefined);
+  assert.equal(useStore.getState().lines, originalLines);
+  const saved = loadState()!;
+  assert.equal(saved.movedStops![0].name, changed.name);
+  useStore.getState().openProposal(saved);
+  assert.equal(useStore.getState().stops.find((s) => s.id === catalogueStop.id)!.name, "Nowa nazwa 01");
+  writeOsmCache([catalogueStop], [track]);
+  useStore.setState({ osm: { loading: false, error: null, stops: 0, tracks: 0, roads: 0, loadedAt: null } });
+  await useStore.getState().loadOsm();
+  changed = useStore.getState().stops.find((s) => s.id === catalogueStop.id)!;
+  assert.equal(changed.name, "Nowa nazwa 01");
+  assert.deepEqual(changed.modes, ["bus", "tram"]);
+  assert.equal(changed.originalName, catalogueStop.name);
+  assert.deepEqual(changed.originalModes, ["bus"]);
+  useStore.getState().openProposal({ ...saved, movedStops: [] });
+  const restored = useStore.getState().stops.find((s) => s.id === catalogueStop.id)!;
+  assert.equal(restored.name, catalogueStop.name);
+  assert.deepEqual(restored.modes, ["bus"]);
+});
+
+test("stop property editing accepts all transport types and rejects empty values and read-only edits", () => {
+  reset();
+  for (const modes of [["bus"], ["tram"], ["bus", "tram"]] as Stop["modes"][]) {
+    assert.equal(useStore.getState().updateStop("s0", " Test 01 ", modes), true);
+    assert.equal(useStore.getState().stops[0].name, "Test 01");
+    assert.deepEqual(useStore.getState().stops[0].modes, modes);
+    assert.equal(useStore.getState().stops[0].originalName, undefined);
+  }
+  const previous = useStore.getState().stops;
+  assert.equal(useStore.getState().updateStop("s0", "", ["bus"]), false);
+  assert.equal(useStore.getState().updateStop("s0", "X", []), false);
+  assert.equal(useStore.getState().stops, previous);
+  useStore.setState({ access: "read" });
+  useStore.getState().updateStop("s0", "Blocked", ["tram"]);
+  assert.equal(useStore.getState().stops, previous);
+  useStore.setState({ access: "local" });
+});
+
+test("pair coordination survives saving and import, splits on detach, and cleans up on delete", () => {
+  reset();
+  const a = { ...route("A", [seg(0, 1), seg(1, 2)]), outboundStopIds: ["s0", "s1", "s2"] };
+  const b = { ...a, id: "B" }, c = { ...a, id: "C" }, d = { ...a, id: "D" };
+  const unrelated = { ...a, id: "X", outboundStopIds: ["s2", "s3"], segments: [seg(2, 3)] };
+  useStore.setState({ access: "local", lines: [a, b, c, d, unrelated] });
+  useStore.getState().coordinateLines("A", "X");
+  assert.ok(useStore.getState().lines.every((l) => !l.coordinatedLineIds?.length));
+  useStore.getState().coordinateLines("A", "B");
+  useStore.getState().coordinateLines("C", "D");
+  assert.deepEqual(useStore.getState().lines[0].coordinatedLineIds, ["B"]);
+  assert.deepEqual(useStore.getState().lines[2].coordinatedLineIds, ["D"]);
+  useStore.getState().coordinateLines("B", "C");
+  let lines = useStore.getState().lines;
+  assert.equal(coordinationMembers(lines, lines[0]).length, 4);
+  assert.deepEqual(lines[0].coordinatedLineIds, ["B"]);
+  useStore.getState().openProposal(loadState()!);
+  lines = useStore.getState().lines;
+  assert.equal(coordinationMembers(lines, lines[0]).length, 4);
+  useStore.getState().uncoordinateLine("B", "C");
+  lines = useStore.getState().lines;
+  assert.equal(coordinationMembers(lines, lines[0]).length, 2);
+  assert.equal(coordinationMembers(lines, lines[2]).length, 2);
+  useStore.getState().deleteLine("B");
+  assert.equal(useStore.getState().lines.find((l) => l.id === "A")!.coordinatedLineIds?.length ?? 0, 0);
+  useStore.getState().uncoordinateLine("C");
+  assert.equal(useStore.getState().lines.find((l) => l.id === "D")!.coordinatedLineIds?.length ?? 0, 0);
+  useStore.setState({ access: "read" });
+  const before = useStore.getState().lines;
+  useStore.getState().coordinateLines("A", "C");
+  useStore.getState().setDepartureOffset("A", 4, "wd_am", "outbound");
+  assert.equal(useStore.getState().lines, before);
+  useStore.setState({ access: "local" });
+});
+
+
+test("bulk visibility affects the entire selected transport mode once and preserves the other mode and schedules",()=>{
+  reset();
+  const bus={...local,id:"bus",visible:true},tram={...express,id:"tram",mode:"tram" as const,visible:true};
+  const hiddenBus={...bus,id:"hidden-bus",visible:false};
+  useStore.setState({access:"local",lines:[bus,tram,hiddenBus]});
+  useStore.getState().setModeVisible("bus",false);
+  assert.deepEqual(useStore.getState().lines.map(l=>l.visible),[false,true,false]);
+  assert.deepEqual(useStore.getState().lines[0].takt,bus.takt);
+  assert.deepEqual(useStore.getState().lines[0].segments,bus.segments);
+  assert.equal(useStore.getState().lines[1],tram);
+  assert.deepEqual(loadState()!.lines.map(l=>l.visible),[false,true,false]);
+  useStore.getState().setModeVisible("bus",true);
+  assert.deepEqual(useStore.getState().lines.map(l=>l.visible),[true,true,true]);
+  useStore.getState().setModeVisible("tram",false);
+  assert.deepEqual(useStore.getState().lines.map(l=>l.visible),[true,false,true]);
+  useStore.setState({access:"read"});useStore.getState().setModeVisible("bus",false);
+  assert.deepEqual(useStore.getState().lines.map(l=>l.visible),[true,false,true]);
+  useStore.setState({access:"local"});
 });

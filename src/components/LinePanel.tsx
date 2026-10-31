@@ -3,9 +3,12 @@ import { cycleMinutes, peakTakt, vehiclesNeeded } from "../lib/takt";
 import { formatTakt } from "../lib/geo";
 import { useStore } from "../store";
 import { dailyLineCost, formatMoney } from "../lib/costs";
+import { CoordinationPanel } from "./CoordinationPanel";
+import { TimetablePanel } from "./TimetablePanel";
 import { TaktGrid } from "./TaktGrid";
 
 export function LinePanel() {
+  const readOnly = useStore((s) => s.access === "read");
   const id = useStore((s) => s.selectedLineId);
   const line = useStore((s) => s.lines.find((l) => l.id === id));
   const stops = useStore((s) => s.stops);
@@ -35,7 +38,7 @@ export function LinePanel() {
         <button type="button" className="icon-btn close-inspector"
           aria-label="Zamknij panel linii" title="Zamknij panel linii" onClick={() => selectLine(null)}>×</button>
       </header>
-
+      <fieldset className="line-fields" disabled={readOnly}>
       <label className="field">Nazwa linii
         <input className="title-input" value={line.name} placeholder="Nazwa linii"
           onChange={(e) => updateLine(line.id, { name: e.target.value })} />
@@ -56,6 +59,8 @@ export function LinePanel() {
           />
         ))}
       </div>
+
+      <CoordinationPanel line={line} />
 
       <StopList
         title="Kierunek tam"
@@ -83,8 +88,9 @@ export function LinePanel() {
           Czasy międzyprzystankowe
           {line.segments.length > 0 && <span>{line.segments.length}</span>}
         </summary>
-        <p className="muted">Nowe odcinki: długość trasy przy {String(AVERAGE_SPEED_KMH[line.mode]).replace(".", ",")} km/h,
-          zaokrąglona do 1 min. Możesz zmienić czas ręcznie lub przywrócić obliczenie przyciskiem ↻.</p>
+        <p className="muted">Czas z GTFS, jeśli istnieje bezpośrednia relacja dla tych stanowisk i kierunku
+          (mediana kursów). W pozostałych przypadkach: długość trasy przy {String(AVERAGE_SPEED_KMH[line.mode]).replace(".", ",")} km/h.
+          Czasy zaokrąglamy do 1 min. Przycisk ↻ przywraca czas automatyczny; możesz też wpisać własny.</p>
         {line.segments.length === 0 ? (
           <p className="empty-hint">Brak odcinków — pojawią się po dodaniu przystanków.</p>
         ) : (
@@ -96,15 +102,16 @@ export function LinePanel() {
                 </button>
                 <input
                   aria-label={`Czas: ${nameOf(seg.fromStopId)} → ${nameOf(seg.toStopId)}`}
-                  title={seg.travelTimeSource === "auto" ? "Czas obliczony z długości trasy" : "Czas ustawiony ręcznie"}
+                  title={(seg.travelTimeSource === "gtfs" || seg.travelTimeSource === "gtfs-import") ? `GTFS: mediana z ${seg.gtfsSamples ?? 0} przejazdów`
+                    : seg.travelTimeSource === "auto" ? "Czas obliczony z długości trasy" : "Czas ustawiony ręcznie"}
                   type="number"
                   min={1}
                   step={1}
                   value={seg.travelMin}
                   onChange={(e) => setSegmentTime(line.id, seg.id, Number(e.target.value))}
                 />
-                <span>min</span>
-                <button type="button" className="icon-btn" title="Oblicz czas z długości trasy"
+                <span>min{(seg.travelTimeSource === "gtfs" || seg.travelTimeSource === "gtfs-import") && <small className="time-source">GTFS</small>}</span>
+                <button type="button" className="icon-btn" title="Przywróć czas z GTFS lub oszacowanie z długości trasy"
                   aria-label={`Oblicz czas: ${nameOf(seg.fromStopId)} → ${nameOf(seg.toStopId)}`}
                   onClick={() => resetSegmentTime(line.id, seg.id)}>↻</button>
               </li>
@@ -137,10 +144,13 @@ export function LinePanel() {
             </button>
           ))}
         </div>
-        <p className="muted">Grubość kreski na mapie odpowiada długości pojazdu — wygodne na konsultacjach.</p>
+        <p className="muted">Częstsze linie są nieco grubsze. Długość pojazdu ma niewielki wpływ; krótki autobus i krótki tramwaj mają tę samą grubość przy tym samym takcie.</p>
       </fieldset>
 
       <TaktGrid value={line.takt} color={line.color} onChange={(p, v) => setTakt(line.id, p, v)} />
+      </fieldset>
+      <TimetablePanel key={line.id} line={line} />
+      <fieldset className="line-fields" disabled={readOnly}>
 
       <div className="stats">
         <div>
@@ -171,6 +181,7 @@ export function LinePanel() {
       <button type="button" className="danger-block" onClick={() => deleteLine(line.id)}>
         Usuń linię
       </button>
+      </fieldset>
     </aside>
   );
 }

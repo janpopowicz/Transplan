@@ -153,6 +153,8 @@ export function clusterStops(stops: Stop[], maxMeters: number): Stop[][] {
       if (other !== undefined) union(other, i);
       else explicit.set(stop.groupId, i);
     }
+    // A passenger stop group spans numbered platforms in both directions.
+    // This does not merge or remove catalogue entries.
     const key = stopGroupKey(stop.name);
     if (!key || key === "bez nazwy") return;
     const previous = named.get(key) ?? [];

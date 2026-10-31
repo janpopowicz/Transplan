@@ -1,15 +1,20 @@
 import type { PeriodId } from "../constants";
 import type { Coord, Stop, TransitLine } from "../types";
 import type { WalkingEdge, WalkingNetwork } from "./walkingNetwork";
+import { buildTimetable, nextDeparture, type TimetableRun } from "./timetable";
 
 export const WALK_METERS_PER_MIN = 80;
-type Edge = { to: number; minutes: number };
+export type Edge = { to: number; minutes: number; headway?: number; phase?: number; transit?: boolean; kind?: "board" | "ride" | "alight"; run?: number; index?: number };
+export type AccessibilityScenario = "mean" | "p90" | "best" | "worst";
 export interface AccessibilityRequest {
   origin: Coord;
   stops: Stop[];
   lines: TransitLine[];
   period: PeriodId;
   network: WalkingNetwork;
+  scenario?: AccessibilityScenario;
+  /** Exact departure for timetable diagnostics; otherwise sample a full hour. */
+  departureMinute?: number;
 }
 
 export function projection(origin: Coord) {
@@ -20,24 +25,43 @@ export function projection(origin: Coord) {
   };
 }
 
-/** One shortest-path search over walking ways and on-board transit states.
- * All access, egress and transfers follow the same pedestrian network. */
-export function calculateAccessibility({ origin, stops, lines, period, network }: AccessibilityRequest) {
-  const project = projection(origin);
-  const coords = network.coords.slice();
-  const xy = coords.map(project.toXY);
-  const graph: Edge[][] = coords.map(() => []);
-  const addNode = (coord?: Coord) => {
-    const index = graph.length;
-    graph.push([]);
-    if (coord) { coords[index] = coord; xy[index] = project.toXY(coord); }
-    return index;
+interface PreparedWalkingGraph {
+  project: ReturnType<typeof projection>;
+  xy: Coord[];
+  offsets: Uint32Array;
+  destinations: Uint32Array;
+  minutes: Float64Array;
+  cells: Map<string, number[]>;
+}
+const preparedGraphs = new WeakMap<WalkingNetwork, PreparedWalkingGraph>();
+const CELL = 200;
+
+/** The walking topology and spatial index do not depend on the chosen origin. */
+export function prepareWalkingGraph(network: WalkingNetwork): PreparedWalkingGraph {
+  const cached = preparedGraphs.get(network);
+  if (cached) return cached;
+  const project = projection(network.coords[0] ?? [19.94, 50.06]);
+  const xy = network.coords.map(project.toXY);
+  // Compact adjacency avoids hundreds of thousands of arrays and millions of
+  // edge objects, keeping the reusable graph inexpensive in a browser worker.
+  const offsets = new Uint32Array(network.coords.length + 1);
+  for (const edge of network.edges) {
+    if (edge.forward) offsets[edge.from + 1]++;
+    if (edge.backward) offsets[edge.to + 1]++;
+  }
+  for (let i = 1; i < offsets.length; i++) offsets[i] += offsets[i - 1];
+  const destinations = new Uint32Array(offsets.at(-1)!);
+  const minutes = new Float64Array(destinations.length);
+  const cursor = offsets.slice();
+  const connect = (from: number, to: number, time: number) => {
+    const index = cursor[from]++;
+    destinations[index] = to; minutes[index] = time;
   };
-  const connect = (from: number, to: number, minutes: number) => graph[from].push({ to, minutes });
   const cells = new Map<string, number[]>();
-  const CELL = 200;
   for (let i = 0; i < network.edges.length; i++) {
     const edge = network.edges[i], a = xy[edge.from], b = xy[edge.to];
+    if (edge.forward) connect(edge.from, edge.to, edge.meters / WALK_METERS_PER_MIN);
+    if (edge.backward) connect(edge.to, edge.from, edge.meters / WALK_METERS_PER_MIN);
     for (let x = Math.floor(Math.min(a[0], b[0]) / CELL); x <= Math.floor(Math.max(a[0], b[0]) / CELL); x++) {
       for (let y = Math.floor(Math.min(a[1], b[1]) / CELL); y <= Math.floor(Math.max(a[1], b[1]) / CELL); y++) {
         const key = `${x},${y}`, bucket = cells.get(key) ?? [];
@@ -45,6 +69,30 @@ export function calculateAccessibility({ origin, stops, lines, period, network }
       }
     }
   }
+  const prepared = { project, xy, offsets, destinations, minutes, cells };
+  preparedGraphs.set(network, prepared);
+  return prepared;
+}
+
+/** One shortest-path search over walking ways and on-board transit states.
+ * Per-request connections are separate from the immutable walking graph. */
+export function buildAccessibilityGraph({ origin, stops, lines, period, network }: AccessibilityRequest,
+  runs: TimetableRun[] = buildTimetable(lines, period), targets: Coord[] = []) {
+  const prepared = prepareWalkingGraph(network);
+  const { project, cells } = prepared;
+  const coords = network.coords.slice();
+  const xy = prepared.xy.slice();
+  let nodeCount = coords.length;
+  const extra = new Map<number, Edge[]>();
+  const addNode = (coord?: Coord) => {
+    const index = nodeCount++;
+    if (coord) { coords[index] = coord; xy[index] = project.toXY(coord); }
+    return index;
+  };
+  const connect = (from: number, to: number, minutes: number, schedule: Partial<Edge> = {}) => {
+    const edges = extra.get(from) ?? [];
+    edges.push({ to, minutes, ...schedule }); extra.set(from, edges);
+  };
   const splits = new Map<number, { t: number; node: number }[]>();
   const attach = (coord: Coord, maxMeters: number) => {
     const p = project.toXY(coord), cx = Math.floor(p[0] / CELL), cy = Math.floor(p[1] / CELL);
@@ -90,50 +138,43 @@ export function calculateAccessibility({ origin, stops, lines, period, network }
     if (!stop) return undefined;
     const snapped = attach([stop.lon, stop.lat], 80);
     if (!snapped) { missed.add(id); return undefined; }
-    const node = addNode();
+    const node = addNode([stop.lon, stop.lat]);
     connect(node, snapped.node, snapped.minutes); connect(snapped.node, node, snapped.minutes);
     ground.set(id, node);
     return node;
   };
-  // Split pedestrian edges at every served stop before connecting the graph.
-  for (const line of lines) {
-    const takt = line.takt[period];
-    if (takt == null || !Number.isFinite(takt) || takt <= 0) continue;
-    for (const segment of line.segments) { groundNode(segment.fromStopId); groundNode(segment.toStopId); }
-  }
-  let activeLines = 0;
-  for (const line of lines) {
-    const takt = line.takt[period];
-    if (takt == null || !Number.isFinite(takt) || takt <= 0) continue;
-    let served = false;
-    for (const direction of ["outbound", "inbound"] as const) {
-      const ids = [...(direction === "outbound" ? line.outboundStopIds : line.inboundStopIds)];
-      if (direction === "inbound" && line.terminus2Id && ids[0] !== line.terminus2Id &&
-        line.segments.some((s) => s.direction === direction && s.fromStopId === line.terminus2Id && s.toStopId === ids[0])) ids.unshift(line.terminus2Id);
-      const onboard = new Map<number, number>();
-      const boardNode = (index: number) => {
-        if (!onboard.has(index)) {
-          const ride = addNode(), stop = ground.get(ids[index]);
-          onboard.set(index, ride);
-          // A stop without a mapped pedestrian connection can still be passed
-          // on board, but cannot create a walk across a gap in OSM.
-          if (stop !== undefined) { connect(stop, ride, takt / 2); connect(ride, stop, 0); }
-        }
-        return onboard.get(index)!;
-      };
-      for (let i = 0; i < ids.length - 1; i++) {
-        const segment = line.segments.find((s) => s.direction === direction && s.fromStopId === ids[i] && s.toStopId === ids[i + 1]);
-        if (!segment || !Number.isFinite(segment.travelMin) || segment.travelMin < 0) continue;
-        const from = boardNode(i), to = boardNode(i + 1);
-        connect(from, to, segment.travelMin); served = true;
+  const targetNodes = targets.map((coord) => {
+    const snapped = attach(coord, 150);
+    if (!snapped) throw new Error("Brak drogi pieszej OSM w odległości 150 m od celu. Wybierz punkt bliżej chodnika lub ścieżki.");
+    const node = addNode(coord);
+    connect(snapped.node, node, snapped.minutes); connect(node, snapped.node, snapped.minutes);
+    return node;
+  });
+  // Include every run, including service from earlier/later timetable periods.
+  for (const run of runs) for (const id of run.stops) groundNode(id);
+  const activeLines = new Set(runs.map((run) => run.lineId)).size;
+  const boardings: { from: number; to: number; phase: number; headway: number }[] = [];
+  for (const [runIndex, run] of runs.entries()) {
+    const onboard = run.stops.map((id, i) => {
+      const location = stopById.get(id);
+      const ride = addNode(location ? [location.lon, location.lat] : undefined), stop = ground.get(id);
+      if (stop !== undefined) {
+        const phase = run.phase + run.elapsed[i];
+        connect(stop, ride, 0, { headway: run.headway, phase, transit: true, kind: "board", run: runIndex, index: i });
+        boardings.push({ from: stop, to: ride, phase, headway: run.headway });
+        connect(ride, stop, 0, { transit: true, kind: "alight", run: runIndex, index: i });
       }
-    }
-    if (served) activeLines++;
+      return ride;
+    });
+    run.minutes.forEach((minutes, i) => connect(onboard[i], onboard[i + 1], minutes, { transit: true, kind: "ride", run: runIndex, index: i }));
   }
-  const walkEdges: WalkingEdge[] = [];
-  for (let i = 0; i < network.edges.length; i++) {
-    const edge = network.edges[i];
-    const list = [{ t: 0, node: edge.from }, ...(splits.get(i) ?? []).sort((a, b) => a.t - b.t), { t: 1, node: edge.to }];
+  // Original endpoint-to-endpoint walking edges remain valid shortcuts. Only
+  // split edges need additional connections; all other adjacency is reused.
+  const walkEdges: WalkingEdge[] = splits.size
+    ? network.edges.filter((_, index) => !splits.has(index)) : network.edges;
+  for (const [index, split] of splits) {
+    const edge = network.edges[index];
+    const list = [{ t: 0, node: edge.from }, ...split.sort((a, b) => a.t - b.t), { t: 1, node: edge.to }];
     for (let j = 1; j < list.length; j++) {
       const from = list[j - 1].node, to = list[j].node, meters = edge.meters * (list[j].t - list[j - 1].t);
       if (edge.forward) connect(from, to, meters / WALK_METERS_PER_MIN);
@@ -141,22 +182,77 @@ export function calculateAccessibility({ origin, stops, lines, period, network }
       walkEdges.push({ ...edge, from, to, meters });
     }
   }
-  const times = new Float64Array(graph.length).fill(Infinity);
+  return { prepared, coords, xy, project, extra, nodeCount, start, ground, targetNodes, runs, walkEdges, activeLines, missed, boardings };
+}
+
+export function calculateAccessibility(request: AccessibilityRequest) {
+  const { scenario = "mean", departureMinute, network } = request;
+  const { prepared, coords, xy, project, extra, nodeCount, start, ground, walkEdges, activeLines, missed, boardings } = buildAccessibilityGraph(request);
+  const walkOnly = new Float64Array(nodeCount).fill(Infinity);
+  const arrivals = new Float64Array(nodeCount).fill(Infinity);
   const heap = new MinHeap();
-  times[start.node] = start.minutes; heap.push(start.node, start.minutes);
-  while (heap.size) {
-    const current = heap.pop();
-    if (times[current.to] !== current.minutes) continue;
-    for (const edge of graph[current.to]) {
-      const time = current.minutes + edge.minutes;
-      if (time < times[edge.to]) { times[edge.to] = time; heap.push(edge.to, time); }
+  function search(times: Float64Array, departure: number, walkingOnly: boolean) {
+    const relax = (to: number, time: number) => {
+      // Walking from the origin is already available without a graph search
+      // for each sample. A dominated transit path cannot improve downstream.
+      if (!walkingOnly && time >= departure + walkOnly[to] - 1e-9) return;
+      if (time < times[to] - 1e-9) { times[to] = time; heap.push(to, time); }
+    };
+    while (heap.size) {
+      const current = heap.pop();
+      if (times[current.to] !== current.minutes) continue;
+      if (current.to < network.coords.length) for (let i = prepared.offsets[current.to]; i < prepared.offsets[current.to + 1]; i++) {
+        relax(prepared.destinations[i], current.minutes + prepared.minutes[i]);
+      }
+      for (const edge of extra.get(current.to) ?? []) {
+        if (walkingOnly && edge.transit) continue;
+        const time = edge.headway === undefined ? current.minutes + edge.minutes
+          : nextDeparture(current.minutes, edge.phase!, edge.headway);
+        relax(edge.to, time);
+      }
     }
   }
-  return { coords, xy, walkEdges, times, activeLines, unconnectedStops: missed.size,
+  walkOnly[start.node] = start.minutes; heap.push(start.node, start.minutes);
+  search(walkOnly, 0, true);
+  const sampleCount = departureMinute === undefined ? 120 : 1;
+  const times = new Float64Array(nodeCount).fill(scenario === "best" ? Infinity : 0);
+  // Exact nearest-rank P90 needs only the largest 13 of 120 observations.
+  // This avoids retaining 120 full city graphs in worker memory.
+  const tailSize = sampleCount - Math.ceil(0.9 * sampleCount) + 1;
+  const tail = scenario === "p90" ? new Float64Array(nodeCount * tailSize).fill(-Infinity) : null;
+  for (let sample = sampleCount - 1; sample >= 0; sample--) {
+    const departure = departureMinute ?? (sample + 0.5) * 0.5;
+    // Earlier starts can wait for every journey available to later starts.
+    // Keep those valid absolute arrivals and only propagate improvements.
+    for (const boarding of boardings) {
+      if (!Number.isFinite(walkOnly[boarding.from])) continue;
+      const time = nextDeparture(departure + walkOnly[boarding.from], boarding.phase, boarding.headway);
+      if (time < arrivals[boarding.to] - 1e-9) { arrivals[boarding.to] = time; heap.push(boarding.to, time); }
+    }
+    search(arrivals, departure, false);
+    for (let node = 0; node < nodeCount; node++) {
+      const duration = Math.min(walkOnly[node], arrivals[node] - departure);
+      if (tail) {
+        const base = node * tailSize;
+        if (duration > tail[base]) {
+          let i = 0;
+          while (i < tailSize - 1 && tail[base + i + 1] < duration) {
+            tail[base + i] = tail[base + i + 1]; i++;
+          }
+          tail[base + i] = duration;
+        }
+      } else if (scenario === "best") times[node] = Math.min(times[node], duration);
+      else if (scenario === "worst") times[node] = Math.max(times[node], duration);
+      else times[node] += duration;
+    }
+  }
+  if (tail) for (let node = 0; node < nodeCount; node++) times[node] = tail[node * tailSize];
+  else if (scenario === "mean") for (let node = 0; node < nodeCount; node++) times[node] /= sampleCount;
+  return { coords, xy, walkEdges, times, project, activeLines, unconnectedStops: missed.size,
     stopTimes: new Map([...ground].map(([id, index]) => [id, times[index]])), originSnapMeters: start.distance };
 }
 
-class MinHeap {
+export class MinHeap {
   private items: Edge[] = [];
   get size() { return this.items.length; }
   push(to: number, minutes: number) {

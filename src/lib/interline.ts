@@ -1,7 +1,4 @@
 import {
-  LINE_WIDTH_FACTOR,
-  LINE_WIDTH_MAX_PX,
-  LINE_WIDTH_MIN_PX,
   OFFSET_BLEND_MAX_M,
   OFFSET_BLEND_MIN_M,
   OFFSET_BLEND_PX,
@@ -15,7 +12,7 @@ import {
   pathDistances,
 } from "./geo";
 import { buildNetworkRenderSegments } from "./networkInterline";
-import { peakTakt, tripsPerHourNum } from "./takt";
+import { lineStrokeWidth } from "./lineWidth";
 import type { EdgeRun } from "./tramGraph";
 import { roadGraph, tramGraph } from "./tramGraph";
 
@@ -99,7 +96,7 @@ function prepare(lines: TransitLine[], stops: Stop[] | undefined): LaneCache {
 
   for (const line of lines) {
     if (!line.visible) continue;
-    const width = strokeWidth(line);
+    const width = lineStrokeWidth(line);
     const graph = line.mode === "tram" ? tramGraph : roadGraph;
     for (const seg of line.segments) {
       const clipped = clipToNetwork(line, seg, stopById);
@@ -245,17 +242,9 @@ function blendOffsets(
   return out;
 }
 
-function strokeWidth(line: TransitLine): number {
-  const perHour = tripsPerHourNum(peakTakt(line));
-  const lengthM = parseFloat(line.vehicle);
-  const len = Number.isFinite(lengthM) ? lengthM : 12;
-  const px = perHour * len * LINE_WIDTH_FACTOR;
-  return Math.min(LINE_WIDTH_MAX_PX, Math.max(LINE_WIDTH_MIN_PX, px));
-}
-
 function clipToNetwork(line: TransitLine, seg: LineSegment, stops: Map<string, Stop>): Coord[] {
   const graph = line.mode === "tram" ? tramGraph : roadGraph;
-  if (graph.isEmpty()) return seg.geometry;
+  if (line.gtfsImport || graph.isEmpty()) return seg.geometry;
   const a = stops.get(seg.fromStopId);
   const b = stops.get(seg.toStopId);
   if (!a || !b) return seg.geometry;

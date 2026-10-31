@@ -1,0 +1,33 @@
+{
+  "documentHeaders": {
+    "content-security-policy": null,
+    "x-frame-options": null,
+    "referrer-policy": null,
+    "cache-control": null
+  },
+  "malformedUrl": {
+    "exitCode": 1,
+    "signal": null,
+    "invalidUrlError": true
+  },
+  "storage": {
+    "anonymousCreates": 5,
+    "revisionsRetained": 6,
+    "bytes": 1294460
+  },
+  "overpass": {
+    "requests": 12,
+    "upstreamCalls": 12,
+    "peakConcurrency": 12,
+    "cacheFiles": 12,
+    "crossSiteAccepted": true
+  },
+  "timetable": {
+    "accepted": true,
+    "apiStatus": 201,
+    "started": true,
+    "timedOut": true,
+    "headway": 1e-14,
+    "floatingPointDoesNotAdvance": true
+  }
+}

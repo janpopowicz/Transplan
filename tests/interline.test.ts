@@ -1,9 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildRenderSegments } from "../src/lib/interline";
+import { lineStrokeWidth } from "../src/lib/lineWidth";
 import { isNetworkView } from "../src/lib/mapViewMode";
 import { buildNetworkStopMarkers } from "../src/lib/networkStops";
-import { DEFAULT_TAKT, OFFSET_GAP_PX } from "../src/constants";
+import { BUS_VEHICLES, TRAM_VEHICLES, TAKT_OPTIONS, DEFAULT_TAKT, OFFSET_GAP_PX } from "../src/constants";
 import { haversine, metersPerPixel, nearestPointOnLine, pointAlong } from "../src/lib/geo";
 import type { Coord, LineSegment, Stop, TransitLine } from "../src/types";
 
@@ -30,19 +31,21 @@ const local = line("100", [segment(a, b), segment(b, c), segment(c, d),
   segment(d, c, "inbound"), segment(c, b, "inbound"), segment(b, a, "inbound")]);
 const express = line("500", [segment(a, d), segment(d, a, "inbound")]);
 
-test("opposite platforms merge at their mean, without doubling stroke width", () => {
+test("manually grouped opposite platforms merge at their mean, without doubling stroke width", () => {
   const a1 = stop("a1", 0, -12, "Alpha 01"), a2 = stop("a2", 0, 12, "Alpha 02");
   const b1 = stop("b1", 300, -12, "Beta 01"), b2 = stop("b2", 300, 12, "Beta 02");
+  a1.groupId = a2.groupId = "alpha";
+  b1.groupId = b2.groupId = "beta";
   const route = line("100", [segment(a1, b1), segment(b2, a2, "inbound")]);
   const result = render([route], [a1, a2, b1, b2]);
   assert.equal(result.length, 1);
   assert.equal(result[0].oneWay, false);
-  assert.ok(Math.abs(result[0].width - 3.6) < 1e-8);
   assert.ok(haversine(result[0].geometry[0], xy(0, 0)) < 0.01);
   assert.ok(haversine(result[0].geometry.at(-1)!, xy(300, 0)) < 0.01);
   assert.ok(haversine(pointAlong(result[0].geometry, 0.5), xy(150, 0)) < 0.1);
   const detailed = buildRenderSegments([route], { stops: [a1, a2, b1, b2] });
   assert.equal(detailed.length, 2);
+  assert.equal(result[0].width, detailed[0].width);
   assert.ok(haversine(detailed[0].geometry[0], [a1.lon, a1.lat]) < 0.01);
 });
 
@@ -110,7 +113,7 @@ test("hidden services do not consume lanes and zoom only changes screen-space sp
   for (const scale of [0.5, 2, 10]) {
     const result = render([local, express], stops, scale);
     const pair = result.slice(0, 2);
-    assert.ok(Math.abs(haversine(pointAlong(pair[0].geometry, 0.5), pointAlong(pair[1].geometry, 0.5)) / scale - 5.8) < 0.1);
+    assert.ok(Math.abs(haversine(pointAlong(pair[0].geometry, 0.5), pointAlong(pair[1].geometry, 0.5)) / scale - ((pair[0].width + pair[1].width) / 2 + OFFSET_GAP_PX)) < 0.1);
   }
 });
 
@@ -127,6 +130,8 @@ test("parallel bus and tram share lanes but only mark their own stops", () => {
   const tramStop = (id: string, x: number, name: string): Stop => ({ ...stop(id, x, 18, name), modes: ["tram"] });
   const tramA = tramStop("tram-a", 0, "Alpha 02"), tramB = tramStop("tram-b", 300, "Tram only");
   const tramD = tramStop("tram-d", 900, "Delta 02");
+  busA.groupId = tramA.groupId = "alpha";
+  busD.groupId = tramD.groupId = "delta";
   const bus = line("100", [segment(busA, busC), segment(busC, busD),
     segment(busD, busC, "inbound"), segment(busC, busA, "inbound")]);
   const tram: TransitLine = { ...line("13", [segment(tramA, tramB), segment(tramB, tramD),
@@ -205,20 +210,21 @@ test("screen offsets use MapLibre's 512-pixel zoom convention", () => {
   assert.ok(Math.abs(metersPerPixel(latitude, zoom) * screenPixels / geographicMeters - 1) < 0.002);
 });
 
-test("automatic groups match full base names within 150m, including manually assigned platforms", async () => {
+test("automatic groups match base names within 250m and manual groups still work at a distance", async () => {
   const { clusterStops, stopGroupKey } = await import("../src/lib/geo");
   const { STOP_GROUP_METERS } = await import("../src/constants");
-  assert.equal(STOP_GROUP_METERS, 150);
+  assert.equal(STOP_GROUP_METERS, 250);
   const p = [
     { ...stop("r1", 0, 0, "Rondo Młyńskie 02"), groupId: "manual" },
-    stop("r2", 140, 0, "Rondo Młyńśkie 03"),
-    stop("r3", 310, 0, "Rondo Młyńskie 04"),
+    stop("r2", 249, 0, "Rondo Młyńśkie 03"),
+    stop("r3", 900, 0, "Rondo Młyńskie 04"),
+    { ...stop("r4", 600, 0, "Rondo Młyńskie 05"), groupId: "manual" },
     stop("p1", 0, 0, "Prokocim 01"),
     stop("p2", 10, 0, "Prokocim Szpitale Uniwersyteckie 02"),
     stop("p3", 20, 0, "Prokocim 03"),
   ];
   const groups = clusterStops(p, STOP_GROUP_METERS).map((g) => g.map((s) => s.id).sort());
-  assert.deepEqual(groups, [["r1", "r2"], ["r3"], ["p1", "p3"], ["p2"]]);
+  assert.deepEqual(groups, [["r1", "r2", "r4"], ["r3"], ["p1", "p3"], ["p2"]]);
   assert.notEqual(stopGroupKey("Prokocim"), stopGroupKey("Prokocim Szpitale Uniwersyteckie"));
   assert.equal(stopGroupKey("Rondo Młyńskie 02"), stopGroupKey("Rondo Młyńśkie 03"));
   assert.notEqual(stopGroupKey("Aleja 29 Listopada 01"), stopGroupKey("Aleja 3 Maja 01"));
@@ -244,10 +250,44 @@ test("one-direction calls get triangles even on a collapsed two-way corridor", (
 
 test("opposite platforms served in different directions retain a circular group marker", () => {
   const b1 = stop("b1", 300, -10, "Beta 01"), b2 = stop("b2", 300, 10, "Beta 02");
+  b1.groupId = b2.groupId = "beta";
   const route = line("both", [segment(a, b1), segment(b1, c),
     segment(c, b2, "inbound"), segment(b2, a, "inbound")]);
   const platforms = [a, b1, b2, c];
   const markers = buildNetworkStopMarkers([route], platforms, render([route], platforms));
   assert.equal(markers.length, 3);
   assert.ok(markers.every((m) => m.direction === null));
+});
+
+test("frequency remains ordered with compressed contrast and mode-relative vehicle sizes", () => {
+  const route = line("7A", [segment(a, b), segment(b, a, "inbound")]);
+  const width = (takt: number, vehicle: TransitLine["vehicle"], mode: TransitLine["mode"]) =>
+    lineStrokeWidth({ ...route, mode, vehicle, takt: { ...DEFAULT_TAKT, wd_am: takt, wd_pm: takt } });
+  for (const takt of TAKT_OPTIONS) {
+    assert.equal(width(takt, "8m", "bus"), width(takt, "26m", "tram"));
+    assert.equal(width(takt, "18m", "bus"), width(takt, "42m", "tram"));
+    for (const [mode, vehicles] of [["bus", BUS_VEHICLES], ["tram", TRAM_VEHICLES]] as const) {
+      const widths = vehicles.map((v) => width(takt, v.id, mode));
+      assert.ok(widths.every((w, i) => !i || w > widths[i - 1]));
+      assert.ok(widths.at(-1)! - widths[0] <= .600001);
+    }
+  }
+  const widths = [...TAKT_OPTIONS].reverse().map((t) => width(t, "33m", "tram"));
+  // Newly supported 90–240 minute service shares the minimum readable width.
+  assert.ok(widths.every((w, i) => !i || w >= widths[i - 1]));
+  const frequent = [...TAKT_OPTIONS].filter((t) => t <= 60).reverse().map((t) => width(t, "33m", "tram"));
+  assert.ok(frequent.every((w, i) => !i || w > frequent[i - 1]));
+  assert.ok(widths.at(-1)! / widths[0] > 2.5 && widths.at(-1)! / widths[0] < 4);
+  assert.ok(width(10, "33m", "tram") > 4 && width(10, "33m", "tram") < 5);
+});
+
+test("detailed and network rendering share the compressed width across modes and frequencies", () => {
+  for (const [mode, vehicle, takt] of [["bus", "8m", 60], ["bus", "18m", 5], ["tram", "33m", 10], ["tram", "42m", 4]] as const) {
+    const route = { ...line("7A", [segment(a, b), segment(b, a, "inbound")]), mode, vehicle,
+      takt: { ...DEFAULT_TAKT, wd_am: takt, wd_pm: takt } };
+    const network = render([route], [a, b]);
+    const detailed = buildRenderSegments([route], { stops: [a, b] });
+    assert.equal(network.length, 1);
+    assert.ok(detailed.every((seg) => seg.width === network[0].width));
+  }
 });

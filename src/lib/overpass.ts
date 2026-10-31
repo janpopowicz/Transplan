@@ -1,16 +1,9 @@
+import { encodeStoredState, decodeStoredState } from "./storageCodec";
 import { BBOX } from "../constants";
 import type { Stop, TramTrack, Coord } from "../types";
 import { haversine, normalizeStopName } from "./geo";
 
-const OVERPASS_ENDPOINTS = [
-  "https://overpass.openstreetmap.fr/api/interpreter",
-  "/overpass",
-  "https://lz4.overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
-  "https://overpass-api.de/api/interpreter",
-];
-
-const OSM_CACHE_KEY = "transplan-osm-cache-v3";
+const OSM_CACHE_KEY = "transplan-base-cache-v6";
 const OSM_CACHE_MS = 7 * 24 * 60 * 60 * 1000;
 
 interface OsmNode {
@@ -25,23 +18,36 @@ interface OsmWay {
   type: "way";
   id: number;
   geometry?: { lat: number; lon: number }[];
+  center?: { lat: number; lon: number };
   tags?: Record<string, string>;
 }
+
+interface OsmRelation {
+  type: "relation";
+  id: number;
+  center?: { lat: number; lon: number };
+  tags?: Record<string, string>;
+}
+
+type OsmElement = OsmNode | OsmWay | OsmRelation;
 
 interface OsmCache {
   at: number;
   stops: Stop[];
   tracks: TramTrack[];
+  legacyStops?: Stop[];
 }
 
 export function readOsmCache(): OsmCache | null {
   try {
-    const raw = localStorage.getItem(OSM_CACHE_KEY);
+    const current = localStorage.getItem(OSM_CACHE_KEY);
+    // Reimport stops after a parser change, retaining the independent track cache.
+    const raw = current ?? localStorage.getItem("transplan-osm-cache-v5") ?? localStorage.getItem("transplan-osm-cache-v4") ?? localStorage.getItem("transplan-osm-cache-v3");
     if (!raw) return null;
-    const data = JSON.parse(raw) as OsmCache;
+    const data = decodeStoredState(raw) as OsmCache;
     if (!data?.stops || !data?.tracks) return null;
     if (Date.now() - data.at > OSM_CACHE_MS) return null;
-    return data;
+    return current ? data : { ...data, stops: [], legacyStops: data.stops };
   } catch {
     return null;
   }
@@ -51,131 +57,36 @@ export function writeOsmCache(stops: Stop[], tracks: TramTrack[]): void {
   try {
     localStorage.setItem(
       OSM_CACHE_KEY,
-      JSON.stringify({ at: Date.now(), stops, tracks } satisfies OsmCache),
+      encodeStoredState({ at: Date.now(), stops, tracks } satisfies OsmCache),
     );
   } catch {
     /* quota */
   }
 }
 
-async function overpass(query: string): Promise<{ elements: (OsmNode | OsmWay)[] }> {
-  let lastError: Error | null = null;
-  const body = `data=${encodeURIComponent(query)}`;
-  for (const url of OVERPASS_ENDPOINTS) {
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 120000);
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-        body,
-        signal: ctrl.signal,
-      });
-      clearTimeout(timer);
-      if (!res.ok) throw new Error(`Overpass ${res.status} (${url})`);
-      const json = (await res.json()) as { elements?: (OsmNode | OsmWay)[]; remark?: string };
-      if (!json.elements) throw new Error(json.remark || "Pusta odpowiedź Overpass");
-      return { elements: json.elements };
-    } catch (e) {
-      lastError = e instanceof Error ? e : new Error(String(e));
-    }
-  }
-  throw lastError ?? new Error("Overpass niedostępny");
+async function overpass(query: string): Promise<{ elements: OsmElement[] }> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 210000);
+  try {
+    const res = await fetch("/overpass", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      },
+      body: `data=${encodeURIComponent(query)}`,
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`Nie udało się wczytać danych OSM (${res.status}).`);
+    const json = (await res.json()) as { elements?: OsmElement[]; remark?: string };
+    if (!json.elements) throw new Error(json.remark || "Pusta odpowiedź Overpass");
+    if (json.remark) throw new Error(json.remark);
+    return { elements: json.elements };
+  } finally { clearTimeout(timer); }
 }
 
 function bboxStr(): string {
   return `${BBOX.south},${BBOX.west},${BBOX.north},${BBOX.east}`;
-}
-
-function isBus(tags: Record<string, string> = {}): boolean {
-  if (tags.bus === "yes" || tags.highway === "bus_stop" || tags.amenity === "bus_station")
-    return true;
-  if (tags.trolleybus === "yes") return true;
-  if (tags.public_transport && tags.tram !== "yes" && tags.train !== "yes" && tags.railway !== "tram_stop")
-    return tags.highway === "bus_stop" || tags.public_transport === "platform" || tags.public_transport === "stop_position";
-  return false;
-}
-
-function isTram(tags: Record<string, string> = {}): boolean {
-  return (
-    tags.tram === "yes" ||
-    tags.railway === "tram_stop" ||
-    tags.station === "tram" ||
-    (tags.public_transport === "stop_position" && tags.tram === "yes") ||
-    (tags.public_transport === "platform" && tags.tram === "yes")
-  );
-}
-
-export async function fetchOsmStops(): Promise<Stop[]> {
-  const b = bboxStr();
-  const query = `
-[out:json][timeout:90];
-(
-  node["highway"="bus_stop"](${b});
-  node["amenity"="bus_station"](${b});
-  node["railway"="tram_stop"](${b});
-  node["public_transport"="platform"]["highway"!="bus_stop"](${b});
-);
-out body;
-`;
-  const data = await overpass(query);
-  const raw: Stop[] = [];
-  for (const el of data.elements) {
-    if (el.type !== "node") continue;
-    const tags = el.tags ?? {};
-    const bus = isBus(tags) || tags.highway === "bus_stop" || tags.public_transport === "platform";
-    const tram = isTram(tags);
-    if (!bus && !tram) continue;
-    const name = tags.name || tags.ref || "Bez nazwy";
-    const modes: Stop["modes"] = [];
-    if (bus) modes.push("bus");
-    if (tram) modes.push("tram");
-    if (!modes.length) modes.push("bus");
-    raw.push({
-      id: `osm-${el.id}`,
-      name,
-      lat: el.lat,
-      lon: el.lon,
-      modes,
-      source: "osm",
-      osmId: el.id,
-    });
-  }
-  return dedupeStops(raw);
-}
-
-function dedupeStops(stops: Stop[]): Stop[] {
-  const used = new Set<string>();
-  const result: Stop[] = [];
-  const scored = [...stops].sort((a, b) => {
-    const an = a.name === "Bez nazwy" ? 1 : 0;
-    const bn = b.name === "Bez nazwy" ? 1 : 0;
-    return an - bn;
-  });
-
-  for (const s of scored) {
-    if (used.has(s.id)) continue;
-    const cluster = [s];
-    for (const o of scored) {
-      if (o.id === s.id || used.has(o.id)) continue;
-      if (haversine([s.lon, s.lat], [o.lon, o.lat]) < 8) {
-        cluster.push(o);
-      }
-    }
-    const named = cluster.filter((c) => c.name !== "Bez nazwy");
-    const pick = named[0] ?? cluster[0];
-    const modes = [...new Set(cluster.flatMap((c) => c.modes))] as Stop["modes"];
-    result.push({
-      ...pick,
-      modes,
-      name: pick.name || cluster.find((c) => c.name !== "Bez nazwy")?.name || "Bez nazwy",
-    });
-    for (const c of cluster) used.add(c.id);
-  }
-  return result;
 }
 
 export async function fetchTramTracks(): Promise<TramTrack[]> {

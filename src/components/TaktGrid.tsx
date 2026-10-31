@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef } from "react";
+import { useCallback, useId, useRef, type ReactNode } from "react";
 import { PERIODS } from "../constants";
 import type { PeriodId } from "../constants";
 import { formatTakt, tripsPerHour } from "../lib/geo";
@@ -9,9 +9,11 @@ export function TaktGrid({
   value,
   color,
   onChange,
+  children,
 }: {
   value: Record<PeriodId, number | null>;
   color?: string;
+  children?: ReactNode;
   onChange: (period: PeriodId, v: number | null) => void;
 }) {
   const weekday = PERIODS.filter((p) => p.group === "weekday");
@@ -19,7 +21,7 @@ export function TaktGrid({
   const peak = minOf(value.wd_am, value.wd_pm);
 
   return (
-    <div className="takt" style={{ ["--takt-fill" as string]: color ?? "var(--accent)" }}>
+    <div className="takt" style={{ ["--takt-fill" as string]: color ?? "var(--accent)", ["--takt-height" as string]: `${(TAKT_STEPS.length - 1)*24}px` }}>
       <h3>Takt w ciągu dnia</h3>
       <p className="muted">Przeciągnij słupki. Każdy takt ma równy odstęp; wyżej = częściej.</p>
       <ProfileBand title="Dzień powszedni" periods={weekday} value={value} onChange={onChange} />
@@ -27,6 +29,7 @@ export function TaktGrid({
       <p className="takt-foot">
         Szczyt: {formatTakt(peak)} · {tripsPerHour(peak)} kursów/h
       </p>
+      {children}
     </div>
   );
 }

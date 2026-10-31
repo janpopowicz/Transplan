@@ -9,6 +9,7 @@ export const BBOX = {
 };
 
 export const PERIODS = [
+  { id: "wd_night", group: "weekday", label: "Noc", short: "noc", hours: "23:00–4:00" },
   {
     id: "wd_early",
     group: "weekday",
@@ -44,6 +45,7 @@ export const PERIODS = [
     short: "wieczór",
     hours: "18:00–23:00",
   },
+  { id: "we_night", group: "weekend", label: "Noc", short: "noc", hours: "23:00–6:00" },
   {
     id: "we_morn",
     group: "weekend",
@@ -70,7 +72,7 @@ export const PERIODS = [
 export type PeriodId = (typeof PERIODS)[number]["id"];
 
 /** Standard Polish takt values (minutes), including 7.5 */
-export const TAKT_OPTIONS = [4, 5, 6, 7.5, 8, 10, 12, 15, 20, 30, 40, 60] as const;
+export const TAKT_OPTIONS = [4, 5, 6, 7.5, 8, 10, 12, 15, 20, 30, 40, 60, 90, 120, 180, 240] as const;
 
 export const BUS_VEHICLES = [
   { id: "8m", label: "8 m", hint: "minibus / midi" },
@@ -125,19 +127,19 @@ export const OFFSET_BLEND_MAX_M = 55;
 export const EDGE_STICK_M = 18;
 /** Sample spacing when baking a parallel stroke. */
 export const OFFSET_SAMPLE_M = 11;
-/**
- * Stroke width (px) = peak trips/hour × vehicle length (m) × this factor.
- * Peak is the more frequent of the morning and afternoon takt.
- */
-export const LINE_WIDTH_FACTOR = 0.05;
+/** Square-root frequency scale; vehicle length only adds a small mode-relative bonus. */
+export const LINE_WIDTH_FREQUENCY_FACTOR = 1.75;
+export const LINE_WIDTH_VEHICLE_BONUS_PX = 0.6;
 export const LINE_WIDTH_MIN_PX = 1.8;
-export const LINE_WIDTH_MAX_PX = 26;
+export const LINE_WIDTH_MAX_PX = 8;
 /** Below this zoom the map collapses into a network diagram. */
 export const NETWORK_ZOOM = 13.5;
-/** Same-name stops (Kraków platform numbers stripped) within this distance merge. */
-export const STOP_GROUP_METERS = 150;
+/** Group nearby platforms for network rendering; catalogue identities stay separate. */
+export const STOP_GROUP_METERS = 250;
 
 export const DEFAULT_TAKT: Record<PeriodId, number | null> = {
+  wd_night: null,
+  we_night: null,
   wd_early: 20,
   wd_am: 15,
   wd_mid: 20,

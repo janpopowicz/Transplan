@@ -94,7 +94,7 @@ export function StopPicker() {
               <strong>{s.name}</strong>
               <span>
                 {s.modes.map((m) => (m === "bus" ? "A" : "T")).join("/")} ·{" "}
-                {s.source === "local" ? "propozycja" : "OSM"}
+                {s.source === "local" ? "propozycja" : s.source === "gtfs" ? "GTFS ZTP" : "OSM"}
               </span>
             </button>
           </li>

@@ -7,16 +7,16 @@ const response = () => new Response(JSON.stringify({ elements: [{
   geometry: [{ lon: 19.94, lat: 50.06 }, { lon: 19.941, lat: 50.06 }],
 }] }), { status: 200 });
 
-test("a healthy OSM backup wins without waiting for a stalled primary", async () => {
+test("walking downloads use only the shared server cache without racing a public OSM provider", async () => {
   const signals: AbortSignal[] = [];
   const fetcher = (async (url, init) => {
     signals.push(init!.signal as AbortSignal);
-    if (url === "/overpass") return new Promise<Response>(() => {});
+    assert.equal(url, "/overpass");
     return response();
   }) as typeof fetch;
   const network = await fetchWalkingNetwork(fetcher, 1000);
   assert.equal(network.edges.length, 1);
-  assert.equal(signals.length, 2);
+  assert.equal(signals.length, 1);
   assert.ok(signals.every((signal) => signal.aborted));
 });
 
@@ -42,8 +42,8 @@ test("simultaneous clicks share one download and later clicks reuse its graph", 
   try {
     const [first, second] = await Promise.all([loadWalkingNetwork(), loadWalkingNetwork()]);
     assert.equal(first, second);
-    assert.equal(calls, 2); // one race across two providers, not two downloads per click
+    assert.equal(calls, 1);
     assert.equal(await loadWalkingNetwork(), first);
-    assert.equal(calls, 2);
+    assert.equal(calls, 1);
   } finally { globalThis.fetch = original; }
 });
