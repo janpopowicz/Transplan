@@ -100,3 +100,25 @@ and rejection of truncated ZIPs without replacing the last good archive.
 
 Bulk visibility checks verify category-wide changes, one persisted update,
 unchanged schedules/other mode and the read-only boundary.
+
+## Regresja bezpieczeństwa
+
+`npm test` obejmuje również `tests/security.test.ts`: błędne URL i nagłówki, ścisły schemat
+projektów, rozmiary body (także chunked), uprawnienia i wygasanie tokenów, limity dysku,
+retencję, migrację starszych zapisów, dozwolone operacje OSM, współbieżność, limity odpowiedzi
+upstream i zachowanie sekretów przy linkach podglądu. Próby działają wyłącznie na loopback
+z danymi tymczasowymi i atrapami zewnętrznych dostawców.
+
+Po `npm run build` uruchom `npm run test:production`: uruchamia dwie osobne instancje
+gotowego bundla na losowych portach i sprawdza wspólny limit sieci, rotację tokenów,
+zapisy, odrzucanie `GET //`, nagłówki i dostępność plików aplikacji. Nie korzysta z
+produkcyjnego katalogu danych.
+
+## Mapa w rzeczywistej przeglądarce
+
+Po buildzie: `npm run test:map-browser`. Dla development: `npm run test:map-browser -- --dev`.
+Wymaga Chromium (`/usr/bin/chromium`, ewentualnie `CHROMIUM_PATH`) i Node 22.12+.
+Test tworzy osobny profil oraz projekt w katalogu tymczasowym, uruchamia WebGL i sprawdza
+piksele trzech kolorów tras, Referer zawierający wyłącznie origin oraz brak wymuszonego
+omijania cache kafelków. Usługi zewnętrzne są zastępowane atrapami; test nie pobiera kafelków OSM.
+`MAP_QA_SCREENSHOT=/tmp/map.png` pozwala zachować zrzut mapy.

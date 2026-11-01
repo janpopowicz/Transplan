@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { join, resolve } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { limitedBytes } from "./security.mjs";
 
 const DAY = 24 * 60 * 60 * 1000;
 const unzip = promisify(execFile);
@@ -40,14 +41,14 @@ export function createGtfsArchiveCache({ directory = process.env.TRANSPLAN_GTFS_
       if (info && metadata?.lastModified) headers["If-Modified-Since"] = metadata.lastModified;
       try {
         const response = await fetcher(`https://gtfs.ztp.krakow.pl/GTFS_KRK_${id}.zip`, {
-          headers, signal: AbortSignal.timeout(120000),
+          headers, signal: AbortSignal.timeout(120000), redirect: "error",
         });
         if (response.status === 304 && info) {
           await atomicWrite(metadataFile, JSON.stringify({ ...metadata, checkedAt: now(), retryAt: 0 }));
           return file;
         }
         if (!response.ok) throw new Error(`ZTP ${id}: HTTP ${response.status}`);
-        const bytes = Buffer.from(await response.arrayBuffer());
+        const bytes = await limitedBytes(response, 100 * 1024 * 1024);
         if (bytes.length > 100 * 1024 * 1024 || bytes[0] !== 80 || bytes[1] !== 75)
           throw new Error(`Nieprawidłowe archiwum ZTP ${id}.`);
         // Test ZIP integrity before replacing the last usable archive.

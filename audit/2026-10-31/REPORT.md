@@ -1,5 +1,7 @@
 # Audyt bezpieczeństwa Transplan — 31.10.2026
 
+> Raport opisuje stan sprzed napraw. Wyniki po poprawkach i zakres walidacji: [REMEDIATION.md](REMEDIATION.md).
+
 ## Ocena
 
 **Przed publicznym wdrożeniem zalecam usunięcie A01–A03.** Obecny serwer można zatrzymać jednym nieuwierzytelnionym żądaniem. API pozwala również na nieograniczony przyrost danych i uruchamianie równoległych, dowolnych zapytań Overpass. Są to niezależne problemy dostępności.

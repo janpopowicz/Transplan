@@ -1,0 +1,1045 @@
+
+> transplan@1.0.0 test
+> node tests/run.mjs
+
+TAP version 13
+# Subtest: GTFS calendar exceptions add/remove services and choose an available upcoming day
+ok 1 - GTFS calendar exceptions add/remove services and choose an available upcoming day
+  ---
+  duration_ms: 2.524943
+  type: 'test'
+  ...
+# Subtest: headways and independent direction phases fit the same rounded departure grid
+ok 2 - headways and independent direction phases fit the same rounded departure grid
+  ---
+  duration_ms: 1.429766
+  type: 'test'
+  ...
+# Subtest: GTFS imports tram type 900, pairs directions, splits meaningful short variants and skips rare depot patterns
+ok 3 - GTFS imports tram type 900, pairs directions, splits meaningful short variants and skips rare depot patterns
+  ---
+  duration_ms: 11.622844
+  type: 'test'
+  ...
+# Subtest: shape splitting follows loops monotonically and marks missing shapes for direct fallback
+ok 4 - shape splitting follows loops monotonically and marks missing shapes for direct fallback
+  ---
+  duration_ms: 0.210201
+  type: 'test'
+  ...
+# Subtest: imported service windows prevent invented reverse trips and survive changing phases
+ok 5 - imported service windows prevent invented reverse trips and survive changing phases
+  ---
+  duration_ms: 1.895021
+  type: 'test'
+  ...
+# Subtest: night schedules cover midnight without duplicating departures or extending daytime service all night
+ok 6 - night schedules cover midnight without duplicating departures or extending daytime service all night
+  ---
+  duration_ms: 1.094315
+  type: 'test'
+  ...
+# Subtest: large project storage round-trips exact coordinates and legacy JSON stays readable
+ok 7 - large project storage round-trips exact coordinates and legacy JSON stays readable
+  ---
+  duration_ms: 5.178123
+  type: 'test'
+  ...
+# Subtest: new GTFS stops retain canonical identity when reopening against an older catalogue
+ok 8 - new GTFS stops retain canonical identity when reopening against an older catalogue
+  ---
+  duration_ms: 1.790527
+  type: 'test'
+  ...
+# Subtest: enabling a previously absent import period creates editable service in both physical directions
+ok 9 - enabling a previously absent import period creates editable service in both physical directions
+  ---
+  duration_ms: 1.580455
+  type: 'test'
+  ...
+# Subtest: import replaces lines atomically, downloads the previous proposal and preserves local infrastructure
+ok 10 - import replaces lines atomically, downloads the previous proposal and preserves local infrastructure
+  ---
+  duration_ms: 2.898033
+  type: 'test'
+  ...
+# Subtest: saving a large GTFS project compacts old base caches and remains reloadable within the browser quota
+ok 11 - saving a large GTFS project compacts old base caches and remains reloadable within the browser quota
+  ---
+  duration_ms: 501.549717
+  type: 'test'
+  ...
+# Subtest: incorrect equal GTFS direction IDs do not split two reversed routes into fake A/B variants
+ok 12 - incorrect equal GTFS direction IDs do not split two reversed routes into fake A/B variants
+  ---
+  duration_ms: 1.407938
+  type: 'test'
+  ...
+# Subtest: the same ordered platforms with inconsistent direction labels form one pattern
+ok 13 - the same ordered platforms with inconsistent direction labels form one pattern
+  ---
+  duration_ms: 1.113263
+  type: 'test'
+  ...
+# Subtest: GTFS API shares downloads, survives restarts and throttles explicit refreshes
+ok 14 - GTFS API shares downloads, survives restarts and throttles explicit refreshes
+  ---
+  duration_ms: 75.417952
+  type: 'test'
+  ...
+GTFS import: Error: test upstream unavailable
+    at download (file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7881:11)
+    at refresh (file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7758:18)
+    at file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7795:22
+    at async file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7583:14
+# Subtest: GTFS serves the last intact daily snapshot during an outage and backs off refresh attempts
+ok 15 - GTFS serves the last intact daily snapshot during an outage and backs off refresh attempts
+  ---
+  duration_ms: 9.882206
+  type: 'test'
+  ...
+GTFS import: Error: test offline
+    at download (file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7906:11)
+    at refresh (file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7758:18)
+    at file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7795:22
+    at async file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7583:14
+GTFS import: Error: GTFS retry cooldown
+    at file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7800:27
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7583:14
+GTFS import: Error: test offline
+    at download (file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7906:11)
+    at refresh (file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7758:18)
+    at file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7795:22
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7583:14
+# Subtest: GTFS cold-cache errors do not hammer the upstream on every browser retry
+ok 16 - GTFS cold-cache errors do not hammer the upstream on every browser retry
+  ---
+  duration_ms: 4.396238
+  type: 'test'
+  ...
+# Subtest: GTFS ZIP cache shares downloads, survives restarts, limits manual refresh and conditionally revalidates
+ok 17 - GTFS ZIP cache shares downloads, survives restarts, limits manual refresh and conditionally revalidates
+  ---
+  duration_ms: 14.942419
+  type: 'test'
+  ...
+# Subtest: GTFS ZIP cache keeps good archives and persists failure cooldowns across restarts
+ok 18 - GTFS ZIP cache keeps good archives and persists failure cooldowns across restarts
+  ---
+  duration_ms: 28.147987
+  type: 'test'
+  ...
+# Subtest: journey uses concrete departure times, geometry, and one vehicle through multiple stops
+ok 19 - journey uses concrete departure times, geometry, and one vehicle through multiple stops
+  ---
+  duration_ms: 3.05907
+  type: 'test'
+  ...
+# Subtest: journey catches and misses real transfer departures
+ok 20 - journey catches and misses real transfer departures
+  ---
+  duration_ms: 1.055923
+  type: 'test'
+  ...
+# Subtest: crossing a period boundary retains the trip that departed in the previous period
+ok 21 - crossing a period boundary retains the trip that departed in the previous period
+  ---
+  duration_ms: 0.409319
+  type: 'test'
+  ...
+# Subtest: coordination does not allow free branch switches and ties prefer staying on the vehicle
+ok 22 - coordination does not allow free branch switches and ties prefer staying on the vehicle
+  ---
+  duration_ms: 2.40225
+  type: 'test'
+  ...
+# Subtest: unreachable goals, walking-only trips and zero-length journeys have explicit outcomes
+ok 23 - unreachable goals, walking-only trips and zero-length journeys have explicit outcomes
+  ---
+  duration_ms: 0.504579
+  type: 'test'
+  ...
+# Subtest: day timetable covers all periods for exactly one selected platform and day type
+ok 24 - day timetable covers all periods for exactly one selected platform and day type
+  ---
+  duration_ms: 0.558099
+  type: 'test'
+  ...
+# Subtest: finite schedules never invent a departure beyond the final trip
+ok 25 - finite schedules never invent a departure beyond the final trip
+  ---
+  duration_ms: 0.096941
+  type: 'test'
+  ...
+# Subtest: stop search is accent-insensitive and point selection supports swapping without editing the project
+ok 26 - stop search is accent-insensitive and point selection supports swapping without editing the project
+  ---
+  duration_ms: 0.599696
+  type: 'test'
+  ...
+# Subtest: quick time editing supports 24-hour text, compact input and midnight shifts
+ok 27 - quick time editing supports 24-hour text, compact input and midnight shifts
+  ---
+  duration_ms: 1.421052
+  type: 'test'
+  ...
+# Subtest: place search is bounded to Krakow, cached, rate limited, and rejects invalid input
+ok 28 - place search is bounded to Krakow, cached, rate limited, and rejects invalid input
+  ---
+  duration_ms: 9.30364
+  type: 'test'
+  ...
+# Subtest: 7A–7B and 7A–8 coordinate on different corridors in both directions
+ok 29 - 7A–7B and 7A–8 coordinate on different corridors in both directions
+  ---
+  duration_ms: 0.636736
+  type: 'test'
+  ...
+# Subtest: editing any member rotates the entire linked network, all periods and both directions
+ok 30 - editing any member rotates the entire linked network, all periods and both directions
+  ---
+  duration_ms: 1.103549
+  type: 'test'
+  ...
+# Subtest: solver chooses alternate slow-line slots to satisfy a compatible cycle
+ok 31 - solver chooses alternate slow-line slots to satisfy a compatible cycle
+  ---
+  duration_ms: 0.258107
+  type: 'test'
+  ...
+# Subtest: incompatible takts and contradictory cycles are reported without promising an even takt
+ok 32 - incompatible takts and contradictory cycles are reported without promising an even takt
+  ---
+  duration_ms: 2.095802
+  type: 'test'
+  ...
+# Subtest: legacy groups migrate to reciprocal pair links and deleted IDs do not reappear
+ok 33 - legacy groups migrate to reciprocal pair links and deleted IDs do not reappear
+  ---
+  duration_ms: 0.245529
+  type: 'test'
+  ...
+# Subtest: generated timetable uses the same takt, phase and travel times as routing
+ok 34 - generated timetable uses the same takt, phase and travel times as routing
+  ---
+  duration_ms: 0.257249
+  type: 'test'
+  ...
+# Subtest: store can add the second corridor and shift all connected lines without a common three-line section
+ok 35 - store can add the second corridor and shift all connected lines without a common three-line section
+  ---
+  duration_ms: 0.978232
+  type: 'test'
+  ...
+# Subtest: pair coordination follows physical direction even when route direction labels are reversed
+ok 36 - pair coordination follows physical direction even when route direction labels are reversed
+  ---
+  duration_ms: 0.236141
+  type: 'test'
+  ...
+# Subtest: GTFS import uses directed consecutive calls, actual sequence order, route mode and median across operators
+ok 37 - GTFS import uses directed consecutive calls, actual sequence order, route mode and median across operators
+  ---
+  duration_ms: 0.731241
+  type: 'test'
+  ...
+# Subtest: missing timestamps, duplicate sequences and unknown intermediate stops do not invent GTFS relations
+ok 38 - missing timestamps, duplicate sequences and unknown intermediate stops do not invent GTFS relations
+  ---
+  duration_ms: 0.151076
+  type: 'test'
+  ...
+# Subtest: automatic travel time prefers GTFS, preserves platform/direction/mode identities and falls back to geometry
+ok 39 - automatic travel time prefers GTFS, preserves platform/direction/mode identities and falls back to geometry
+  ---
+  duration_ms: 0.290533
+  type: 'test'
+  ...
+# Subtest: drawing, moving and resetting legs use GTFS while manual times survive saving and import
+ok 40 - drawing, moving and resetting legs use GTFS while manual times survive saving and import
+  ---
+  duration_ms: 3.73824
+  type: 'test'
+  ...
+# Subtest: travel-time loader deduplicates downloads and uses the downloaded index
+ok 41 - travel-time loader deduplicates downloads and uses the downloaded index
+  ---
+  duration_ms: 0.524699
+  type: 'test'
+  ...
+# Subtest: an invalid downloaded time index preserves the previous valid GTFS data
+ok 42 - an invalid downloaded time index preserves the previous valid GTFS data
+  ---
+  duration_ms: 0.296601
+  type: 'test'
+  ...
+# Subtest: the entire imported timetable index contains unique valid directed platform relations
+ok 43 - the entire imported timetable index contains unique valid directed platform relations
+  ---
+  duration_ms: 8.357872
+  type: 'test'
+  ...
+# Subtest: production Overpass proxy identifies the app, shares downloads and reuses compressed cache after restart
+ok 44 - production Overpass proxy identifies the app, shares downloads and reuses compressed cache after restart
+  ---
+  duration_ms: 17.262467
+  type: 'test'
+  ...
+# Subtest: incomplete OSM responses never poison the server cache
+ok 45 - incomplete OSM responses never poison the server cache
+  ---
+  duration_ms: 3.225265
+  type: 'test'
+  ...
+# Subtest: expired OSM cache serves the last good extract during an outage without repeated upstream requests
+ok 46 - expired OSM cache serves the last good extract during an outage without repeated upstream requests
+  ---
+  duration_ms: 7.801758
+  type: 'test'
+  ...
+# Subtest: OSM cold-cache failures respect the retry cooldown
+ok 47 - OSM cold-cache failures respect the retry cooldown
+  ---
+  duration_ms: 4.480594
+  type: 'test'
+  ...
+# Subtest: road and tram downloads cannot bypass the server cache when the server fails
+ok 48 - road and tram downloads cannot bypass the server cache when the server fails
+  ---
+  duration_ms: 0.871813
+  type: 'test'
+  ...
+# Subtest: real A/M/T feeds have one entry per exact name and platform, including Kurdwanów and Teligi
+ok 49 - real A/M/T feeds have one entry per exact name and platform, including Kurdwanów and Teligi
+  ---
+  duration_ms: 0.364926
+  type: 'test'
+  ...
+# Subtest: identity requires exact full names and matching GTFS platform numbers, independent of distance and mode
+ok 50 - identity requires exact full names and matching GTFS platform numbers, independent of distance and mode
+  ---
+  duration_ms: 0.201819
+  type: 'test'
+  ...
+# Subtest: GTFS line 30 gets one circular network marker for opposite platforms served in both directions
+ok 51 - GTFS line 30 gets one circular network marker for opposite platforms served in both directions
+  ---
+  duration_ms: 4.587893
+  type: 'test'
+  ...
+# Subtest: CSV handles Polish names, BOM, quoted commas, escaped quotes and line breaks
+ok 52 - CSV handles Polish names, BOM, quoted commas, escaped quotes and line breaks
+  ---
+  duration_ms: 0.226054
+  type: 'test'
+  ...
+# Subtest: saved OSM line references migrate to GTFS across platform representations without extra markers
+ok 53 - saved OSM line references migrate to GTFS across platform representations without extra markers
+  ---
+  duration_ms: 0.584741
+  type: 'test'
+  ...
+# Subtest: unavailable referenced OSM stops survive as local proposals; unused OSM duplicates disappear
+ok 54 - unavailable referenced OSM stops survive as local proposals; unused OSM duplicates disappear
+  ---
+  duration_ms: 0.19136
+  type: 'test'
+  ...
+# Subtest: old OSM cache is migration data only; GTFS cache replaces it while retaining tracks
+ok 55 - old OSM cache is migration data only; GTFS cache replaces it while retaining tracks
+  ---
+  duration_ms: 1.173575
+  type: 'test'
+  ...
+# Subtest: catalogue fetch only uses GTFS and rejects duplicate identities instead of falling back to OSM
+ok 56 - catalogue fetch only uses GTFS and rejects duplicate identities instead of falling back to OSM
+  ---
+  duration_ms: 0.499345
+  type: 'test'
+  ...
+# Subtest: entire reimported database has unique name/number pairs and unique legacy IDs
+ok 57 - entire reimported database has unique name/number pairs and unique legacy IDs
+  ---
+  duration_ms: 7.406012
+  type: 'test'
+  ...
+# Subtest: manually grouped opposite platforms merge at their mean, without doubling stroke width
+ok 58 - manually grouped opposite platforms merge at their mean, without doubling stroke width
+  ---
+  duration_ms: 1.021862
+  type: 'test'
+  ...
+# Subtest: one-way stroke has exactly half width and follows actual travel, including inbound-only
+ok 59 - one-way stroke has exactly half width and follows actual travel, including inbound-only
+  ---
+  duration_ms: 0.685929
+  type: 'test'
+  ...
+# Subtest: express skipping multiple stops shares every corridor without adding actual stops
+ok 60 - express skipping multiple stops shares every corridor without adding actual stops
+  ---
+  duration_ms: 2.00103
+  type: 'test'
+  ...
+# Subtest: asymmetric stopping patterns still merge reverse travel on shared sections
+ok 61 - asymmetric stopping patterns still merge reverse travel on shared sections
+  ---
+  duration_ms: 0.674731
+  type: 'test'
+  ...
+# Subtest: a one-way branch does not erase the shared two-way trunk
+ok 62 - a one-way branch does not erase the shared two-way trunk
+  ---
+  duration_ms: 0.766061
+  type: 'test'
+  ...
+# Subtest: a remote express bypass is not snapped across intervening stops
+ok 63 - a remote express bypass is not snapped across intervening stops
+  ---
+  duration_ms: 1.932393
+  type: 'test'
+  ...
+# Subtest: lane joints stay continuous when bundle membership changes
+ok 64 - lane joints stay continuous when bundle membership changes
+  ---
+  duration_ms: 1.681934
+  type: 'test'
+  ...
+# Subtest: hidden services do not consume lanes and zoom only changes screen-space spacing
+ok 65 - hidden services do not consume lanes and zoom only changes screen-space spacing
+  ---
+  duration_ms: 2.762903
+  type: 'test'
+  ...
+# Subtest: mixed modes share all intermediate corridors, including without a stop catalogue
+ok 66 - mixed modes share all intermediate corridors, including without a stop catalogue
+  ---
+  duration_ms: 1.69316
+  type: 'test'
+  ...
+# Subtest: parallel bus and tram share lanes but only mark their own stops
+ok 67 - parallel bus and tram share lanes but only mark their own stops
+  ---
+  duration_ms: 2.035778
+  type: 'test'
+  ...
+# Subtest: editing and drawing override network zoom
+ok 68 - editing and drawing override network zoom
+  ---
+  duration_ms: 0.10448
+  type: 'test'
+  ...
+# Subtest: opposite stored directions do not make parallel services swap sides at a group
+ok 69 - opposite stored directions do not make parallel services swap sides at a group
+  ---
+  duration_ms: 0.761098
+  type: 'test'
+  ...
+# Subtest: group connectivity merges directions even when they use different streets
+ok 70 - group connectivity merges directions even when they use different streets
+  ---
+  duration_ms: 0.172632
+  type: 'test'
+  ...
+# Subtest: a reverse-only service in a shared bundle keeps its arrow travel direction
+ok 71 - a reverse-only service in a shared bundle keeps its arrow travel direction
+  ---
+  duration_ms: 0.477576
+  type: 'test'
+  ...
+# Subtest: screen offsets use MapLibre's 512-pixel zoom convention
+ok 72 - screen offsets use MapLibre's 512-pixel zoom convention
+  ---
+  duration_ms: 0.094431
+  type: 'test'
+  ...
+# Subtest: automatic groups match base names within 250m and manual groups still work at a distance
+ok 73 - automatic groups match base names within 250m and manual groups still work at a distance
+  ---
+  duration_ms: 0.307911
+  type: 'test'
+  ...
+# Subtest: one-direction calls get triangles even on a collapsed two-way corridor
+ok 74 - one-direction calls get triangles even on a collapsed two-way corridor
+  ---
+  duration_ms: 0.504489
+  type: 'test'
+  ...
+# Subtest: opposite platforms served in different directions retain a circular group marker
+ok 75 - opposite platforms served in different directions retain a circular group marker
+  ---
+  duration_ms: 0.260539
+  type: 'test'
+  ...
+# Subtest: frequency remains ordered with compressed contrast and mode-relative vehicle sizes
+ok 76 - frequency remains ordered with compressed contrast and mode-relative vehicle sizes
+  ---
+  duration_ms: 0.471535
+  type: 'test'
+  ...
+# Subtest: detailed and network rendering share the compressed width across modes and frequencies
+ok 77 - detailed and network rendering share the compressed width across modes and frequencies
+  ---
+  duration_ms: 0.796749
+  type: 'test'
+  ...
+# Subtest: white markers project onto each served line and exclude skipped express stops
+ok 78 - white markers project onto each served line and exclude skipped express stops
+  ---
+  duration_ms: 2.681214
+  type: 'test'
+  ...
+# Subtest: opposite platforms produce a single marker per line and hidden lines have none
+ok 79 - opposite platforms produce a single marker per line and hidden lines have none
+  ---
+  duration_ms: 0.566905
+  type: 'test'
+  ...
+# Subtest: selecting a line twice or closing it clears editing without losing the route
+ok 80 - selecting a line twice or closing it clears editing without losing the route
+  ---
+  duration_ms: 0.29889
+  type: 'test'
+  ...
+# Subtest: moving a stop reroutes both directions and all serving lines, preserving travel times and express geometry
+ok 81 - moving a stop reroutes both directions and all serving lines, preserving travel times and express geometry
+  ---
+  duration_ms: 0.832745
+  type: 'test'
+  ...
+# Subtest: unroutable stop moves roll back position and all route changes
+ok 82 - unroutable stop moves roll back position and all route changes
+  ---
+  duration_ms: 0.256334
+  type: 'test'
+  ...
+# Subtest: OSM moves survive saved projects, OSM refresh and proposal import
+ok 83 - OSM moves survive saved projects, OSM refresh and proposal import
+  ---
+  duration_ms: 1.967996
+  type: 'test'
+  ...
+# Subtest: move mode always exposes individual stops, and concurrent moves are ignored
+ok 84 - move mode always exposes individual stops, and concurrent moves are ignored
+  ---
+  duration_ms: 0.258355
+  type: 'test'
+  ...
+# Subtest: joining a stop creates or reuses a persistent group including OSM platforms
+ok 85 - joining a stop creates or reuses a persistent group including OSM platforms
+  ---
+  duration_ms: 0.686062
+  type: 'test'
+  ...
+# Subtest: direction markers only appear at served one-way stops and follow reverse travel
+ok 86 - direction markers only appear at served one-way stops and follow reverse travel
+  ---
+  duration_ms: 1.791263
+  type: 'test'
+  ...
+# Subtest: disused tram tracks load as closed and can toggle into service and back
+ok 87 - disused tram tracks load as closed and can toggle into service and back
+  ---
+  duration_ms: 0.592427
+  type: 'test'
+  ...
+# Subtest: GTFS names and modes persist through save, catalogue refresh and import without changing line geometry
+ok 88 - GTFS names and modes persist through save, catalogue refresh and import without changing line geometry
+  ---
+  duration_ms: 1.110355
+  type: 'test'
+  ...
+# Subtest: stop property editing accepts all transport types and rejects empty values and read-only edits
+ok 89 - stop property editing accepts all transport types and rejects empty values and read-only edits
+  ---
+  duration_ms: 0.273426
+  type: 'test'
+  ...
+# Subtest: pair coordination survives saving and import, splits on detach, and cleans up on delete
+ok 90 - pair coordination survives saving and import, splits on detach, and cleans up on delete
+  ---
+  duration_ms: 1.033359
+  type: 'test'
+  ...
+# Subtest: bulk visibility affects the entire selected transport mode once and preserves the other mode and schedules
+ok 91 - bulk visibility affects the entire selected transport mode once and preserves the other mode and schedules
+  ---
+  duration_ms: 0.356811
+  type: 'test'
+  ...
+# Subtest: Rondo Matecznego 03 to Bonarka 01 snaps to the road, not a pedestrian area
+ok 92 - Rondo Matecznego 03 to Bonarka 01 snaps to the road, not a pedestrian area
+  ---
+  duration_ms: 1.281875
+  type: 'test'
+  ...
+# Subtest: road import preserves junctions less than 14 meters from the preceding vertex
+ok 93 - road import preserves junctions less than 14 meters from the preceding vertex
+  ---
+  duration_ms: 0.375042
+  type: 'test'
+  ...
+# Subtest: pedestrian streets require vehicle access; area boundaries never become roads
+ok 94 - pedestrian streets require vehicle access; area boundaries never become roads
+  ---
+  duration_ms: 0.336526
+  type: 'test'
+  ...
+# Subtest: hourly empirical mean for a periodic service preserves staying on the vehicle
+ok 95 - hourly empirical mean for a periodic service preserves staying on the vehicle
+  ---
+  duration_ms: 1.542909
+  type: 'test'
+  ...
+# Subtest: transfers catch or miss actual departures and respect the selected period
+ok 96 - transfers catch or miss actual departures and respect the selected period
+  ---
+  duration_ms: 0.969618
+  type: 'test'
+  ...
+# Subtest: directed segments do not allow riding backwards or jumping across missing segments
+ok 97 - directed segments do not allow riding backwards or jumping across missing segments
+  ---
+  duration_ms: 0.569708
+  type: 'test'
+  ...
+# Subtest: origin access, nearby platform transfers and final walking consume time
+ok 98 - origin access, nearby platform transfers and final walking consume time
+  ---
+  duration_ms: 1.220348
+  type: 'test'
+  ...
+# Subtest: choose the earliest route and reject invalid headways / segment times
+ok 99 - choose the earliest route and reject invalid headways / segment times
+  ---
+  duration_ms: 0.620817
+  type: 'test'
+  ...
+# Subtest: walking follows a distant bridge instead of crossing a narrow river
+ok 100 - walking follows a distant bridge instead of crossing a narrow river
+  ---
+  duration_ms: 0.245478
+  type: 'test'
+  ...
+# Subtest: OSM access and separate sidewalks are respected
+ok 101 - OSM access and separate sidewalks are respected
+  ---
+  duration_ms: 0.105273
+  type: 'test'
+  ...
+# Subtest: geometric crossings with distinct OSM node IDs do not create connections
+ok 102 - geometric crossings with distinct OSM node IDs do not create connections
+  ---
+  duration_ms: 0.340446
+  type: 'test'
+  ...
+# Subtest: blocked pedestrian nodes break the path and vehicle one-way does not restrict walking
+ok 103 - blocked pedestrian nodes break the path and vehicle one-way does not restrict walking
+  ---
+  duration_ms: 0.199834
+  type: 'test'
+  ...
+# Subtest: origin and stop snaps split an edge so trips do not detour via its ends
+ok 104 - origin and stop snaps split an edge so trips do not detour via its ends
+  ---
+  duration_ms: 0.329948
+  type: 'test'
+  ...
+# Subtest: isochrones extend beyond an hour to the maximum reachable time with finite closed rings
+ok 105 - isochrones extend beyond an hour to the maximum reachable time with finite closed rings
+  ---
+  duration_ms: 5.912133
+  type: 'test'
+  ...
+# Subtest: unconnected streets stay unreachable even when nearby
+ok 106 - unconnected streets stay unreachable even when nearby
+  ---
+  duration_ms: 0.349393
+  type: 'test'
+  ...
+# Subtest: repeated origins reuse walking preparation without leaking edge splits or transit connections
+ok 107 - repeated origins reuse walking preparation without leaking edge splits or transit connections
+  ---
+  duration_ms: 0.694638
+  type: 'test'
+  ...
+# Subtest: actual coincident departures do not provide independent-arrival waiting benefits
+ok 108 - actual coincident departures do not provide independent-arrival waiting benefits
+  ---
+  duration_ms: 2.084223
+  type: 'test'
+  ...
+# Subtest: coordination staggers two 15-minute services and respects the network time translation
+ok 109 - coordination staggers two 15-minute services and respects the network time translation
+  ---
+  duration_ms: 0.9889
+  type: 'test'
+  ...
+# Subtest: best, worst and P90 summarize complete journeys rather than individual edge waits
+ok 110 - best, worst and P90 summarize complete journeys rather than individual edge waits
+  ---
+  duration_ms: 1.501362
+  type: 'test'
+  ...
+# Subtest: a coordinated corridor cannot give its short wait to a specific branch
+ok 111 - a coordinated corridor cannot give its short wait to a specific branch
+  ---
+  duration_ms: 1.120972
+  type: 'test'
+  ...
+# Subtest: the longest continuous common section is selected independently in both directions
+ok 112 - the longest continuous common section is selected independently in both directions
+  ---
+  duration_ms: 0.277978
+  type: 'test'
+  ...
+# Subtest: coordination uses travel to the corridor, ignores inactive members, and retains physical platforms
+ok 113 - coordination uses travel to the corridor, ignores inactive members, and retains physical platforms
+  ---
+  duration_ms: 0.475153
+  type: 'test'
+  ...
+# Subtest: incremental hourly simulation matches independent searches for every statistic
+ok 114 - incremental hourly simulation matches independent searches for every statistic
+  ---
+  duration_ms: 7.121763
+  type: 'test'
+  ...
+# Subtest: three coordinated lines keep actual five-minute departures; unequal takts are simulated
+ok 115 - three coordinated lines keep actual five-minute departures; unequal takts are simulated
+  ---
+  duration_ms: 1.241534
+  type: 'test'
+  ...
+# Subtest: bus and tram routes follow ordered waypoints without introducing stops
+ok 116 - bus and tram routes follow ordered waypoints without introducing stops
+  ---
+  duration_ms: 1.298433
+  type: 'test'
+  ...
+# Subtest: speed defaults use configured speeds and whole-minute precision
+ok 117 - speed defaults use configured speeds and whole-minute precision
+  ---
+  duration_ms: 0.081462
+  type: 'test'
+  ...
+# Subtest: external routing keeps waypoint endpoints instead of trimming them as stop spurs
+ok 118 - external routing keeps waypoint endpoints instead of trimming them as stop spurs
+  ---
+  duration_ms: 0.659012
+  type: 'test'
+  ...
+# Subtest: pending waypoints can be undone and prevent ending an unfinished leg
+ok 119 - pending waypoints can be undone and prevent ending an unfinished leg
+  ---
+  duration_ms: 0.893956
+  type: 'test'
+  ...
+# Subtest: failed waypoint leaves the draft intact and cancellation ignores in-flight routes
+ok 120 - failed waypoint leaves the draft intact and cancellation ignores in-flight routes
+  ---
+  duration_ms: 0.511206
+  type: 'test'
+  ...
+# Subtest: moving stops retains waypoints and recalculates only automatic times
+ok 121 - moving stops retains waypoints and recalculates only automatic times
+  ---
+  duration_ms: 0.771485
+  type: 'test'
+  ...
+# Subtest: inserting and removing a stop preserves the route's shaping points
+ok 122 - inserting and removing a stop preserves the route's shaping points
+  ---
+  duration_ms: 1.207408
+  type: 'test'
+  ...
+# Subtest: network cost uses both directions and the duration of active timetable periods
+ok 123 - network cost uses both directions and the duration of active timetable periods
+  ---
+  duration_ms: 0.221326
+  type: 'test'
+  ...
+# Subtest: every configured headway occupies one equally spaced slider step
+ok 124 - every configured headway occupies one equally spaced slider step
+  ---
+  duration_ms: 0.185985
+  type: 'test'
+  ...
+# Subtest: saved and manually entered segment times use whole minutes
+ok 125 - saved and manually entered segment times use whole minutes
+  ---
+  duration_ms: 0.180763
+  type: 'test'
+  ...
+# Subtest: walking downloads use only the shared server cache without racing a public OSM provider
+ok 126 - walking downloads use only the shared server cache without racing a public OSM provider
+  ---
+  duration_ms: 0.386904
+  type: 'test'
+  ...
+# Subtest: OSM deadline also covers a stalled response body and cancels all requests
+ok 127 - OSM deadline also covers a stalled response body and cancels all requests
+  ---
+  duration_ms: 19.848829
+  type: 'test'
+  ...
+# Subtest: an incomplete OSM response cannot replace the full walking graph
+ok 128 - an incomplete OSM response cannot replace the full walking graph
+  ---
+  duration_ms: 0.396105
+  type: 'test'
+  ...
+# Subtest: simultaneous clicks share one download and later clicks reuse its graph
+ok 129 - simultaneous clicks share one download and later clicks reuse its graph
+  ---
+  duration_ms: 0.635174
+  type: 'test'
+  ...
+# Subtest: anonymous read/write links share one mutable network and survive server restarts
+ok 130 - anonymous read/write links share one mutable network and survive server restarts
+  ---
+  duration_ms: 17.43954
+  type: 'test'
+  ...
+# Subtest: read links cannot write; API rejects malformed, oversized, cross-site and stale writes
+ok 131 - read links cannot write; API rejects malformed, oversized, cross-site and stale writes
+  ---
+  duration_ms: 30.072521
+  type: 'test'
+  ...
+# Subtest: bad links, unavailable APIs and invalid responses give useful errors
+ok 132 - bad links, unavailable APIs and invalid responses give useful errors
+  ---
+  duration_ms: 0.935113
+  type: 'test'
+  ...
+# Subtest: shared drafts stay separate from the original project and from other UUIDs
+ok 133 - shared drafts stay separate from the original project and from other UUIDs
+  ---
+  duration_ms: 0.426338
+  type: 'test'
+  ...
+# Subtest: opening a shared snapshot resets editor tools and preserves stops, geometry, times and track closures
+ok 134 - opening a shared snapshot resets editor tools and preserves stops, geometry, times and track closures
+  ---
+  duration_ms: 0.395707
+  type: 'test'
+  ...
+# Subtest: two simultaneous editors merge independent fields and a viewer sees live changes
+ok 135 - two simultaneous editors merge independent fields and a viewer sees live changes
+  ---
+  duration_ms: 23.507793
+  type: 'test'
+  ...
+# Subtest: conflicting edits require a choice and preserve unrelated edits from both people
+ok 136 - conflicting edits require a choice and preserve unrelated edits from both people
+  ---
+  duration_ms: 13.904115
+  type: 'test'
+  ...
+(node:180387) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+(Use `transplan-node22 --trace-warnings ...` to show where the warning was created)
+# Subtest: server compare-and-swap is atomic across separate handler instances
+ok 137 - server compare-and-swap is atomic across separate handler instances
+  ---
+  duration_ms: 15.995391
+  type: 'test'
+  ...
+# Subtest: edits made during a save stay pending, offline edits retry, and routing defers remote updates
+ok 138 - edits made during a save stay pending, offline edits retry, and routing defers remote updates
+  ---
+  duration_ms: 1.681731
+  type: 'test'
+  ...
+# Subtest: read mode guards editing actions while selection and isochrones still work
+ok 139 - read mode guards editing actions while selection and isochrones still work
+  ---
+  duration_ms: 0.2347
+  type: 'test'
+  ...
+# Subtest: refresh recovers this tab's unsent changes instead of replacing them with newer server data
+ok 140 - refresh recovers this tab's unsent changes instead of replacing them with newer server data
+  ---
+  duration_ms: 1.4373
+  type: 'test'
+  ...
+# Subtest: timetable phases and coordination are validated and preserved through shared snapshots
+ok 141 - timetable phases and coordination are validated and preserved through shared snapshots
+  ---
+  duration_ms: 0.658812
+  type: 'test'
+  ...
+# Subtest: idle shared polling reuses snapshots and comparisons without serializing route geometry
+ok 142 - idle shared polling reuses snapshots and comparisons without serializing route geometry
+  ---
+  duration_ms: 1.051776
+  type: 'test'
+  ...
+# Subtest: checkpoint worker coalesces edits and never overwrites newer recovery data
+ok 143 - checkpoint worker coalesces edits and never overwrites newer recovery data
+  ---
+  duration_ms: 0.889319
+  type: 'test'
+  ...
+# Subtest: large checkpoint encoding preserves the existing recovery format
+ok 144 - large checkpoint encoding preserves the existing recovery format
+  ---
+  duration_ms: 745.913536
+  type: 'test'
+  ...
+# Subtest: shared editing leaves recovery to the checkpoint instead of synchronously saving a duplicate draft
+ok 145 - shared editing leaves recovery to the checkpoint instead of synchronously saving a duplicate draft
+  ---
+  duration_ms: 0.552733
+  type: 'test'
+  ...
+# Subtest: malformed request targets return 400 and the production app keeps serving requests
+ok 146 - malformed request targets return 400 and the production app keeps serving requests
+  ---
+  duration_ms: 12.579545
+  type: 'test'
+  ...
+Request failed: Error
+# Subtest: unexpected asynchronous middleware failures are contained without exposing request data
+ok 147 - unexpected asynchronous middleware failures are contained without exposing request data
+  ---
+  duration_ms: 1.436878
+  type: 'test'
+  ...
+# Subtest: all API routes reject unknown or duplicate query parameters before contacting upstream
+ok 148 - all API routes reject unknown or duplicate query parameters before contacting upstream
+  ---
+  duration_ms: 4.754468
+  type: 'test'
+  ...
+# Subtest: strict project schema rejects malicious nested data, unknown fields, duplicate IDs and excessive complexity
+ok 149 - strict project schema rejects malicious nested data, unknown fields, duplicate IDs and excessive complexity
+  ---
+  duration_ms: 1.362442
+  type: 'test'
+  ...
+# Subtest: timetable calculation rejects tiny headways even when the project schema is bypassed
+ok 150 - timetable calculation rejects tiny headways even when the project schema is bypassed
+  ---
+  duration_ms: 0.15036
+  type: 'test'
+  ...
+# Subtest: JSON API validates envelopes, revisions, media types, origin, encoding, UTF-8 and nested proposal data
+ok 151 - JSON API validates envelopes, revisions, media types, origin, encoding, UTF-8 and nested proposal data
+  ---
+  duration_ms: 12.99667
+  type: 'test'
+  ...
+# Subtest: network creation quotas are atomic across handlers and persist after restart
+ok 152 - network creation quotas are atomic across handlers and persist after restart
+  ---
+  duration_ms: 14.71898
+  type: 'test'
+  ...
+# Subtest: global byte quota rejects writes without publishing partial networks
+ok 153 - global byte quota rejects writes without publishing partial networks
+  ---
+  duration_ms: 2.16531
+  type: 'test'
+  ...
+# Subtest: revision retention is bounded and polling uses a durable latest pointer
+ok 154 - revision retention is bounded and polling uses a durable latest pointer
+  ---
+  duration_ms: 10.179699
+  type: 'test'
+  ...
+# Subtest: legacy network snapshots acquire a pointer and count against the storage quota
+ok 155 - legacy network snapshots acquire a pointer and count against the storage quota
+  ---
+  duration_ms: 3.01916
+  type: 'test'
+  ...
+# Subtest: only the owner can rotate/revoke edit tokens, tokens expire and read links remain usable
+ok 156 - only the owner can rotate/revoke edit tokens, tokens expire and read links remain usable
+  ---
+  duration_ms: 11.972095
+  type: 'test'
+  ...
+# Subtest: OSM accepts only predefined operations and cannot be used as an arbitrary cross-site proxy
+ok 157 - OSM accepts only predefined operations and cannot be used as an arbitrary cross-site proxy
+  ---
+  duration_ms: 10.87215
+  type: 'test'
+  ...
+# Subtest: OSM limits distinct in-flight operations and cleans obsolete cache keys
+ok 158 - OSM limits distinct in-flight operations and cleans obsolete cache keys
+  ---
+  duration_ms: 8.813949
+  type: 'test'
+  ...
+# Subtest: upstream response byte limits apply to chunked bodies and cancel the stream
+ok 159 - upstream response byte limits apply to chunked bodies and cancel the stream
+  ---
+  duration_ms: 0.642127
+  type: 'test'
+  ...
+# Subtest: rate limits are bounded, reset with time and do not trust spoofed forwarding headers
+ok 160 - rate limits are bounded, reset with time and do not trust spoofed forwarding headers
+  ---
+  duration_ms: 0.222832
+  type: 'test'
+  ...
+# Subtest: share secrets stay in fragments/session values and clean read links never inherit edit permissions
+ok 161 - share secrets stay in fragments/session values and clean read links never inherit edit permissions
+  ---
+  duration_ms: 0.357463
+  type: 'test'
+  ...
+# Subtest: oversized imports are rejected before reading their file contents
+ok 162 - oversized imports are rejected before reading their file contents
+  ---
+  duration_ms: 0.198279
+  type: 'test'
+  ...
+# Subtest: chunked JSON body size limits produce a controlled 413 response
+ok 163 - chunked JSON body size limits produce a controlled 413 response
+  ---
+  duration_ms: 2.725592
+  type: 'test'
+  ...
+# Subtest: legacy write links can acquire an owner exactly once without leaking credentials on reads
+ok 164 - legacy write links can acquire an owner exactly once without leaking credentials on reads
+  ---
+  duration_ms: 5.339278
+  type: 'test'
+  ...
+# Subtest: repeated phase edits remain within the server schema bounds
+ok 165 - repeated phase edits remain within the server schema bounds
+  ---
+  duration_ms: 0.364901
+  type: 'test'
+  ...
+GTFS import: Error: Nieprawidłowe dane sieci.
+    at parseProposal (file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:517:851)
+    at validate (file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7733:5)
+    at file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7759:7
+    at async file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7796:33
+    at async Server.<anonymous> (file:///tmp/transplan-tests-9E8Gjd/interline.test.mjs:7583:14)
+# Subtest: invalid downloaded GTFS snapshots cannot poison the persistent cache
+ok 166 - invalid downloaded GTFS snapshots cannot poison the persistent cache
+  ---
+  duration_ms: 1.733659
+  type: 'test'
+  ...
+# Subtest: repeated revocation and renewal do not leak storage budget
+ok 167 - repeated revocation and renewal do not leak storage budget
+  ---
+  duration_ms: 11.840003
+  type: 'test'
+  ...
+1..167
+# tests 167
+# suites 0
+# pass 167
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1831.384705

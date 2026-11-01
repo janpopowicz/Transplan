@@ -4,7 +4,7 @@ Planowanie sieci komunikacji miejskiej w Krakowie.
 
 ## Uruchomienie
 
-Wymagany Node.js 22.12+ (lub 20.19+).
+Wymagany Node.js 22.12+. Wersja użyta do weryfikacji: 22.23.4 (plik `.nvmrc`).
 
 ```sh
 npm ci
@@ -20,14 +20,24 @@ npm run build
 npm start
 ```
 
-Serwer obsługuje aplikację i API na porcie `3000`. Konfiguracja: `PORT`, `HOST`
+Serwer obsługuje aplikację i API na `127.0.0.1:3000`. Do nasłuchu na innych interfejsach ustaw `HOST` (np. `0.0.0.0` w kontenerze). Konfiguracja: `PORT`, `HOST`
 oraz `TRANSPLAN_DATA_DIR` (domyślnie `data/networks`, względem katalogu uruchomienia).
 Katalog danych musi być zapisywalny i trwały między wdrożeniami. Przy kilku
-instancjach musi być współdzielony i obsługiwać atomowe twarde dowiązania (hard links).
+instancjach musi być współdzielony i obsługiwać atomowe twarde dowiązania (hard links),
+`mkdir` oraz atomowe zmiany nazw. Wszystkie instancje muszą używać tych samych limitów.
+Blokada zapisu działa między procesami; jej odnowienie następuje co 10 s, a wygaszenie po 30 s.
+Obrazy podkładu mapy przeglądarka pobiera bezpośrednio z `tile.openstreetmap.org`,
+z normalnym cache HTTP zgodnym z nagłówkami OSM. Nie są proxyowane przez aplikację.
+GTFS i jego archiwa nadal korzystają z trwałego cache serwera. Worker MapLibre jest osobnym,
+wersjonowanym plikiem w `dist/assets`, emitowanym przez Vite razem z aplikacją.
 Sam hosting statycznego `dist/` nie wystarczy: `/api/networks` wymaga serwera Node.
 Torowiska, drogi i sieć piesza korzystają wyłącznie z `/overpass`, obsługiwanego
 przez serwer w produkcji, development i preview. Przeglądarka nie wysyła zapytań
-Overpass bezpośrednio do publicznych instancji. Wycinki OSM są kompresowane
+Overpass bezpośrednio do publicznych instancji. API przyjmuje wyłącznie JSON
+`{ "kind": "tram" | "roads" | "walking" }`; query i obszar ustala serwer.
+Równolegle działają najwyżej dwa pobrania na proces. Każda odpowiedź ma limit 64 MiB,
+a cache przechowuje trzy stałe wycinki (nie tworzy wpisów dla dowolnych query).
+Stare klucze cache są usuwane podczas pierwszego użycia nowej wersji. Wycinki OSM są kompresowane
 i buforowane na dysku w `data/overpass` przez 7 dni
 (`TRANSPLAN_OSM_CACHE_DIR` zmienia katalog). Starszy wycinek jest dostępny
 od razu podczas odświeżania w tle. Przeglądarka zachowuje własny cache sieci
@@ -120,12 +130,20 @@ Korzystanie z publicznej instancji podlega jej [zasadom rozsądnego obciążenia
 
 ## Wspólna sieć bez kont
 
-Kliknij **Udostępnij**. Projekt staje się wspólną siecią, a jego UUID i uprawnienie
-edycji trafiają do adresu przeglądarki. Dotychczasowy lokalny projekt pozostaje
+Kliknij **Udostępnij**. Projekt staje się wspólną siecią, a jego UUID trafia do adresu przeglądarki. Sekrety pozostają w pamięci
+aktualnej karty (`sessionStorage`); po inicjalizacji są usuwane z adresu. Dotychczasowy lokalny projekt pozostaje
 pod adresem bez parametrów. Okno udostępniania pokazuje dwa stałe linki:
 
 - **Podgląd na żywo**: `?network=<uuid>` — odczyt, bez prawa zapisu.
-- **Wspólna edycja**: `?network=<uuid>&write=<secret-uuid>` — odczyt i zapis.
+- **Wspólna edycja**: `?network=<uuid>#write=<secret-uuid>` — odczyt i zapis.
+
+Właściciel otrzymuje dodatkowy prywatny **link zarządzania** `?network=<uuid>#owner=<secret-uuid>`.
+Należy go zachować dla siebie. Pozwala on tworzyć nowy link edycji i unieważniać poprzedni
+w oknie udostępniania. Edytorzy nie otrzymują tego uprawnienia. Link edycji wygasa po 30 dniach;
+właściciel może go odnowić. Fragment po `#` nie jest wysyłany w żądaniu HTTP.
+Starsze linki z `&write=` są nadal odczytywane i czyszczone po otwarciu, ale ich pierwsze
+żądanie może pozostać w logach proxy — konfiguracja logów powinna pomijać query i Authorization.
+Przejście zwykłym linkiem podglądu nie przywraca uprawnień z wcześniejszej sesji.
 
 Wszystkie osoby korzystają z tej samej sieci. Zmiany zapisują się automatycznie,
 a pozostali uczestnicy pobierają aktualizacje co sekundę. Odświeżenie strony
@@ -145,10 +163,51 @@ aby można je było odzyskać po odświeżeniu lub chwilowym braku połączenia
 (o ile przeglądarka pozwala zapisać dane). Stan synchronizacji jest widoczny
 nad mapą. Przy zamykaniu strony z niewysłanymi zmianami pojawia się ostrzeżenie.
 
-Nie ma kont, listy publicznych sieci ani automatycznego wygasania linków.
+Nie ma kont ani listy publicznych sieci. Link podglądu pozostaje aktywny do usunięcia sieci;
+link edycji ma ograniczony czas życia i może zostać unieważniony.
 Katalog sieci zawiera kolejne wersje JSON oraz skrót sekretu edycji. Należy go
 zachowywać między wdrożeniami; administrator może usunąć sieć wraz z jej katalogiem.
-Maksymalny rozmiar pojedynczego zapisu to 10 MB.
+Maksymalny rozmiar pojedynczego zapisu to 10 MiB. Serwer i import JSON sprawdzają ścisły schemat,
+rozmiary kolekcji, identyfikatory, współrzędne, czasy, kolory i dozwolone takty 4–240 min.
+Nieznane pola i niepoprawne powiązania są odrzucane. Błędy importu należy poprawić w pliku;
+serwer nie usuwa nieznanych pól po cichu.
+
+## Limity bezpieczeństwa i API
+
+Domyślna pojemność sieci to 1 GiB, do 1000 sieci i do 5 najnowszych rewizji każdej sieci
+(wliczając bieżącą). `TRANSPLAN_MAX_STORAGE_BYTES`, `TRANSPLAN_MAX_NETWORKS` oraz
+`TRANSPLAN_RETAINED_REVISIONS` zmieniają te limity. Przekroczenie pojemności zwraca 507.
+Rezerwacje pojemności są zapisywane przed danymi, pod wspólną blokadą. Po awarii w trakcie
+zapisu mogą pozostać ostrożnie zawyżone; po ręcznym usuwaniu sieci należy zatrzymać wszystkie
+instancje, usunąć `data/networks/.budget.json` i uruchomić je ponownie, aby przeliczyć zajętość.
+Nie usuwać pliku budżetu podczas działania serwerów. Istniejące katalogi są uwzględniane
+w pierwszym przeliczeniu, a wskaźniki bieżących rewizji migrują się przy odczycie.
+Stara historia jest przycinana przy kolejnym zapisie danej sieci.
+
+Ograniczenia na minutę, odpowiednio na adres klienta / proces: tworzenie 10/60,
+zapisy i zarządzanie linkami 120/600, odczyty sieci 600/6000, OSM i każde z pozostałych
+API 60/300. Przekroczenie zwraca 429 z `Retry-After`. Serwer używa adresu połączenia TCP,
+nie ufa `X-Forwarded-For`; za reverse proxy limity per adres dotyczą proxy. Dodatkowe limity
+na krawędzi infrastruktury można ustawić dla rzeczywistego IP klienta. Limity ruchu są per proces,
+limity dysku i liczby sieci są wspólne dla instancji korzystających z tego samego katalogu.
+Jednoczesne buforowanie body JSON ma budżet 40 MiB, a kolejka zapisów ma najwyżej 8 pozycji.
+
+Wszystkie endpointy sprawdzają URL, dozwolone i niepowtarzające się parametry query oraz
+używane nagłówki. Zapisy wymagają poprawnego UTF-8 i `application/json`, odrzucają kompresję body,
+obce originy i nadmiarowe pola. GET nie przyjmuje body. `revision` jest dodatnią bezpieczną
+liczbą całkowitą, a `refresh` dopuszcza wyłącznie `1`. Serwer ma CSP, ochronę przed ramkami,
+`nosniff` i `strict-origin`; HTML nie jest buforowany. Polityka Referer przekazuje
+wyłącznie origin (bez ścieżki, query i sekretów), wymagany przez serwer kafelków OSM. HTTPS oraz HSTS należy skonfigurować
+na produkcyjnym reverse proxy. Dev i preview domyślnie nasłuchują tylko na loopback.
+
+Zarządzanie linkami: `POST /api/networks/<uuid>/access`, JSON `{ "action": "rotate" }`
+lub `{ "action": "revoke" }`, z `Authorization: Bearer <owner-token>`. Starsza sieć bez właściciela
+pozwala jednorazowo użyć aktualnego, niewygasłego tokenu edycji; odpowiedź przekazuje prywatny
+`ownerToken`, który trzeba zachować. Starsze tokeny bez daty wygasają 30 dni po modyfikacji
+pliku `access.json`. Nowe sieci nie pozwalają edytorowi przejąć roli właściciela.
+
+Fallback routingu Valhalla/OSRM działa bezpośrednio w przeglądarce, tak jak dotychczas w produkcji.
+Development nie wystawia już dodatkowego proxy `/valhalla`.
 
 ## Sprawdzenie
 

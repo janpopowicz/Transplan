@@ -1,3 +1,4 @@
+import { WALKING_HIGHWAYS as HIGHWAYS } from "./osmQueries";
 import { BBOX } from "../constants";
 import type { Coord } from "../types";
 import { haversine } from "./geo";
@@ -12,7 +13,6 @@ export interface WalkingElement {
   tags?: Record<string, string>;
 }
 
-const HIGHWAYS = "footway|path|pedestrian|steps|living_street|residential|service|unclassified|tertiary|tertiary_link|secondary|secondary_link|primary|primary_link|track|cycleway";
 const DENIED = new Set(["no", "private", "use_sidepath"]);
 
 // https://wiki.openstreetmap.org/wiki/Key:foot and Key:sidewalk
@@ -104,9 +104,6 @@ async function writeCache(network: WalkingNetwork) {
 /** All clients share the server's persistent OSM cache and upstream fallback.
  * The deadline includes downloading and parsing the response body. */
 export async function fetchWalkingNetwork(fetcher: typeof fetch = fetch, timeoutMs = 30_000): Promise<WalkingNetwork> {
-  const bbox = `${BBOX.south},${BBOX.west},${BBOX.north},${BBOX.east}`;
-  const query = `[out:json][timeout:25];way["highway"~"^(${HIGHWAYS})$"]["area"!="yes"]["indoor"!="yes"]["foot"!~"^(no|private|use_sidepath)$"](${bbox})->.paths;
-    (.paths;node(w.paths)["barrier"];node(w.paths)["access"];node(w.paths)["foot"];);out body geom qt;`;
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout>;
   const deadline = new Promise<never>((_, reject) => {
@@ -115,8 +112,8 @@ export async function fetchWalkingNetwork(fetcher: typeof fetch = fetch, timeout
   try {
     return await Promise.race([deadline, (async () => {
       const response = await fetcher("/overpass", { method: "POST", signal: controller.signal,
-        headers: { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-        body: `data=${encodeURIComponent(query)}` });
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "walking" }) });
       if (!response.ok) throw new Error(`Overpass ${response.status}`);
       const data = await response.json() as { elements?: WalkingElement[]; remark?: string };
       if (!data.elements || data.remark) throw new Error("Incomplete OSM response");

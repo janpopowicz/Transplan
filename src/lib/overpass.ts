@@ -1,5 +1,5 @@
 import { encodeStoredState, decodeStoredState } from "./storageCodec";
-import { BBOX } from "../constants";
+import type { OsmKind } from "./osmQueries";
 import type { Stop, TramTrack, Coord } from "../types";
 import { haversine, normalizeStopName } from "./geo";
 
@@ -64,7 +64,7 @@ export function writeOsmCache(stops: Stop[], tracks: TramTrack[]): void {
   }
 }
 
-async function overpass(query: string): Promise<{ elements: OsmElement[] }> {
+async function overpass(kind: OsmKind): Promise<{ elements: OsmElement[] }> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 210000);
   try {
@@ -72,9 +72,9 @@ async function overpass(query: string): Promise<{ elements: OsmElement[] }> {
       method: "POST",
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        "Content-Type": "application/json",
       },
-      body: `data=${encodeURIComponent(query)}`,
+      body: JSON.stringify({ kind }),
       signal: ctrl.signal,
     });
     if (!res.ok) throw new Error(`Nie udało się wczytać danych OSM (${res.status}).`);
@@ -85,24 +85,8 @@ async function overpass(query: string): Promise<{ elements: OsmElement[] }> {
   } finally { clearTimeout(timer); }
 }
 
-function bboxStr(): string {
-  return `${BBOX.south},${BBOX.west},${BBOX.north},${BBOX.east}`;
-}
-
 export async function fetchTramTracks(): Promise<TramTrack[]> {
-  const b = bboxStr();
-  const query = `
-[out:json][timeout:120];
-(
-  way["railway"="tram"](${b});
-  way["disused:railway"="tram"](${b});
-  way["railway"="disused"]["disused"="tram"](${b});
-  way["railway"="disused"]["tram"="yes"](${b});
-  way["railway"="construction"]["construction"="tram"](${b});
-);
-out geom;
-`;
-  const data = await overpass(query);
+  const data = await overpass("tram");
   const tracks: TramTrack[] = [];
   for (const el of data.elements) {
     if (el.type !== "way" || !el.geometry || el.geometry.length < 2) continue;
@@ -121,19 +105,8 @@ out geom;
   return tracks;
 }
 
-const ROAD_HIGHWAY =
-  "^(motorway|motorway_link|trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|unclassified|residential|living_street|service|busway|bus_guideway|construction|pedestrian)$";
-
 export async function fetchOsmRoads(): Promise<TramTrack[]> {
-  const b = bboxStr();
-  const query = `
-[out:json][timeout:180];
-(
-  way["highway"~"${ROAD_HIGHWAY}"](${b});
-);
-out geom;
-`;
-  const data = await overpass(query);
+  const data = await overpass("roads");
   const roads: TramTrack[] = [];
   for (const el of data.elements) {
     if (el.type !== "way" || !el.geometry || el.geometry.length < 2) continue;

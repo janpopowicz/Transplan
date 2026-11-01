@@ -1093,7 +1093,9 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   importJson: async (file) => {
+    if (file.size > 10 * 1024 * 1024) throw new Error("Plik projektu przekracza limit 10 MB.");
     const text = await file.text();
+    if (new TextEncoder().encode(text).length > 10 * 1024 * 1024) throw new Error("Plik projektu przekracza limit 10 MB.");
     get().openProposal(parseProposal(JSON.parse(text)));
   },
 

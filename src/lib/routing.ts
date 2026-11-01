@@ -2,7 +2,7 @@ import type { Coord, Mode } from "../types";
 import { haversine } from "./geo";
 import { roadGraph, tramGraph } from "./tramGraph";
 
-const VALHALLA = ["/valhalla", "https://valhalla1.openstreetmap.de/route"];
+const VALHALLA = ["https://valhalla1.openstreetmap.de/route"];
 
 const OSRM = [
   "https://router.project-osrm.org/route/v1/driving",

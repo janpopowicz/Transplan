@@ -27,7 +27,8 @@ function seg(a: number, b: number): LineSegment {
 }
 function route(id: string, segments: LineSegment[]): TransitLine {
   return { id, number: id, name: id, mode: "bus", color: "#c41e3a", vehicle: "12m", visible: true,
-    segments, outboundStopIds: [], inboundStopIds: [], terminus1Id: null, terminus2Id: null,
+    segments, outboundStopIds: [...new Set(segments.filter((s) => s.direction === "outbound").flatMap((s) => [s.fromStopId, s.toStopId]))],
+    inboundStopIds: [...new Set(segments.filter((s) => s.direction === "inbound").flatMap((s) => [s.fromStopId, s.toStopId]))], terminus1Id: null, terminus2Id: null,
     takt: { ...DEFAULT_TAKT }, layoverMin: 5 };
 }
 const local = route("100", [seg(0, 1), seg(1, 2), seg(2, 3), seg(3, 2), seg(2, 1), seg(1, 0)]);
@@ -174,7 +175,7 @@ test("disused tram tracks load as closed and can toggle into service and back", 
   const { fetchTramTracks } = await import("../src/lib/overpass");
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (_url, init) => {
-    assert.match(decodeURIComponent(String(init?.body)), /disused:railway/);
+    assert.deepEqual(JSON.parse(String(init?.body)), { kind: "tram" });
     return new Response(JSON.stringify({ elements: [{
       type: "way", id: 42, tags: { "disused:railway": "tram" },
       geometry: [{ lon: 19.93, lat: 50.06 }, { lon: 19.94, lat: 50.06 }],

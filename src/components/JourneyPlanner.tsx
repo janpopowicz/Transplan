@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import maplibregl, { type GeoJSONSource, type Map as MapLibre } from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
+import { type GeoJSONSource, type Map as MapLibre } from "maplibre-gl";
 import { useStore } from "../store";
 import { useJourneyState } from "../lib/journeyState";
 import { getIsochroneWorker, nextIsochroneRequestId, resetIsochroneWorker } from "../lib/isochroneClient";

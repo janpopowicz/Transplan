@@ -1,5 +1,6 @@
 import { wholeMinuteTimes } from "./travelTime";
 import type { Proposal } from "./proposal";
+import { browserAccess } from "./sharing";
 
 import { encodeStoredState, decodeStoredState } from "./storageCodec";
 
@@ -9,7 +10,7 @@ type PersistShape = Proposal;
 
 function storageKey(): string {
   const id = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("network");
-  const mode = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("write") ? "write" : "read";
+  const mode = browserAccess()?.writeToken ? "write" : "read";
   return id === null ? KEY : `${KEY}:network:${id.toLowerCase()}:${mode}`;
 }
 

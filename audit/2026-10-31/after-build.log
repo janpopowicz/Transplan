@@ -1,0 +1,20 @@
+
+> transplan@1.0.0 build
+> tsc --noEmit && vite build && node scripts/build-server.mjs
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 88 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                    0.89 kB │ gzip:   0.48 kB
+dist/assets/syncCheckpoint.worker-CeeRA7Mk.js      5.15 kB
+dist/assets/isochrones.worker-CPw4QKKb.js         25.46 kB
+dist/assets/index-BxfVl4YN.css                    97.97 kB │ gzip:  15.96 kB
+dist/assets/index-ZtFqeHr1.js                  1,481.83 kB │ gzip: 423.88 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.28s

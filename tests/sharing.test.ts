@@ -53,7 +53,7 @@ test("anonymous read/write links share one mutable network and survive server re
     assert.equal(new URL(links.read).searchParams.has("old"), false);
     assert.equal(new URL(links.read).searchParams.has("write"), false);
     assert.equal(networkLinks({ ...access, writeToken: null }, links.write).write, "");
-    assert.equal(networkAccess(new URL(links.write).search)!.writeToken, access.writeToken);
+    assert.equal(networkAccess(new URL(links.write).search, new URL(links.write).hash)!.writeToken, access.writeToken);
     assert.deepEqual((await fetchNetwork(id)).proposal, proposal);
     await server.close();
     server = await listen(dataDir);
@@ -324,7 +324,7 @@ test("refresh recovers this tab's unsent changes instead of replacing them with 
     location: { search: `?network=${access.id}&write=${access.writeToken}` },
   } });
   Object.defineProperty(globalThis, "localStorage", { configurable: true, value: {
-    getItem: (key: string) => memory.get(key) ?? null, setItem: (key: string, value: string) => memory.set(key, value),
+    getItem: (key: string) => memory.get(key) ?? null, setItem: (key: string, value: string) => memory.set(key, value), removeItem: (key: string) => memory.delete(key),
   } });
   Object.defineProperty(globalThis, "sessionStorage", { configurable: true, value: {
     getItem: () => "test-tab", setItem: () => {},
@@ -336,7 +336,8 @@ test("refresh recovers this tab's unsent changes instead of replacing them with 
     assert.equal(useStore.getState().lines[0].number, "Niewysłane");
     assert.equal(useStore.getState().access, "write");
     assert.equal(useSharedSession.getState().status.pending, true);
-    assert.equal(JSON.parse(memory.get(checkpointKey)!).base.revision, 1);
+    assert.equal(memory.has(checkpointKey), false);
+    assert.equal(JSON.parse(memory.get(`transplan-sync:${access.id}:test-tab`)!).base.revision, 1);
   } finally {
     globalThis.fetch = originalFetch;
     for (const [name, descriptor] of descriptors) {

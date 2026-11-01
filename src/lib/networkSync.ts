@@ -61,6 +61,7 @@ export class NetworkSync {
     return this.comparison.pending;
   }
   checkpoint() { if (this.access.writeToken) this.adapter.checkpoint?.(this.base, this.adapter.read()); }
+  get document() { return this.base; }
   dispose() { this.disposed = true; this.checkpoint(); }
   private accept(remote: SharedDocument) {
     const local = this.adapter.read();

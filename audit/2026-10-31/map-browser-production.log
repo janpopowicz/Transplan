@@ -1,0 +1,22 @@
+{
+  "mode": "production",
+  "origin": "http://127.0.0.1:43185",
+  "tiles": 32,
+  "tileReferers": [
+    "http://127.0.0.1:43185/"
+  ],
+  "tileNoCacheHeaders": 0,
+  "pixels": {
+    "red": 2122,
+    "blue": 2231,
+    "green": 2056,
+    "rect": {
+      "x": 280,
+      "y": 93.234375,
+      "width": 1160,
+      "height": 789,
+      "scale": 1
+    }
+  },
+  "errors": []
+}

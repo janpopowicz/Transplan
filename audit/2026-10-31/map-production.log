@@ -1,0 +1,14 @@
+
+> transplan@1.0.0 test:production
+> node tests/production-smoke.mjs
+
+{
+  "node": "v22.23.4",
+  "productionProcesses": 2,
+  "startup": "pass",
+  "sharedQuota": "pass",
+  "rotationAndSave": "pass",
+  "malformedUrlSurvival": "pass",
+  "securityHeadersAndAssets": "pass",
+  "mapWorkerAsset": "pass"
+}

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import maplibregl, { Map, Popup } from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
+import { Map, Popup } from "maplibre-gl";
+import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { KRAKOW_CENTER } from "../constants";
 import { buildRenderSegments } from "../lib/interline";
@@ -13,6 +15,9 @@ import { JourneyPlanner } from "./JourneyPlanner";
 import { useJourneyState } from "../lib/journeyState";
 import { useIsochroneState } from "../lib/isochroneState";
 
+// MapLibre 6 ships a separate worker. Let Vite emit and version it with this build.
+maplibregl.setWorkerUrl(mapWorkerUrl);
+
 const STYLE: maplibregl.StyleSpecification = {
   version: 8,
   name: "osm-simple",
@@ -22,7 +27,7 @@ const STYLE: maplibregl.StyleSpecification = {
       type: "raster",
       tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
       tileSize: 256,
-      attribution: "© OpenStreetMap",
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxzoom: 19,
     },
   },
@@ -60,7 +65,7 @@ export function MapView() {
       center: KRAKOW_CENTER,
       zoom: 12.4,
       maxPitch: 0,
-      attributionControl: { compact: true },
+      attributionControl: { compact: false },
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
     mapRef.current = map;

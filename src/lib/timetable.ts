@@ -1,5 +1,6 @@
 import { PERIODS, type PeriodId } from "../constants";
 import type { LineDirection, TransitLine } from "../types";
+import { validHeadway } from "./proposal";
 
 export interface TimetableRun {
   lineId: string;
@@ -252,9 +253,9 @@ export function shiftDeparture(lines: TransitLine[], id: string, value: number, 
   const previous = run ? modulo(run.phase, run.headway) : line.departureOffsetMin ?? 0;
   const delta = value - previous;
   const members = new Set(coordinationMembers(lines, line).map((l) => l.id));
-  return lines.map((l) => members.has(l.id) ? { ...l, departureOffsetMin: (l.departureOffsetMin ?? 0) + delta,
+  return lines.map((l) => members.has(l.id) ? { ...l, departureOffsetMin: modulo((l.departureOffsetMin ?? 0) + delta, 1440),
     ...(l.departureOffsets ? { departureOffsets: Object.fromEntries(Object.entries(l.departureOffsets).map(([p, directions]) =>
-      [p, Object.fromEntries(Object.entries(directions!).map(([d, phase]) => [d, phase! + delta]))])) } : {}) } : l);
+      [p, Object.fromEntries(Object.entries(directions!).map(([d, phase]) => [d, modulo(phase! + delta, 1440)]))])) } : {}) } : l);
 }
 
 export function periodStartMinute(period: PeriodId) {
@@ -267,7 +268,13 @@ export function formatDeparture(minute: number) {
 /** First hour of the selected project period, at every platform of this run. */
 export function timetableDepartures(run: TimetableRun, period: PeriodId, index = 0) {
   const result: number[] = [], phase = run.phase + run.elapsed[index];
-  for (let time = nextDeparture(0, phase, run.headway); time < 60 - 1e-8; time += run.headway) result.push(periodStartMinute(period) + time);
+  if (!validHeadway(run.headway) || !Number.isFinite(phase)) throw new Error("Nieprawidłowy takt lub przesunięcie.");
+  const first = nextDeparture(0, phase, run.headway);
+  for (let i = 0; i < 16; i++) {
+    const time = first + i * run.headway;
+    if (time >= 60 - 1e-8) break;
+    result.push(periodStartMinute(period) + time);
+  }
   return result;
 }
 
@@ -280,12 +287,21 @@ export function periodEndMinute(period: PeriodId) {
 
 /** Finite origin departures. A vehicle continues its trip after a period ends. */
 export function buildDailyTimetable(lines: TransitLine[], day: ServiceDay): DailyTimetableRun[] {
+  if (lines.length > 500 || lines.some((line) => Object.values(line.takt).some((h) => h !== null && !validHeadway(h))))
+    throw new Error("Nieprawidłowy takt lub zbyt duża sieć.");
+  let budget = 500000;
   const periods = PERIODS.filter((p) => p.group === day).map((p) => p.id);
   return periods.flatMap((period) => buildTimetable(lines, period).map((run) => {
     const departures: number[] = [], start = periodStartMinute(period), end = periodEndMinute(period);
     const window = lines.find((l) => l.id === run.lineId)?.serviceWindows?.[period]?.[run.direction];
     const lo = window?.[0] ?? 0, hi = window?.[1] ?? end - start;
-    for (let t = start + nextDeparture(lo, run.phase, run.headway); t < Math.min(end, start + hi) - 1e-8; t += run.headway) {
+    if (!validHeadway(run.headway) || ![run.phase, lo, hi].every(Number.isFinite) || lo < 0 || hi > 1440 || hi <= lo)
+      throw new Error("Nieprawidłowy rozkład jazdy.");
+    const first = start + nextDeparture(lo, run.phase, run.headway);
+    for (let i = 0; ; i++) {
+      const t = first + i * run.headway;
+      if (t >= Math.min(end, start + hi) - 1e-8) break;
+      if (i >= 361 || --budget < 0) throw new Error("Przekroczony limit odjazdów.");
       if (t < 1440) departures.push(t);
       if (end > 1440) departures.push(t - 1440);
     }
