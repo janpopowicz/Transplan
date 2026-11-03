@@ -1,0 +1,72 @@
+# Galerie handlowe
+Galeria Bonarka BARDZO WAŻNY
+Galeria Krakowska BARDZO WAŻNY
+Galeria Kazimierz
+Serenada
+Galeria Bronowice
+M1
+Park Handlowy Zakopianka
+CH Nowe Czyżyny
+Factory w Modlniczce
+CH Krokus
+Ikea i galeria Futura
+Solvay Park
+Mozaika
+
+# Centra biurowe
+Bonarka 4 Business Ważny
+Quattro Business Park
+Krakowski Park Technologiczny na Czerwonych Makach BARDZO WAŻNY!!!!
+O3 Business Campus
+Podium Park
+High5ive
+Unity Centre / Unity Tower
+Fabryczna Office Park
+Klaster Innowacji Gospodarczych na Zabłociu ważny
+Tischnera Office
+
+# Szpitale
+Szpital Uniwersytecki
+Szpital Dziecięcy w Prokocimiu
+Szpital Rydygiera
+Szpital Żeromskiego
+5 Wojskowy Szpital
+Szpital Narutowicza
+Szpital JP2
+Szpital Babińskiego w Kobierzynie
+
+# Kampusy
+AGH !! Bardzo ważny !!! całkiem obszerny i szeroki więc kilka punktów zsamplować
+UJ Ruczaj !!! Bardzo ważny
+Politechnika Krakowska na Czyżynach
+AKF
+Frycz
+Uniwersytet Pedagogiczny
+JP2 Ruczaj
+UEK
+Politechnika Krakowska ul. Warszawska
+Uniwersytet Rolniczy (przy AGHu i na Al. 29 Listopada)
+Uniwersytet Ignatanium
+UJ Collegium Medicum
+UJ na starym mieście - Collegium Novum
+
+# Duże szkoły średnie
+V LO
+ZSŁ
+ZSM nr 1
+ZSM nr 3
+ZS Energetyczne Loretańska
+I LO
+II LO
+VI LO
+VII LO
+IV LO
+VIII LO
+13 LO
+ZS Huty
+ZSE nr 1 Kamieńskiego
+Technikum Komunikacyjne (Mogilska)
+ZS Ekonomicznych (Kapucyńska)
+ZS Inżynieri Środowiska i Melioracji Ułanów
+prompt:
+Dodaj do silnika jakąś hidden (tzn nie na stronie ale żeby była w kodzie i w api) metrykę oceny jakości sieci. Ma ona ważyć średnią dostępność geometryczną (czyli izochroniczną), bo intuicyjnie im lepsza jest ta dostępność tym łatwiej jest się poruszać po mieście. Natomiast oczywiście ludzie nie jeżdżą zwykle do jakiś domow tyko do centrum lub do pracy, więc te punkty dostępności geometrycznej czyli punkty zaczepienia izochronów mają być liczone od takich miejsc jak: centra handlowe (Bonarka, Galeria Krakowska,
