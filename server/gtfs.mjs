@@ -29,10 +29,9 @@ export async function downloadGtfsNetwork(date = warsawDate(), options = {}) {
   return importGtfsNetwork(await readGtfsArchives(archives), date);
 }
 
-export function createGtfsHandler({ directory = process.env.TRANSPLAN_GTFS_CACHE_DIR || "data/gtfs", download = downloadGtfsNetwork,
+export function createGtfsSource({ directory = process.env.TRANSPLAN_GTFS_CACHE_DIR || "data/gtfs", download = downloadGtfsNetwork,
   now = Date.now, date = warsawDate, maxAge = 24 * 3600000, minRefreshAge = 3600000, retryMs = 15 * 60000 } = {}) {
   let pending, cached, cachedDate, loadedDate, loading, retryAt = 0;
-  const limit = rateLimit({ perClient: 60, global: 300, now });
   function validate(value) {
     if (!value || value.version !== 1 || !Number.isFinite(value.at) || value.at < 0 || !Array.isArray(value.stops)) throw new Error("Invalid GTFS snapshot");
     parseProposal({ lines: value.lines, movedStops: value.stops, localStops: [], localTracks: [], constructionOverrides: {} });
@@ -67,6 +66,30 @@ export function createGtfsHandler({ directory = process.env.TRANSPLAN_GTFS_CACHE
     }).catch((error) => { retryAt = now() + retryMs; throw error; }).finally(() => { pending = undefined; });
     return pending;
   }
+  return async ({ refresh: forced = false, requireToday = false } = {}) => {
+    const today = date();
+    if (typeof today !== "string" || !/^\d{8}$/.test(today)) throw new Error("Invalid GTFS date");
+    await load(today);
+    try {
+      const stale = !cached || cachedDate !== today || now() - cached.at >= maxAge;
+      if ((stale || (forced && now() - cached.at >= minRefreshAge)) && now() >= retryAt) {
+        const work = refresh(today, forced);
+        if (!cached || forced || requireToday) await work;
+        else void work.catch(() => {});
+      }
+      if (!cached) throw new Error("GTFS retry cooldown");
+    } catch (error) {
+      console.error("GTFS import:", error);
+      if (!cached || requireToday) throw error;
+    }
+    if (requireToday && cachedDate !== today) throw new Error("Today's GTFS is unavailable");
+    return { snapshot: cached, date: cachedDate, stale: cachedDate !== today || now() - cached.at >= maxAge };
+  };
+}
+
+export function createGtfsHandler({ source, now = Date.now, retryMs = 15 * 60000, ...options } = {}) {
+  const getSnapshot = source ?? createGtfsSource({ ...options, now, retryMs });
+  const limit = rateLimit({ perClient: 60, global: 300, now });
   return safeHandler(async (req, res, next, url) => {
     if (url.pathname !== "/api/gtfs") return next();
     if (req.method !== "GET") { res.writeHead(405).end(); return; }
@@ -74,24 +97,11 @@ export function createGtfsHandler({ directory = process.env.TRANSPLAN_GTFS_CACHE
     noBody(req); limit(req);
     if (req.headers["sec-fetch-site"] === "cross-site") throw badRequest(403);
     res.setHeader("Content-Type", "application/json; charset=utf-8"); res.setHeader("Cache-Control", "no-store");
-    const today = date();
-    if (typeof today !== "string" || !/^\d{8}$/.test(today)) throw new Error("Invalid GTFS date");
     try {
-      await load(today);
-      const forced = params.refresh === "1";
-      const stale = !cached || cachedDate !== today || now() - cached.at >= maxAge;
-      const mayRefresh = now() >= retryAt;
-      if ((stale || (forced && now() - cached.at >= minRefreshAge)) && mayRefresh) {
-        const work = refresh(today, forced);
-        if (!cached || forced) await work;
-        else void work.catch(() => {});
-      }
-      if (!cached) throw new Error("GTFS retry cooldown");
-      res.setHeader("X-Transplan-Cache", cachedDate !== today || now() - cached.at >= maxAge ? "stale" : "hit");
-      res.writeHead(200).end(JSON.stringify(cached));
-    } catch (error) {
-      console.error("GTFS import:", error);
-      if (cached) { res.setHeader("X-Transplan-Cache", "stale"); res.writeHead(200).end(JSON.stringify(cached)); return; }
+      const { snapshot, stale } = await getSnapshot({ refresh: params.refresh === "1" });
+      res.setHeader("X-Transplan-Cache", stale ? "stale" : "hit");
+      res.writeHead(200).end(JSON.stringify(snapshot));
+    } catch {
       res.setHeader("Retry-After", String(Math.ceil(retryMs / 1000)));
       res.writeHead(502).end(JSON.stringify({ error: "Nie udało się pobrać bieżącego GTFS z ZTP. Spróbuj ponownie za chwilę." }));
     }

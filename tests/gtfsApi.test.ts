@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { createGtfsHandler } from "../server/gtfs.mjs";
+import { createGtfsHandler, createGtfsSource } from "../server/gtfs.mjs";
 import { createGtfsArchiveCache } from "../server/gtfsArchives.mjs";
 
 // A real ZIP containing stops.txt; the server checks integrity before publishing it.
@@ -143,5 +143,19 @@ test("GTFS ZIP cache keeps good archives and persists failure cooldowns across r
     clock += 15 * 60000;
     await archives();
     assert.equal(calls, 9);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+
+test("shared GTFS source refuses yesterday for normalization while the regular API may serve stale data", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "transplan-gtfs-normalization-"));
+  let calls = 0;
+  await writeFile(join(directory, "20261103.json"), JSON.stringify({ version: 1, at: 1000, lines: [], stops: [] }));
+  const source = createGtfsSource({ directory, date: () => "20261104", now: () => 2000,
+    download: async () => { calls++; throw new Error("offline"); } });
+  try {
+    const stale = await source(); assert.equal(stale.date, "20261103"); assert.equal(stale.stale, true);
+    await assert.rejects(source({ requireToday: true }), /Today's GTFS/);
+    assert.equal(calls, 1);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });

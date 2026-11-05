@@ -1,0 +1,58 @@
+{
+  "measuredAt": "2026-11-04T11:01:48.839Z",
+  "node": "v22.23.4",
+  "cpu": "Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz",
+  "catalogVersion": "2026-11-04.v2",
+  "period": "wd_am",
+  "bbox": {
+    "south": 49.92,
+    "west": 19.68,
+    "north": 50.18,
+    "east": 20.28
+  },
+  "places": 88,
+  "origins": 93,
+  "vertices": 849404,
+  "edges": 911018,
+  "lines": 0,
+  "activeLines": 0,
+  "stops": 0,
+  "departureSamples": 120,
+  "preparationMs": 6039,
+  "calculationMs": [
+    41116
+  ],
+  "firstCalculationIncludesGraphAndRasterPreparation": true,
+  "resultCacheUsed": false,
+  "scoreKm2": 18.6941,
+  "complete": true,
+  "totalWeight": 100,
+  "connectedWeight": 100,
+  "connectedOrigins": 93,
+  "unconnectedStops": 0,
+  "unconnectedPlaces": [],
+  "osmTimestamp": "2026-11-04T10:48:10Z",
+  "calculationKind": "walking-reference-with-normalization",
+  "inputs": {
+    "walking": "/tmp/transplan-walking-mail.json",
+    "baselineResult": "artifacts/network-quality/krakow-benchmark.result.json",
+    "gtfs": {}
+  },
+  "normalization": {
+    "baselineDate": "20261104",
+    "baselineScore": 100,
+    "noTransitScore": 0,
+    "baselineScoreKm2": 108.74038749999998,
+    "walkingOnlyScoreKm2": 18.6941,
+    "walkingOnlyCalculationMs": [
+      41116
+    ]
+  },
+  "inputSha256": {
+    "walking": "1f240c4b2fd7b41bb6ca95ce37af0178fc4db86396ff1ac6b8582faed453e2b5",
+    "T": "adc1b6039d7ad4dcfccee925878385a9a06b3805f5bc26f65f182e32018c0202",
+    "A": "4a3056f32001a4f715dd1016d4bc834a118ef1d5612136b39a83a263bf817cad",
+    "M": "f0df7d53e8813ac73d8c89a27bfc19470f9a96e2e9fc7e323cecddcf9f92deba"
+  },
+  "walkingSource": "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
+}

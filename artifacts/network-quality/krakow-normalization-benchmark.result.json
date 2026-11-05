@@ -1,0 +1,2018 @@
+{
+  "metric": "weighted-isochrone-area-v1",
+  "catalogVersion": "2026-11-04.v2",
+  "period": "wd_am",
+  "scenario": "mean",
+  "direction": "from-places",
+  "scoreKm2": 108.74038749999998,
+  "thresholdsMinutes": [
+    15,
+    30,
+    45,
+    60
+  ],
+  "weightedAreasKm2": [
+    4.428549999999998,
+    42.0192,
+    130.74775000000008,
+    257.76604999999984
+  ],
+  "resolutionMeters": 100,
+  "bbox": {
+    "south": 49.92,
+    "west": 19.68,
+    "north": 50.18,
+    "east": 20.28
+  },
+  "walkingFetchedAt": 1793789469826,
+  "totalWeight": 100,
+  "connectedWeight": 100,
+  "complete": true,
+  "activeLines": 217,
+  "unconnectedStops": 0,
+  "places": [
+    {
+      "id": "poi-01",
+      "name": "Galeria Bonarka",
+      "weight": 3,
+      "areasKm2": [
+        1.65,
+        32.27,
+        136.63,
+        285.08
+      ],
+      "scoreKm2": 113.9075,
+      "anchors": [
+        {
+          "coord": [
+            19.9507208,
+            50.0279769
+          ],
+          "connected": true,
+          "snapMeters": 44.648275083599394
+        }
+      ]
+    },
+    {
+      "id": "poi-02",
+      "name": "Galeria Krakowska",
+      "weight": 3,
+      "areasKm2": [
+        0.08,
+        0.08,
+        0.08,
+        0.08
+      ],
+      "scoreKm2": 0.08,
+      "anchors": [
+        {
+          "coord": [
+            19.9461443,
+            50.0676545
+          ],
+          "connected": true,
+          "snapMeters": 8.025825587449411
+        }
+      ]
+    },
+    {
+      "id": "poi-03",
+      "name": "Galeria Kazimierz",
+      "weight": 1,
+      "areasKm2": [
+        3.1,
+        37.05,
+        132.41,
+        269.95
+      ],
+      "scoreKm2": 110.6275,
+      "anchors": [
+        {
+          "coord": [
+            19.9560442,
+            50.0534938
+          ],
+          "connected": true,
+          "snapMeters": 27.68306323532049
+        }
+      ]
+    },
+    {
+      "id": "poi-04",
+      "name": "Serenada",
+      "weight": 1,
+      "areasKm2": [
+        3.99,
+        41.35,
+        127.58,
+        262.72
+      ],
+      "scoreKm2": 108.91000000000001,
+      "anchors": [
+        {
+          "coord": [
+            19.9856889,
+            50.0880157
+          ],
+          "connected": true,
+          "snapMeters": 76.80269032223636
+        }
+      ]
+    },
+    {
+      "id": "poi-05",
+      "name": "Galeria Bronowice",
+      "weight": 1,
+      "areasKm2": [
+        2.58,
+        26.31,
+        111.51,
+        253.53
+      ],
+      "scoreKm2": 98.4825,
+      "anchors": [
+        {
+          "coord": [
+            19.8982842,
+            50.0920871
+          ],
+          "connected": true,
+          "snapMeters": 74.17430259052315
+        }
+      ]
+    },
+    {
+      "id": "poi-06",
+      "name": "M1",
+      "weight": 1,
+      "areasKm2": [
+        4.36,
+        47.96,
+        135.31,
+        265.87
+      ],
+      "scoreKm2": 113.375,
+      "anchors": [
+        {
+          "coord": [
+            19.9997557,
+            50.0644278
+          ],
+          "connected": true,
+          "snapMeters": 23.254510415922088
+        }
+      ]
+    },
+    {
+      "id": "poi-07",
+      "name": "Park Handlowy Zakopianka",
+      "weight": 1,
+      "areasKm2": [
+        3.42,
+        38.82,
+        137.31,
+        293.57
+      ],
+      "scoreKm2": 118.28,
+      "anchors": [
+        {
+          "coord": [
+            19.9318454,
+            50.0155503
+          ],
+          "connected": true,
+          "snapMeters": 24.828184104957568
+        }
+      ]
+    },
+    {
+      "id": "poi-08",
+      "name": "CH Nowe Czyżyny",
+      "weight": 1,
+      "areasKm2": [
+        3.73,
+        39.01,
+        112.33,
+        234.75
+      ],
+      "scoreKm2": 97.455,
+      "anchors": [
+        {
+          "coord": [
+            20.0164164,
+            50.0771915
+          ],
+          "connected": true,
+          "snapMeters": 71.97040146565146
+        }
+      ]
+    },
+    {
+      "id": "poi-09",
+      "name": "Factory / Futura Park w Modlniczce",
+      "weight": 1,
+      "areasKm2": [
+        0.65,
+        5.39,
+        39.56,
+        111.52
+      ],
+      "scoreKm2": 39.28,
+      "anchors": [
+        {
+          "coord": [
+            19.8457974,
+            50.1095946
+          ],
+          "connected": true,
+          "snapMeters": 39.58079134444625
+        }
+      ]
+    },
+    {
+      "id": "poi-10",
+      "name": "CH Krokus",
+      "weight": 1,
+      "areasKm2": [
+        4.22,
+        42.64,
+        128.16,
+        263.53
+      ],
+      "scoreKm2": 109.63749999999999,
+      "anchors": [
+        {
+          "coord": [
+            19.9836676,
+            50.0875532
+          ],
+          "connected": true,
+          "snapMeters": 37.07533357899662
+        }
+      ]
+    },
+    {
+      "id": "poi-11",
+      "name": "IKEA Kraków",
+      "weight": 1,
+      "areasKm2": [
+        4.92,
+        41.14,
+        152.87,
+        298.82
+      ],
+      "scoreKm2": 124.4375,
+      "anchors": [
+        {
+          "coord": [
+            19.8975635,
+            50.0894806
+          ],
+          "connected": true,
+          "snapMeters": 42.489689074297495
+        }
+      ]
+    },
+    {
+      "id": "poi-12",
+      "name": "Solvay Park",
+      "weight": 1,
+      "areasKm2": [
+        3.85,
+        43.31,
+        145.99,
+        300.03
+      ],
+      "scoreKm2": 123.29499999999999,
+      "anchors": [
+        {
+          "coord": [
+            19.9275472,
+            50.0141843
+          ],
+          "connected": true,
+          "snapMeters": 2.685801380447651
+        }
+      ]
+    },
+    {
+      "id": "poi-13",
+      "name": "Mozaika",
+      "weight": 1,
+      "areasKm2": [
+        5.01,
+        42.39,
+        134.72,
+        278.04
+      ],
+      "scoreKm2": 115.04,
+      "anchors": [
+        {
+          "coord": [
+            19.9942749,
+            50.0146012
+          ],
+          "connected": true,
+          "snapMeters": 1.7757775711756874
+        }
+      ]
+    },
+    {
+      "id": "poi-14",
+      "name": "Bonarka 4 Business",
+      "weight": 2,
+      "areasKm2": [
+        2.79,
+        36.51,
+        147,
+        304.87
+      ],
+      "scoreKm2": 122.7925,
+      "anchors": [
+        {
+          "coord": [
+            19.9500595,
+            50.0262504
+          ],
+          "connected": true,
+          "snapMeters": 12.770728148213044
+        }
+      ]
+    },
+    {
+      "id": "poi-15",
+      "name": "Quattro Business Park",
+      "weight": 1,
+      "areasKm2": [
+        3.97,
+        42.85,
+        126.46,
+        260.64
+      ],
+      "scoreKm2": 108.47999999999999,
+      "anchors": [
+        {
+          "coord": [
+            19.9758052,
+            50.08662
+          ],
+          "connected": true,
+          "snapMeters": 0.6778139278903054
+        }
+      ]
+    },
+    {
+      "id": "poi-16",
+      "name": "Krakowski Park Technologiczny na Czerwonych Makach",
+      "weight": 3,
+      "areasKm2": [
+        2.24,
+        18.4,
+        73.6,
+        200.83
+      ],
+      "scoreKm2": 73.7675,
+      "anchors": [
+        {
+          "coord": [
+            19.8862574,
+            50.0211784
+          ],
+          "connected": true,
+          "snapMeters": 18.417564646919047
+        }
+      ]
+    },
+    {
+      "id": "poi-17",
+      "name": "O3 Business Campus",
+      "weight": 1,
+      "areasKm2": [
+        6.45,
+        62.48,
+        171.27,
+        311.57
+      ],
+      "scoreKm2": 137.9425,
+      "anchors": [
+        {
+          "coord": [
+            19.9545132,
+            50.0872785
+          ],
+          "connected": true,
+          "snapMeters": 15.100169792844712
+        }
+      ]
+    },
+    {
+      "id": "poi-18",
+      "name": "Podium Park",
+      "weight": 1,
+      "areasKm2": [
+        5.85,
+        52.49,
+        142.95,
+        280
+      ],
+      "scoreKm2": 120.32249999999999,
+      "anchors": [
+        {
+          "coord": [
+            19.9985614,
+            50.0748156
+          ],
+          "connected": true,
+          "snapMeters": 25.00211542465835
+        }
+      ]
+    },
+    {
+      "id": "poi-19",
+      "name": "High5ive",
+      "weight": 1,
+      "areasKm2": [
+        9.4,
+        70.62,
+        192.21,
+        339.05
+      ],
+      "scoreKm2": 152.82,
+      "anchors": [
+        {
+          "coord": [
+            19.9455008,
+            50.0698776
+          ],
+          "connected": true,
+          "snapMeters": 12.261800061454313
+        }
+      ]
+    },
+    {
+      "id": "poi-20",
+      "name": "Unity Centre / Unity Tower",
+      "weight": 1,
+      "areasKm2": [
+        5.96,
+        59.64,
+        165.8,
+        312.59
+      ],
+      "scoreKm2": 135.9975,
+      "anchors": [
+        {
+          "coord": [
+            19.9578181,
+            50.0681876
+          ],
+          "connected": true,
+          "snapMeters": 22.453068116453192
+        }
+      ]
+    },
+    {
+      "id": "poi-21",
+      "name": "Fabryczna Office Park",
+      "weight": 1,
+      "areasKm2": [
+        3.12,
+        43.92,
+        135.78,
+        270.63
+      ],
+      "scoreKm2": 113.3625,
+      "anchors": [
+        {
+          "coord": [
+            19.973941,
+            50.0619934
+          ],
+          "connected": true,
+          "snapMeters": 7.570566049254078
+        }
+      ]
+    },
+    {
+      "id": "poi-22",
+      "name": "Klaster Innowacji Gospodarczych na Zabłociu",
+      "weight": 2,
+      "areasKm2": [
+        4.36,
+        54.17,
+        154.98,
+        297.87
+      ],
+      "scoreKm2": 127.845,
+      "anchors": [
+        {
+          "coord": [
+            19.9661637,
+            50.0504068
+          ],
+          "connected": true,
+          "snapMeters": 19.517878011341683
+        }
+      ]
+    },
+    {
+      "id": "poi-23",
+      "name": "Tischnera Office",
+      "weight": 1,
+      "areasKm2": [
+        4.45,
+        51.55,
+        169.11,
+        325.25
+      ],
+      "scoreKm2": 137.59,
+      "anchors": [
+        {
+          "coord": [
+            19.9382295,
+            50.028172
+          ],
+          "connected": true,
+          "snapMeters": 31.416001060559225
+        }
+      ]
+    },
+    {
+      "id": "poi-24",
+      "name": "Szpital Uniwersytecki",
+      "weight": 1,
+      "areasKm2": [
+        1.45,
+        23.04,
+        93.52,
+        229.99
+      ],
+      "scoreKm2": 87,
+      "anchors": [
+        {
+          "coord": [
+            20.0003779,
+            50.0082247
+          ],
+          "connected": true,
+          "snapMeters": 14.636737506780742
+        }
+      ]
+    },
+    {
+      "id": "poi-25",
+      "name": "Szpital Dziecięcy w Prokocimiu",
+      "weight": 1,
+      "areasKm2": [
+        2.37,
+        32.32,
+        113.11,
+        255.72
+      ],
+      "scoreKm2": 100.88,
+      "anchors": [
+        {
+          "coord": [
+            20.0015069,
+            50.011527
+          ],
+          "connected": true,
+          "snapMeters": 5.569700778243893
+        }
+      ]
+    },
+    {
+      "id": "poi-26",
+      "name": "Szpital Rydygiera",
+      "weight": 1,
+      "areasKm2": [
+        4.57,
+        36.25,
+        101.94,
+        224.43
+      ],
+      "scoreKm2": 91.7975,
+      "anchors": [
+        {
+          "coord": [
+            20.0184785,
+            50.0930833
+          ],
+          "connected": true,
+          "snapMeters": 4.413350109506735
+        }
+      ]
+    },
+    {
+      "id": "poi-27",
+      "name": "Szpital Żeromskiego",
+      "weight": 1,
+      "areasKm2": [
+        0.03,
+        0.03,
+        0.03,
+        0.03
+      ],
+      "scoreKm2": 0.03,
+      "anchors": [
+        {
+          "coord": [
+            20.0463144,
+            50.0651543
+          ],
+          "connected": true,
+          "snapMeters": 8.714561036946787
+        }
+      ]
+    },
+    {
+      "id": "poi-28",
+      "name": "5 Wojskowy Szpital",
+      "weight": 1,
+      "areasKm2": [
+        2.97,
+        44.49,
+        152.3,
+        300.29
+      ],
+      "scoreKm2": 125.01250000000002,
+      "anchors": [
+        {
+          "coord": [
+            19.93399,
+            50.0773814
+          ],
+          "connected": true,
+          "snapMeters": 18.887067423022938
+        }
+      ]
+    },
+    {
+      "id": "poi-29",
+      "name": "Szpital Narutowicza",
+      "weight": 1,
+      "areasKm2": [
+        3.88,
+        47.47,
+        154,
+        294.24
+      ],
+      "scoreKm2": 124.89750000000001,
+      "anchors": [
+        {
+          "coord": [
+            19.9392911,
+            50.0831522
+          ],
+          "connected": true,
+          "snapMeters": 8.116450383130758
+        }
+      ]
+    },
+    {
+      "id": "poi-30",
+      "name": "Szpital JP2",
+      "weight": 1,
+      "areasKm2": [
+        4.69,
+        54.2,
+        162.1,
+        296.16
+      ],
+      "scoreKm2": 129.28750000000002,
+      "anchors": [
+        {
+          "coord": [
+            19.9356805,
+            50.0900855
+          ],
+          "connected": true,
+          "snapMeters": 10.883152691655914
+        }
+      ]
+    },
+    {
+      "id": "poi-31",
+      "name": "Szpital Babińskiego w Kobierzynie",
+      "weight": 1,
+      "areasKm2": [
+        2.53,
+        20.74,
+        70.49,
+        183.15
+      ],
+      "scoreKm2": 69.22749999999999,
+      "anchors": [
+        {
+          "coord": [
+            19.8836642,
+            50.0036628
+          ],
+          "connected": true,
+          "snapMeters": 9.784297720021879
+        }
+      ]
+    },
+    {
+      "id": "poi-32",
+      "name": "Szpital Św. Rafała",
+      "weight": 1,
+      "areasKm2": [
+        2.11,
+        19.69,
+        86.54,
+        206.39
+      ],
+      "scoreKm2": 78.6825,
+      "anchors": [
+        {
+          "coord": [
+            19.9753289,
+            50.0105567
+          ],
+          "connected": true,
+          "snapMeters": 17.867868327350863
+        }
+      ]
+    },
+    {
+      "id": "poi-33",
+      "name": "AGH",
+      "weight": 3,
+      "areasKm2": [
+        5.996666666666666,
+        57.279999999999994,
+        185.07333333333332,
+        341.3366666666667
+      ],
+      "scoreKm2": 147.42166666666668,
+      "anchors": [
+        {
+          "coord": [
+            19.9232975,
+            50.064547
+          ],
+          "connected": true,
+          "snapMeters": 25.30427981025827
+        },
+        {
+          "coord": [
+            19.921503,
+            50.0656968
+          ],
+          "connected": true,
+          "snapMeters": 23.17164382610741
+        },
+        {
+          "coord": [
+            19.9123361,
+            50.0668886
+          ],
+          "connected": true,
+          "snapMeters": 8.148050256987151
+        }
+      ]
+    },
+    {
+      "id": "poi-34",
+      "name": "UJ Ruczaj",
+      "weight": 3,
+      "areasKm2": [
+        3.64,
+        26.97333333333333,
+        109.51,
+        253.45
+      ],
+      "scoreKm2": 98.39333333333333,
+      "anchors": [
+        {
+          "coord": [
+            19.9071722,
+            50.0305176
+          ],
+          "connected": true,
+          "snapMeters": 13.878362694645562
+        },
+        {
+          "coord": [
+            19.9054965,
+            50.0289664
+          ],
+          "connected": true,
+          "snapMeters": 18.38154373096021
+        },
+        {
+          "coord": [
+            19.9003936,
+            50.0263355
+          ],
+          "connected": true,
+          "snapMeters": 28.644237863104475
+        }
+      ]
+    },
+    {
+      "id": "poi-35",
+      "name": "Politechnika Krakowska na Czyżynach",
+      "weight": 1,
+      "areasKm2": [
+        3.58,
+        41.32,
+        126.61,
+        255.32
+      ],
+      "scoreKm2": 106.7075,
+      "anchors": [
+        {
+          "coord": [
+            19.9984154,
+            50.0756451
+          ],
+          "connected": true,
+          "snapMeters": 18.644564807046528
+        }
+      ]
+    },
+    {
+      "id": "poi-36",
+      "name": "AKF",
+      "weight": 1,
+      "areasKm2": [
+        3.51,
+        41.58,
+        128.41,
+        255.44
+      ],
+      "scoreKm2": 107.235,
+      "anchors": [
+        {
+          "coord": [
+            20.0006803,
+            50.0711436
+          ],
+          "connected": true,
+          "snapMeters": 12.604417781430405
+        }
+      ]
+    },
+    {
+      "id": "poi-37",
+      "name": "Frycz",
+      "weight": 1,
+      "areasKm2": [
+        5.46,
+        59.93,
+        163.49,
+        308.88
+      ],
+      "scoreKm2": 134.44,
+      "anchors": [
+        {
+          "coord": [
+            19.9646769,
+            50.0508202
+          ],
+          "connected": true,
+          "snapMeters": 2.942847873172097
+        }
+      ]
+    },
+    {
+      "id": "poi-38",
+      "name": "Uniwersytet Pedagogiczny",
+      "weight": 1,
+      "areasKm2": [
+        5.02,
+        43.29,
+        159.34,
+        315.23
+      ],
+      "scoreKm2": 130.72,
+      "anchors": [
+        {
+          "coord": [
+            19.9087002,
+            50.0735382
+          ],
+          "connected": true,
+          "snapMeters": 0.7574261570271583
+        }
+      ]
+    },
+    {
+      "id": "poi-39",
+      "name": "JP2 Ruczaj",
+      "weight": 1,
+      "areasKm2": [
+        5.43,
+        34.71,
+        132.93,
+        279.64
+      ],
+      "scoreKm2": 113.1775,
+      "anchors": [
+        {
+          "coord": [
+            19.8981261,
+            50.0213845
+          ],
+          "connected": true,
+          "snapMeters": 21.461031150450076
+        }
+      ]
+    },
+    {
+      "id": "poi-40",
+      "name": "UEK",
+      "weight": 1,
+      "areasKm2": [
+        4.48,
+        53.36,
+        157.1,
+        300.42
+      ],
+      "scoreKm2": 128.84,
+      "anchors": [
+        {
+          "coord": [
+            19.9554822,
+            50.0685491
+          ],
+          "connected": true,
+          "snapMeters": 2.2101801267817667
+        }
+      ]
+    },
+    {
+      "id": "poi-41",
+      "name": "Politechnika Krakowska ul. Warszawska",
+      "weight": 1,
+      "areasKm2": [
+        5.75,
+        59.44,
+        174.11,
+        320.88
+      ],
+      "scoreKm2": 140.04500000000002,
+      "anchors": [
+        {
+          "coord": [
+            19.9421184,
+            50.0718656
+          ],
+          "connected": true,
+          "snapMeters": 3.9768232856388948
+        }
+      ]
+    },
+    {
+      "id": "poi-42",
+      "name": "Uniwersytet Rolniczy (przy AGHu i na Al. 29 Listopada)",
+      "weight": 1,
+      "areasKm2": [
+        6.785,
+        64.39,
+        186.225,
+        336.16499999999996
+      ],
+      "scoreKm2": 148.39124999999999,
+      "anchors": [
+        {
+          "coord": [
+            19.9248542,
+            50.0647781
+          ],
+          "connected": true,
+          "snapMeters": 17.02619178217773
+        },
+        {
+          "coord": [
+            19.950566,
+            50.0830344
+          ],
+          "connected": true,
+          "snapMeters": 6.207396150380725
+        }
+      ]
+    },
+    {
+      "id": "poi-43",
+      "name": "Uniwersytet Ignatanium",
+      "weight": 1,
+      "areasKm2": [
+        0.04,
+        0.04,
+        0.04,
+        0.04
+      ],
+      "scoreKm2": 0.04,
+      "anchors": [
+        {
+          "coord": [
+            19.9485377,
+            50.0625357
+          ],
+          "connected": true,
+          "snapMeters": 14.284168748153098
+        }
+      ]
+    },
+    {
+      "id": "poi-44",
+      "name": "UJ Collegium Medicum",
+      "weight": 1,
+      "areasKm2": [
+        5.75,
+        60.87,
+        186.14,
+        338.33
+      ],
+      "scoreKm2": 147.77249999999998,
+      "anchors": [
+        {
+          "coord": [
+            19.9329797,
+            50.0619131
+          ],
+          "connected": true,
+          "snapMeters": 31.799466091893187
+        }
+      ]
+    },
+    {
+      "id": "poi-45",
+      "name": "UJ na starym mieście - Collegium Novum",
+      "weight": 1,
+      "areasKm2": [
+        5.91,
+        60.52,
+        184.7,
+        342.67
+      ],
+      "scoreKm2": 148.45,
+      "anchors": [
+        {
+          "coord": [
+            19.9332351,
+            50.0608642
+          ],
+          "connected": true,
+          "snapMeters": 17.261795008728942
+        }
+      ]
+    },
+    {
+      "id": "poi-46",
+      "name": "V LO",
+      "weight": 1,
+      "areasKm2": [
+        4.63,
+        57.82,
+        181.39,
+        336.77
+      ],
+      "scoreKm2": 145.15249999999997,
+      "anchors": [
+        {
+          "coord": [
+            19.9288024,
+            50.0621978
+          ],
+          "connected": true,
+          "snapMeters": 20.836154692450837
+        }
+      ]
+    },
+    {
+      "id": "poi-47",
+      "name": "ZSŁ",
+      "weight": 1,
+      "areasKm2": [
+        5.22,
+        58.38,
+        177.64,
+        344.23
+      ],
+      "scoreKm2": 146.3675,
+      "anchors": [
+        {
+          "coord": [
+            19.9222327,
+            50.0464205
+          ],
+          "connected": true,
+          "snapMeters": 13.459692250326595
+        }
+      ]
+    },
+    {
+      "id": "poi-48",
+      "name": "ZSM nr 1",
+      "weight": 1,
+      "areasKm2": [
+        7.34,
+        70.4,
+        202.69,
+        360.84
+      ],
+      "scoreKm2": 160.3175,
+      "anchors": [
+        {
+          "coord": [
+            19.9245553,
+            50.061499
+          ],
+          "connected": true,
+          "snapMeters": 23.89601446264624
+        }
+      ]
+    },
+    {
+      "id": "poi-49",
+      "name": "ZSM nr 3",
+      "weight": 1,
+      "areasKm2": [
+        5.47,
+        39.65,
+        115.24,
+        243.55
+      ],
+      "scoreKm2": 100.97749999999999,
+      "anchors": [
+        {
+          "coord": [
+            20.0508779,
+            50.0766755
+          ],
+          "connected": true,
+          "snapMeters": 25.572188233439466
+        }
+      ]
+    },
+    {
+      "id": "poi-50",
+      "name": "ZS Energetyczne Loretańska",
+      "weight": 1,
+      "areasKm2": [
+        0.02,
+        0.02,
+        0.02,
+        0.02
+      ],
+      "scoreKm2": 0.02,
+      "anchors": [
+        {
+          "coord": [
+            19.9308169,
+            50.0616209
+          ],
+          "connected": true,
+          "snapMeters": 17.979752826033902
+        }
+      ]
+    },
+    {
+      "id": "poi-51",
+      "name": "I LO",
+      "weight": 1,
+      "areasKm2": [
+        4.67,
+        56.63,
+        179.44,
+        337.73
+      ],
+      "scoreKm2": 144.6175,
+      "anchors": [
+        {
+          "coord": [
+            19.9333599,
+            50.0571662
+          ],
+          "connected": true,
+          "snapMeters": 25.375295639447838
+        }
+      ]
+    },
+    {
+      "id": "poi-52",
+      "name": "II LO",
+      "weight": 1,
+      "areasKm2": [
+        3.81,
+        47.81,
+        165.03,
+        321.55
+      ],
+      "scoreKm2": 134.55,
+      "anchors": [
+        {
+          "coord": [
+            19.9317816,
+            50.0683955
+          ],
+          "connected": true,
+          "snapMeters": 40.20459230084321
+        }
+      ]
+    },
+    {
+      "id": "poi-53",
+      "name": "VI LO",
+      "weight": 1,
+      "areasKm2": [
+        3.63,
+        41.89,
+        145.51,
+        301.03
+      ],
+      "scoreKm2": 123.01499999999999,
+      "anchors": [
+        {
+          "coord": [
+            19.9474361,
+            50.0504766
+          ],
+          "connected": true,
+          "snapMeters": 14.175730743013425
+        }
+      ]
+    },
+    {
+      "id": "poi-54",
+      "name": "VII LO",
+      "weight": 1,
+      "areasKm2": [
+        0.01,
+        0.01,
+        0.01,
+        0.01
+      ],
+      "scoreKm2": 0.01,
+      "anchors": [
+        {
+          "coord": [
+            19.9082868,
+            50.0705954
+          ],
+          "connected": true,
+          "snapMeters": 5.727633755951111
+        }
+      ]
+    },
+    {
+      "id": "poi-55",
+      "name": "IV LO",
+      "weight": 1,
+      "areasKm2": [
+        3.27,
+        41.63,
+        148.79,
+        310.67
+      ],
+      "scoreKm2": 126.09,
+      "anchors": [
+        {
+          "coord": [
+            19.9463623,
+            50.0409878
+          ],
+          "connected": true,
+          "snapMeters": 34.33596365568827
+        }
+      ]
+    },
+    {
+      "id": "poi-56",
+      "name": "VIII LO",
+      "weight": 1,
+      "areasKm2": [
+        5.46,
+        56.25,
+        163.34,
+        309.07
+      ],
+      "scoreKm2": 133.53,
+      "anchors": [
+        {
+          "coord": [
+            19.9555525,
+            50.0589724
+          ],
+          "connected": true,
+          "snapMeters": 14.869351417681424
+        }
+      ]
+    },
+    {
+      "id": "poi-57",
+      "name": "13 LO",
+      "weight": 1,
+      "areasKm2": [
+        3.55,
+        47.91,
+        148.36,
+        289.47
+      ],
+      "scoreKm2": 122.3225,
+      "anchors": [
+        {
+          "coord": [
+            19.9637323,
+            50.0634436
+          ],
+          "connected": true,
+          "snapMeters": 32.78964341627059
+        }
+      ]
+    },
+    {
+      "id": "poi-58",
+      "name": "ZS Huty",
+      "weight": 1,
+      "areasKm2": [
+        2.76,
+        31.19,
+        90.89,
+        204.59
+      ],
+      "scoreKm2": 82.3575,
+      "anchors": [
+        {
+          "coord": [
+            20.0230455,
+            50.0906995
+          ],
+          "connected": true,
+          "snapMeters": 13.32257494627586
+        }
+      ]
+    },
+    {
+      "id": "poi-59",
+      "name": "ZSE nr 1 Kamieńskiego",
+      "weight": 1,
+      "areasKm2": [
+        6.32,
+        56.46,
+        170.63,
+        330.88
+      ],
+      "scoreKm2": 141.0725,
+      "anchors": [
+        {
+          "coord": [
+            19.9762133,
+            50.0249133
+          ],
+          "connected": true,
+          "snapMeters": 15.913277650030752
+        }
+      ]
+    },
+    {
+      "id": "poi-60",
+      "name": "Technikum Komunikacyjne (Mogilska)",
+      "weight": 1,
+      "areasKm2": [
+        0.01,
+        0.01,
+        0.01,
+        0.01
+      ],
+      "scoreKm2": 0.01,
+      "anchors": [
+        {
+          "coord": [
+            19.9864518,
+            50.074597
+          ],
+          "connected": true,
+          "snapMeters": 35.853106403837074
+        }
+      ]
+    },
+    {
+      "id": "poi-61",
+      "name": "ZS Ekonomicznych (Kapucyńska)",
+      "weight": 1,
+      "areasKm2": [
+        0.02,
+        0.02,
+        0.02,
+        0.02
+      ],
+      "scoreKm2": 0.02,
+      "anchors": [
+        {
+          "coord": [
+            19.9315516,
+            50.0617188
+          ],
+          "connected": true,
+          "snapMeters": 8.65339477348266
+        }
+      ]
+    },
+    {
+      "id": "poi-62",
+      "name": "ZS Inżynieri Środowiska i Melioracji Ułanów",
+      "weight": 1,
+      "areasKm2": [
+        3.03,
+        33.69,
+        111.69,
+        233.41
+      ],
+      "scoreKm2": 95.455,
+      "anchors": [
+        {
+          "coord": [
+            19.9865849,
+            50.0758648
+          ],
+          "connected": true,
+          "snapMeters": 9.01621636767012
+        }
+      ]
+    },
+    {
+      "id": "poi-63",
+      "name": "Rynek Główny",
+      "weight": 1,
+      "areasKm2": [
+        4.54,
+        51.56,
+        167.49,
+        323.83
+      ],
+      "scoreKm2": 136.855,
+      "anchors": [
+        {
+          "coord": [
+            19.9371133,
+            50.0614956
+          ],
+          "connected": true,
+          "snapMeters": 4.428692625002772
+        }
+      ]
+    },
+    {
+      "id": "poi-64",
+      "name": "Dworzec Główny",
+      "weight": 1,
+      "areasKm2": [
+        4.83,
+        55.24,
+        166.02,
+        312.6
+      ],
+      "scoreKm2": 134.6725,
+      "anchors": [
+        {
+          "coord": [
+            19.9478862,
+            50.0684238
+          ],
+          "connected": true,
+          "snapMeters": 4.5258815115445685
+        }
+      ]
+    },
+    {
+      "id": "poi-65",
+      "name": "Dworzec Płaszów",
+      "weight": 1,
+      "areasKm2": [
+        5.21,
+        51.44,
+        156.65,
+        297.07
+      ],
+      "scoreKm2": 127.5925,
+      "anchors": [
+        {
+          "coord": [
+            19.9747852,
+            50.0350214
+          ],
+          "connected": true,
+          "snapMeters": 5.977520882065057
+        }
+      ]
+    },
+    {
+      "id": "poi-66",
+      "name": "Bronowice SKA",
+      "weight": 1,
+      "areasKm2": [
+        3.96,
+        36.02,
+        139.5,
+        290.82
+      ],
+      "scoreKm2": 117.575,
+      "anchors": [
+        {
+          "coord": [
+            19.8926145,
+            50.0830061
+          ],
+          "connected": true,
+          "snapMeters": 3.6696661837340625
+        }
+      ]
+    },
+    {
+      "id": "poi-67",
+      "name": "Teatr Bagatela",
+      "weight": 1,
+      "areasKm2": [
+        5.42,
+        60.25,
+        184.74,
+        338.42
+      ],
+      "scoreKm2": 147.2075,
+      "anchors": [
+        {
+          "coord": [
+            19.9322489,
+            50.0636628
+          ],
+          "connected": true,
+          "snapMeters": 16.277305985583144
+        }
+      ]
+    },
+    {
+      "id": "poi-68",
+      "name": "Teatr Słowackiego",
+      "weight": 1,
+      "areasKm2": [
+        4.39,
+        53.05,
+        167.75,
+        318.65
+      ],
+      "scoreKm2": 135.95999999999998,
+      "anchors": [
+        {
+          "coord": [
+            19.9430659,
+            50.0639468
+          ],
+          "connected": true,
+          "snapMeters": 19.69464802983481
+        }
+      ]
+    },
+    {
+      "id": "poi-69",
+      "name": "Poczta Główna",
+      "weight": 1,
+      "areasKm2": [
+        8.01,
+        68.74,
+        193.76,
+        349.62
+      ],
+      "scoreKm2": 155.0325,
+      "anchors": [
+        {
+          "coord": [
+            19.9426888,
+            50.0594606
+          ],
+          "connected": true,
+          "snapMeters": 3.4346948647081326
+        }
+      ]
+    },
+    {
+      "id": "poi-70",
+      "name": "Rondo Grunwaldzkie",
+      "weight": 1,
+      "areasKm2": [
+        11.28,
+        90.06,
+        228.04,
+        398.16
+      ],
+      "scoreKm2": 181.885,
+      "anchors": [
+        {
+          "coord": [
+            19.931578,
+            50.0488728
+          ],
+          "connected": true,
+          "snapMeters": 0.00023684841959008054
+        }
+      ]
+    },
+    {
+      "id": "poi-71",
+      "name": "Rondo Grzegórzeckie",
+      "weight": 1,
+      "areasKm2": [
+        11.56,
+        78.85,
+        194.02,
+        348.67
+      ],
+      "scoreKm2": 158.275,
+      "anchors": [
+        {
+          "coord": [
+            19.95832,
+            50.0576863
+          ],
+          "connected": true,
+          "snapMeters": 0.0007782564907004162
+        }
+      ]
+    },
+    {
+      "id": "poi-72",
+      "name": "Rondo Mogilskie",
+      "weight": 1,
+      "areasKm2": [
+        11.66,
+        74.98,
+        189.12,
+        340.63
+      ],
+      "scoreKm2": 154.0975,
+      "anchors": [
+        {
+          "coord": [
+            19.9594586,
+            50.0666229
+          ],
+          "connected": true,
+          "snapMeters": 12.055304064955761
+        }
+      ]
+    },
+    {
+      "id": "poi-73",
+      "name": "Plac Centralny",
+      "weight": 1,
+      "areasKm2": [
+        7.3,
+        49.86,
+        133.03,
+        266.91
+      ],
+      "scoreKm2": 114.275,
+      "anchors": [
+        {
+          "coord": [
+            20.037814,
+            50.0714582
+          ],
+          "connected": true,
+          "snapMeters": 18.51261075880852
+        }
+      ]
+    },
+    {
+      "id": "poi-74",
+      "name": "Rondo Czyżyńskie",
+      "weight": 1,
+      "areasKm2": [
+        10.53,
+        61.33,
+        151.27,
+        292.93
+      ],
+      "scoreKm2": 129.015,
+      "anchors": [
+        {
+          "coord": [
+            20.0169682,
+            50.0735342
+          ],
+          "connected": true,
+          "snapMeters": 5.703942329488454
+        }
+      ]
+    },
+    {
+      "id": "poi-75",
+      "name": "Czerwone Maki pętla",
+      "weight": 1,
+      "areasKm2": [
+        7.01,
+        40.05,
+        142.12,
+        287.67
+      ],
+      "scoreKm2": 119.2125,
+      "anchors": [
+        {
+          "coord": [
+            19.8894199,
+            50.0184823
+          ],
+          "connected": true,
+          "snapMeters": 3.1338315296751063
+        }
+      ]
+    },
+    {
+      "id": "poi-76",
+      "name": "Borek Fałęcki pętla",
+      "weight": 1,
+      "areasKm2": [
+        4.93,
+        47.8,
+        158.21,
+        314.17
+      ],
+      "scoreKm2": 131.2775,
+      "anchors": [
+        {
+          "coord": [
+            19.9265683,
+            50.0143005
+          ],
+          "connected": true,
+          "snapMeters": 2.636618487408189
+        }
+      ]
+    },
+    {
+      "id": "poi-77",
+      "name": "Plac Inwalidów",
+      "weight": 1,
+      "areasKm2": [
+        10.71,
+        78.26,
+        220.28,
+        373.6
+      ],
+      "scoreKm2": 170.7125,
+      "anchors": [
+        {
+          "coord": [
+            19.9255255,
+            50.0695159
+          ],
+          "connected": true,
+          "snapMeters": 2.0925040338904015
+        }
+      ]
+    },
+    {
+      "id": "poi-78",
+      "name": "Nowy Kleparz",
+      "weight": 1,
+      "areasKm2": [
+        11.23,
+        77.41,
+        210.02,
+        354.23
+      ],
+      "scoreKm2": 163.22250000000003,
+      "anchors": [
+        {
+          "coord": [
+            19.9359045,
+            50.0745649
+          ],
+          "connected": true,
+          "snapMeters": 2.3147426438108503
+        }
+      ]
+    },
+    {
+      "id": "poi-79",
+      "name": "Mały Płaszów P+R",
+      "weight": 1,
+      "areasKm2": [
+        6.75,
+        53.77,
+        143.44,
+        273.01
+      ],
+      "scoreKm2": 119.2425,
+      "anchors": [
+        {
+          "coord": [
+            20.0006189,
+            50.040189
+          ],
+          "connected": true,
+          "snapMeters": 3.165352447954759
+        }
+      ]
+    },
+    {
+      "id": "poi-80",
+      "name": "Wzgórza Krzesławickie Pętla",
+      "weight": 1,
+      "areasKm2": [
+        2.96,
+        25.33,
+        76.29,
+        178.21
+      ],
+      "scoreKm2": 70.6975,
+      "anchors": [
+        {
+          "coord": [
+            20.0528016,
+            50.0983672
+          ],
+          "connected": true,
+          "snapMeters": 36.17060593492238
+        }
+      ]
+    },
+    {
+      "id": "poi-81",
+      "name": "Mistrzejowice Pętla",
+      "weight": 1,
+      "areasKm2": [
+        5.93,
+        40.64,
+        111.98,
+        239.2
+      ],
+      "scoreKm2": 99.4375,
+      "anchors": [
+        {
+          "coord": [
+            20.0137673,
+            50.0966423
+          ],
+          "connected": true,
+          "snapMeters": 3.565679802224375
+        }
+      ]
+    },
+    {
+      "id": "poi-82",
+      "name": "Podgórze SKA",
+      "weight": 1,
+      "areasKm2": [
+        5.94,
+        59.9,
+        169.25,
+        323.94
+      ],
+      "scoreKm2": 139.7575,
+      "anchors": [
+        {
+          "coord": [
+            19.9592209,
+            50.0411604
+          ],
+          "connected": true,
+          "snapMeters": 0.12886593004372943
+        }
+      ]
+    },
+    {
+      "id": "poi-83",
+      "name": "Rondo Matecznego",
+      "weight": 1,
+      "areasKm2": [
+        10.77,
+        82.43,
+        221.44,
+        394.67
+      ],
+      "scoreKm2": 177.3275,
+      "anchors": [
+        {
+          "coord": [
+            19.9404758,
+            50.0366658
+          ],
+          "connected": true,
+          "snapMeters": 0.001615719806546594
+        }
+      ]
+    },
+    {
+      "id": "poi-84",
+      "name": "Górka Narodowa P+R",
+      "weight": 1,
+      "areasKm2": [
+        6.71,
+        50.33,
+        141.8,
+        265.58
+      ],
+      "scoreKm2": 116.10499999999999,
+      "anchors": [
+        {
+          "coord": [
+            19.9625026,
+            50.1046598
+          ],
+          "connected": true,
+          "snapMeters": 0.3747601258678724
+        }
+      ]
+    },
+    {
+      "id": "poi-85",
+      "name": "Krowodrza Górka P+R",
+      "weight": 1,
+      "areasKm2": [
+        8.69,
+        67.99,
+        185.24,
+        320.37
+      ],
+      "scoreKm2": 145.5725,
+      "anchors": [
+        {
+          "coord": [
+            19.9313122,
+            50.0885866
+          ],
+          "connected": true,
+          "snapMeters": 4.919027996936842
+        }
+      ]
+    },
+    {
+      "id": "poi-86",
+      "name": "Stadion Wisły",
+      "weight": 1,
+      "areasKm2": [
+        0.03,
+        0.03,
+        0.03,
+        0.03
+      ],
+      "scoreKm2": 0.03,
+      "anchors": [
+        {
+          "coord": [
+            19.9116239,
+            50.0635558
+          ],
+          "connected": true,
+          "snapMeters": 43.71198694730402
+        }
+      ]
+    },
+    {
+      "id": "poi-87",
+      "name": "Stadion Cracovii",
+      "weight": 1,
+      "areasKm2": [
+        0.04,
+        0.04,
+        0.04,
+        0.04
+      ],
+      "scoreKm2": 0.04,
+      "anchors": [
+        {
+          "coord": [
+            19.9215223,
+            50.0579154
+          ],
+          "connected": true,
+          "snapMeters": 29.41683650577924
+        }
+      ]
+    },
+    {
+      "id": "poi-88",
+      "name": "TAURON Arena Kraków",
+      "weight": 1,
+      "areasKm2": [
+        2.78,
+        33.82,
+        109.45,
+        226.44
+      ],
+      "scoreKm2": 93.1225,
+      "anchors": [
+        {
+          "coord": [
+            19.991549,
+            50.0677202
+          ],
+          "connected": true,
+          "snapMeters": 1.030507911555062
+        }
+      ]
+    }
+  ],
+  "normalization": {
+    "scale": "gtfs-baseline-100",
+    "score": 100,
+    "baselineDate": "20261104",
+    "baselineScoreKm2": 108.74038749999998,
+    "walkingOnlyScoreKm2": 18.6941
+  }
+}

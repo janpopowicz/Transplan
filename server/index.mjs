@@ -2,17 +2,22 @@ import { createServer } from "node:http";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { resolve, extname, sep } from "node:path";
-import { createOverpassHandler } from "./overpass.mjs";
+import { createOverpassHandler, createOverpassSource } from "./overpass.mjs";
+import { createNetworkQualityHandler } from "./networkQuality.mjs";
 import { createGeocodeHandler } from "./geocode.mjs";
 import { createNetworkHandler } from "./networks.mjs";
-import { createGtfsHandler } from "./gtfs.mjs";
+import { createGtfsHandler, createGtfsSource } from "./gtfs.mjs";
 import { noBody, queryParams, safeHandler, UUID } from "./security.mjs";
 
-export function createAppHandler({ root = resolve("dist"), networkOptions, overpassOptions, geocodeOptions, gtfsOptions } = {}) {
+export function createAppHandler({ root = resolve("dist"), networkOptions, overpassOptions, geocodeOptions, gtfsOptions, qualityOptions } = {}) {
   root = resolve(root);
   const mime = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml",
     ".json": "application/json", ".png": "image/png", ".woff2": "font/woff2" };
-  const handlers = [createGtfsHandler(gtfsOptions), createGeocodeHandler(geocodeOptions), createOverpassHandler(overpassOptions), createNetworkHandler(networkOptions)];
+  const source = createOverpassSource(overpassOptions);
+  const gtfsSource = createGtfsSource(gtfsOptions);
+  const handlers = [createGtfsHandler({ ...gtfsOptions, source: gtfsSource }), createGeocodeHandler(geocodeOptions),
+    createOverpassHandler({ ...overpassOptions, source }),
+    createNetworkQualityHandler({ source, gtfsSource, stopsFile: resolve(root, "stops.json"), ...qualityOptions }), createNetworkHandler(networkOptions)];
   const staticFiles = safeHandler(async (req, res, _next, url) => {
     if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405).end(); return; }
     noBody(req);

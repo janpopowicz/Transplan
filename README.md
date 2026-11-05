@@ -35,7 +35,7 @@ Torowiska, drogi i sieć piesza korzystają wyłącznie z `/overpass`, obsługiw
 przez serwer w produkcji, development i preview. Przeglądarka nie wysyła zapytań
 Overpass bezpośrednio do publicznych instancji. API przyjmuje wyłącznie JSON
 `{ "kind": "tram" | "roads" | "walking" }`; query i obszar ustala serwer.
-Równolegle działają najwyżej dwa pobrania na proces. Każda odpowiedź ma limit 64 MiB,
+Równolegle działają najwyżej dwa pobrania na proces. Odpowiedzi mają limit 64 MiB dla dróg i torowisk oraz 192 MiB dla pełnego wycinka pieszego,
 a cache przechowuje trzy stałe wycinki (nie tworzy wpisów dla dowolnych query).
 Stare klucze cache są usuwane podczas pierwszego użycia nowej wersji. Wycinki OSM są kompresowane
 i buforowane na dysku w `data/overpass` przez 7 dni
@@ -99,6 +99,159 @@ logarytmem a proporcjonalnością do częstotliwości. Długość pojazdu dodaje
 od 0 do 0,6 px, proporcjonalnie do rozmiaru w obrębie rodzaju transportu.
 Najkrótszy autobus (8 m) i tramwaj (26 m) mają tę samą grubość przy tym samym
 takcie. Wspólna skala dla widoku sieciowego i szczegółowego ma limit 8 px.
+
+## Ukryta metryka jakości sieci
+
+Silnik `src/lib/networkQuality.ts` i API udostępniają `weighted-isochrone-area-v1`.
+Metryka nie ma elementów interfejsu i nie uruchamia się przy otwieraniu strony.
+Wynik `scoreKm2` to ważona średnia powierzchni osiągalnej **z ważnych miejsc**
+w 15, 30, 45 i 60 minut; większa wartość oznacza lepszą dostępność. Cztery progi
+mają równe wagi. Dla każdego miejsca najpierw liczymy średni czas podróży
+ze 120 momentów startu w pierwszej godzinie wybranej pory, tak samo jak izochrony
+w scenariuszu „średni”. Następnie mierzymy powierzchnię pod każdym progiem.
+To powierzchnia pola średnich czasów, a nie średnia 120 osobnych powierzchni.
+Obliczenia dotyczą podróży od miejsca do otoczenia; kierunki tras mają znaczenie.
+
+Katalog `src/lib/networkQualityPlaces.ts` zawiera 88 miejsc i 93 punkty z
+`miejsca.txt`, współrzędne `[lon, lat]`, źródła OSM i uwagi do niejednoznacznych
+nazw. Zwykłe miejsca mają wagę 1, „ważny” 2, „bardzo ważny” 3. Punkty AGH i UJ
+Ruczaj dzielą wagę swojego kampusu; dwa kampusy UR dzielą wagę jednego wpisu.
+Factory/Futura w Modlniczce jest liczone raz, a IKEA przy Conrada osobno.
+Współrzędne są punktami reprezentatywnymi obiektów do weryfikacji, nie pomiarem
+wejść. Źródło: © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright),
+ODbL; pozycje pobrane przez Photon 4 listopada 2026.
+
+Powierzchnia jest przybliżana stałą siatką 100 × 100 m w obszarze `BBOX` projektu.
+Liczone są unikalne komórki w korytarzach dróg pieszych OSM, o promieniu 80 m,
+zgodnie z konwencją wizualizacji izochron. Nakładające się drogi nie powielają
+powierzchni. Korytarz służy wyłącznie pomiarowi: nie tworzy przejść przez rzeki,
+ściany ani odłączone ulice. Nie jest to powierzchnia pełnych działek ani
+metryka ważona ludnością. Porównuj projekty przy tym samym katalogu, porze
+i wycinku OSM; API zwraca wersję katalogu, czas danych pieszych i rozdzielczość.
+
+Punkt łączy się z drogą do 150 m, a stanowisko do 80 m. Brak połączenia punktu
+wnosi zero bez usuwania jego wagi z mianownika. `complete: false`,
+`connectedWeight` i `places[].anchors` pokazują takie braki oraz odległość
+przyłączenia. Odłączony od reszty miasta, ale poprawnie podłączony punkt nadal
+ma własny obszar dostępny pieszo. `unconnectedStops` podaje braki stanowisk.
+Ukryte linie kursują w obliczeniach, a pusta sieć ma wynik samego marszu.
+
+API działa w development, preview i produkcji:
+
+- `GET /api/network-quality/places` — katalog i jego wersja.
+- `POST /api/network-quality`, JSON `{ "proposal": <projekt z eksportu JSON>, "period": "wd_am" }`
+  — `202` z `id`, postępem i nagłówkiem `Location`.
+- `GET /api/network-quality/<id>` — `202` podczas obliczeń, `200` z
+  `{ "status": "done", "result": { "scoreKm2": ..., "weightedAreasKm2": [...], "places": [...] }, ... }`
+  po zakończeniu albo `502` po nieudanym zadaniu. Nieznane/wygasłe ID zwraca `404`.
+
+Przykład z wyeksportowanym projektem (wymaga `jq`):
+
+```sh
+jq '{proposal: ., period: "wd_am"}' projekt.json > /tmp/transplan-quality-request.json
+curl -H 'Content-Type: application/json' --data-binary @/tmp/transplan-quality-request.json \
+  http://127.0.0.1:5173/api/network-quality
+# Następnie GET pod ścieżkę z Location / ID odpowiedzi.
+```
+
+Opcjonalne pole `"scale": "gtfs"` w POST dodaje `result.normalization`:
+`score` jest bezwymiarowym indeksem, `baselineDate` datą baseline’u w strefie
+Warszawy, a `baselineScoreKm2` i `walkingOnlyScoreKm2` zachowują wartości odniesienia.
+Domyślne `"scale": "raw"` zwraca samo `scoreKm2` bez dodatkowych obliczeń.
+
+Wydajność: graf jest przygotowywany raz dla wszystkich punktów (przycięte ślepe
+drzewa, skrócone łańcuchy stopnia 2), a wyszukiwania wykonuje jądro WebAssembly
+z `src/lib/native/meanRouting.c` (`npm run build:routing-kernel`, potrzebny tylko
+clang). Dla dużych grafów do 4 workerów dzieli punkty, współdzieląc ten sam
+przygotowany model; wynik jest identyczny z obliczeniem jednowątkowym. Cały
+Kraków (93 punkty) liczy się ok. 24–28 s na i7-8650U przy pełnym taktowaniu;
+na laptopie w trybie oszczędzania energii czasy rosną nawet trzykrotnie.
+
+```text
+indeks = 100 × (scoreKm2 − walkingOnlyScoreKm2)
+             / (baselineScoreKm2 − walkingOnlyScoreKm2)
+```
+
+W ten sposób brak komunikacji miejskiej daje 0, sieć zaimportowana z dzisiejszego
+GTFS daje 100, a poprawa ponad nią może dać więcej niż 100. Dostępność piesza
+jest odejmowana z obu wartości. Dla okresu, w którym GTFS nie daje żadnej
+poprawy nad marszem, indeks jest `null` z powodem `baseline-has-no-transit-gain`;
+nie da się wtedy wyznaczyć niezerowej jednostki skali. Surowe km² pozostają dostępne.
+
+Baseline korzysta z tego samego importera i cache co `/api/gtfs`, dla tego
+samego dnia, okresu, katalogu miejsc i grafu OSM. Brak dzisiejszych danych daje
+502 zamiast cichego użycia wczorajszej sieci. Pierwsza normalizacja wymaga
+trzech obliczeń: samego marszu, GTFS oraz badanego projektu. Dwa zestawy
+wartości referencyjnych są buforowane osobno od wyników projektów. Kolejne
+projekty w tych samych warunkach wymagają jednego obliczenia. `phase` pokazuje
+`walking-reference`, `gtfs-reference` lub `network`; postęp obejmuje wszystkie
+potrzebne batche. Wersja GTFS i dzień wchodzą do klucza cache.
+
+Jeden proces serwera uruchamia najwyżej jeden worker obliczeniowy, z limitem
+15 minut na obliczenie jednej sieci. Powtórzone żądania trwającego zadania
+współdzielą wynik. Inne zadanie
+podczas obliczeń zwraca `429`. Cache mieści cztery wyniki przez 15 minut;
+zmiana projektu, pory, katalogu przystanków lub pliku OSM zmienia klucz.
+Zadania są lokalne dla procesu i znikają po restarcie; przy wielu instancjach
+kieruj odpytywanie statusu do tej samej instancji. Zgłoszenia mają limit
+6/min na klienta i 12/min na proces, odczyty 120/600. Walidacja projektu,
+limity body i ochrona originu są takie same jak dla API zapisu.
+Dane piesze współdzielą cache i pobieranie z `/overpass`, także podczas
+odświeżania starszej kopii (`walkingStale` w odpowiedzi).
+
+Batch przygotowuje raz rozkłady, przyłączenia przystanków, graf i geometrię
+rastra. Obszary są liczone bez budowania wielokątów i linii GeoJSON; w pamięci
+pozostaje tylko wynik bieżącego początku. Zwykłe izochrony grupują komórki
+według pasm zamiast skanować cały raster osobno dla każdego pasma.
+
+Pliki do sprawdzenia położeń:
+`artifacts/network-quality/miejsca.kmz` i `miejsca.kml`. Kolory odpowiadają
+wagom; opisy zawierają nazwy, wagę punktu, źródła i uwagi. Po zmianie katalogu
+podnieś `NETWORK_QUALITY_CATALOG_VERSION` i wygeneruj je ponownie:
+
+```sh
+npm run export:quality-places
+npm run benchmark:quality
+# Dodatkowo porównanie geometrii i czasu ze źródłem izochron z HEAD:
+npm run benchmark:quality -- --baseline
+```
+
+Benchmark używa syntetycznej sieci 1681 wierzchołków, 3280 odcinków,
+12 początków i 120 próbek odjazdu. Przykładowy pomiar na Node 22.23.4:
+pełne izochrony wszystkich początków 418 ms, metryka w batchu 56 ms
+(około 7,5× szybciej). To pomiar syntetyczny, nie prognoza czasu dla pełnego
+Krakowa. Porównanie starego i nowego wyznaczania konturów sprawdza identyczność
+GeoJSON, pasm i metadanych dla gęstego oraz rzadkiego grafu.
+
+Pomiar rzeczywistego Krakowa z 4 listopada 2026, na Intel Core i7-8650U
+1,90 GHz i Node 22.23.4: **566,458 s (9 min 26 s)** dla wszystkich 88 miejsc /
+93 punktów, okres `wd_am`, 120 momentów startu. Graf ma 849 404 wierzchołki
+i 911 018 odcinków; GTFS daje 256 linii/wariantów, w tym 217 aktywnych w tej porze.
+Wszystkie 93 punkty są podłączone, bez brakujących stanowisk. Pomiar obejmuje
+przygotowanie grafu i rastra, bez cache wyniku. Import GTFS i parsowanie OSM
+zajęły dodatkowo 31,716 s; pobieranie danych nie jest wliczone.
+
+Referencja samego marszu zajęła **41,116 s**. Surowy baseline GTFS ma
+108,7403875 km², sam marsz 18,6941 km²; normalizacja potwierdziła indeksy
+odpowiednio **100** i **0**. Raporty i wyniki dla poszczególnych miejsc są w
+`artifacts/network-quality/krakow-benchmark.json`,
+`krakow-benchmark.result.json`, `krakow-normalization-benchmark.json`
+i `krakow-normalization-benchmark.result.json`. Są to pomiary dwóch batchy
+silnika; zimne żądanie normalizacji dodatkowo oblicza badany projekt.
+
+Pełny pomiar na rzeczywistych danych można odtworzyć bez pobierania w skrypcie:
+
+```sh
+npm run benchmark:quality-city -- --walking walking.json --tram T.zip --bus A.zip \
+  --mobilis M.zip --period wd_am --output artifacts/network-quality/krakow-benchmark.json
+# Osobny pomiar samego marszu i przeliczenie otrzymanego baseline’u na indeks 100:
+npm run benchmark:quality-city -- --walking walking.json \
+  --baseline-result artifacts/network-quality/krakow-benchmark.result.json \
+  --output artifacts/network-quality/krakow-normalization-benchmark.json
+```
+
+Raport rozdziela import/parsing od obliczeń oraz zapisuje liczbę punktów,
+wierzchołków, linii, połączeń z drogami, wersję GTFS i parametry komputera.
 
 ## Planer przejazdu
 

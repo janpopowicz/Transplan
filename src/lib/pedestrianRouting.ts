@@ -77,7 +77,7 @@ export function prepareWalkingGraph(network: WalkingNetwork): PreparedWalkingGra
 /** One shortest-path search over walking ways and on-board transit states.
  * Per-request connections are separate from the immutable walking graph. */
 export function buildAccessibilityGraph({ origin, stops, lines, period, network }: AccessibilityRequest,
-  runs: TimetableRun[] = buildTimetable(lines, period), targets: Coord[] = []) {
+  runs: TimetableRun[] = buildTimetable(lines, period), targets: Coord[] = [], origins: Coord[] = []) {
   const prepared = prepareWalkingGraph(network);
   const { project, cells } = prepared;
   const coords = network.coords.slice();
@@ -128,6 +128,7 @@ export function buildAccessibilityGraph({ origin, stops, lines, period, network 
 
   const start = attach(origin, 150);
   if (!start) throw new Error("Brak drogi pieszej OSM w odległości 150 m od punktu. Kliknij bliżej chodnika lub ścieżki.");
+  const starts = origins.map((coord) => attach(coord, 150));
   const stopById = new Map(stops.map((s) => [s.id, s]));
   const ground = new Map<string, number>();
   const missed = new Set<string>();
@@ -182,12 +183,32 @@ export function buildAccessibilityGraph({ origin, stops, lines, period, network 
       walkEdges.push({ ...edge, from, to, meters });
     }
   }
-  return { prepared, coords, xy, project, extra, nodeCount, start, ground, targetNodes, runs, walkEdges, activeLines, missed, boardings };
+  return { prepared, coords, xy, project, extra, nodeCount, start, starts, ground, targetNodes, runs, walkEdges, activeLines, missed, boardings };
 }
 
 export function calculateAccessibility(request: AccessibilityRequest) {
+  return searchAccessibility(request, buildAccessibilityGraph(request));
+}
+
+/** One timetable, stop snapping and split topology for many independent origins.
+ * Results are calculated on demand so a batch never retains N city-sized arrays.
+ * An unsnappable origin returns null; it must not silently disappear from a score. */
+export function prepareAccessibilityBatch(request: Omit<AccessibilityRequest, "origin">, origins: Coord[]) {
+  if (!request.network.edges.length) throw new Error("Brak dróg pieszych OSM.");
+  const input = { ...request, origin: request.network.coords[request.network.edges[0].from] };
+  const graph = buildAccessibilityGraph(input, buildTimetable(request.lines, request.period), [], origins);
+  return {
+    graph,
+    calculate(index: number) {
+      const start = graph.starts[index];
+      return start ? searchAccessibility(input, graph, start) : null;
+    },
+  };
+}
+
+function searchAccessibility(request: AccessibilityRequest, graph: ReturnType<typeof buildAccessibilityGraph>, start = graph.start) {
   const { scenario = "mean", departureMinute, network } = request;
-  const { prepared, coords, xy, project, extra, nodeCount, start, ground, walkEdges, activeLines, missed, boardings } = buildAccessibilityGraph(request);
+  const { prepared, coords, xy, project, extra, nodeCount, ground, walkEdges, activeLines, missed, boardings } = graph;
   const walkOnly = new Float64Array(nodeCount).fill(Infinity);
   const arrivals = new Float64Array(nodeCount).fill(Infinity);
   const heap = new MinHeap();
@@ -214,7 +235,8 @@ export function calculateAccessibility(request: AccessibilityRequest) {
   }
   walkOnly[start.node] = start.minutes; heap.push(start.node, start.minutes);
   search(walkOnly, 0, true);
-  const sampleCount = departureMinute === undefined ? 120 : 1;
+  // With no usable boarding, all 120 observations are exactly the walking time.
+  const sampleCount = departureMinute === undefined && boardings.some((b) => Number.isFinite(walkOnly[b.from])) ? 120 : 1;
   const times = new Float64Array(nodeCount).fill(scenario === "best" ? Infinity : 0);
   // Exact nearest-rank P90 needs only the largest 13 of 120 observations.
   // This avoids retaining 120 full city graphs in worker memory.

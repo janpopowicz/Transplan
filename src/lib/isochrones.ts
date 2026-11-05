@@ -79,15 +79,31 @@ export function calculateIsochrones(request: IsochroneRequest): IsochroneResult 
   const fills: IsochroneResult["fills"] = { type: "FeatureCollection", features: [] };
   const toCoord = ([x, y]: Coord) => project.toCoord([west + x * step, south + y * step]);
   const bandCells = new Int16Array(values.length).fill(-1);
+  const fillCells = bands.map(() => [] as number[]);
+  const contourCells = bands.map(() => [] as number[]);
   for (let i = 0; i < values.length; i++) if (Number.isFinite(values[i])) {
     bandCells[i] = Math.min(bands.length - 1, Math.max(0, Math.ceil(values[i] / 10) - 1));
+    fillCells[bandCells[i]].push(i);
+  }
+  // Bucket cells once instead of scanning the entire city raster for every
+  // time band. A square can cross only levels between its min/max corners.
+  for (let y = 0; y < height - 1; y++) for (let x = 0; x < width - 1; x++) {
+    const a = y * width + x, b = a + 1, c = b + width, d = a + width;
+    const low = Math.min(values[a], values[b], values[c], values[d]);
+    const high = Math.max(values[a], values[b], values[c], values[d]);
+    if (!Number.isFinite(low)) continue;
+    for (let i = Math.max(0, Math.ceil((low - 1e-7) / 10) - 1); i < bands.length; i++) {
+      const threshold = bands[i].minutes + 1e-7;
+      if (threshold >= high) break;
+      if (threshold >= low) contourCells[i].push(a);
+    }
   }
   for (let index = 0; index < bands.length; index++) {
     const band = bands[index];
-    const paths = traceIsolines(values, width, height, band.minutes);
+    const paths = traceIsolines(values, width, band.minutes, contourCells[index]);
     if (paths.length) contours.features.push({ type: "Feature", properties: band,
       geometry: { type: "MultiLineString", coordinates: paths.map((path) => path.map(toCoord)) } });
-    const rings = traceCells(bandCells, width, height, index);
+    const rings = traceCells(bandCells, width, height, index, fillCells[index]);
     if (rings.length) fills.features.push({ type: "Feature", properties: band,
       geometry: { type: "MultiPolygon", coordinates: polygonsFromRings(rings).map((polygon) => polygon.map((ring) => ring.map(toCoord))) } });
   }
@@ -96,13 +112,12 @@ export function calculateIsochrones(request: IsochroneRequest): IsochroneResult 
 }
 
 /** Join cell boundaries into disjoint colour bands without overlapping alpha. */
-function traceCells(cells: Int16Array, width: number, height: number, band: number): Coord[][] {
+function traceCells(cells: Int16Array, width: number, height: number, band: number, indices: number[]): Coord[][] {
   const stride = width + 1;
   const next = new Map<number, number[]>();
   const edge = (a: number, b: number) => { const list = next.get(a) ?? []; list.push(b); next.set(a, list); };
-  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
-    const i = y * width + x;
-    if (cells[i] !== band) continue;
+  for (const i of indices) {
+    const x = i % width, y = Math.floor(i / width);
     const a = y * stride + x, b = a + 1, c = b + stride, d = a + stride;
     if (y === 0 || cells[i - width] !== band) edge(a, b);
     if (x === width - 1 || cells[i + 1] !== band) edge(b, c);
@@ -168,7 +183,7 @@ function polygonsFromRings(rings: Coord[][]): Coord[][][] {
 }
 
 /** True equal-time lines only. Unknown cells cannot create labelled boundaries. */
-function traceIsolines(values: Float64Array, width: number, height: number, level: number): Coord[][] {
+function traceIsolines(values: Float64Array, width: number, level: number, indices: number[]): Coord[][] {
   const next = new Map<string, string>(), incoming = new Set<string>(), coords = new Map<string, Coord>();
   const threshold = level + 1e-7;
   const crossing = (a: number, b: number) => {
@@ -191,10 +206,8 @@ function traceIsolines(values: Float64Array, width: number, height: number, leve
     }
     if (entry && exit) { next.set(exit, entry); incoming.add(entry); }
   };
-  for (let y = 0; y < height - 1; y++) for (let x = 0; x < width - 1; x++) {
-    const a = y * width + x, b = a + 1, c = b + width, d = a + width;
-    if (values[a] > threshold && values[b] > threshold && values[c] > threshold && values[d] > threshold) continue;
-    if (values[a] <= threshold && values[b] <= threshold && values[c] <= threshold && values[d] <= threshold) continue;
+  for (const a of indices) {
+    const b = a + 1, c = b + width, d = a + width;
     triangle(a, b, c); triangle(a, c, d);
   }
   const paths: Coord[][] = [];

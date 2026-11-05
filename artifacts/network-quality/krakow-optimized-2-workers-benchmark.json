@@ -1,0 +1,67 @@
+{
+  "measuredAt": "2026-11-04T11:41:03.895Z",
+  "node": "v22.23.4",
+  "cpu": "Intel(R) Core(TM) i7-8650U CPU @ 1.90GHz",
+  "catalogVersion": "2026-11-04.v2",
+  "period": "wd_am",
+  "bbox": {
+    "south": 49.92,
+    "west": 19.68,
+    "north": 50.18,
+    "east": 20.28
+  },
+  "places": 88,
+  "origins": 93,
+  "vertices": 849404,
+  "edges": 911018,
+  "lines": 256,
+  "activeLines": 217,
+  "stops": 3282,
+  "departureSamples": 120,
+  "preparationMs": 12425,
+  "calculationMs": [
+    107788
+  ],
+  "firstCalculationIncludesGraphAndRasterPreparation": true,
+  "resultCacheUsed": false,
+  "scoreKm2": 108.74038749999998,
+  "complete": true,
+  "totalWeight": 100,
+  "connectedWeight": 100,
+  "connectedOrigins": 93,
+  "unconnectedStops": 0,
+  "unconnectedPlaces": [],
+  "gtfsFeeds": [
+    {
+      "id": "T",
+      "version": "20261103",
+      "weekday": "20261104",
+      "weekend": "20261107"
+    },
+    {
+      "id": "A",
+      "version": "20261103_20261104",
+      "weekday": "20261104",
+      "weekend": "20261107"
+    },
+    {
+      "id": "M",
+      "version": "1699_1700_1701_1697",
+      "weekday": "20261109",
+      "weekend": "20261107"
+    }
+  ],
+  "osmTimestamp": "2026-11-04T10:48:10Z",
+  "calculationKind": "gtfs-network",
+  "inputs": {
+    "walking": "/tmp/transplan-walking-mail.json",
+    "baselineResult": null,
+    "gtfs": "/tmp/transplan-city-snapshot.json"
+  },
+  "comparison": {
+    "reference": "artifacts/network-quality/krakow-benchmark.result.json",
+    "maxPlaceAreaErrorKm2": 1.4210854715202004e-14,
+    "scoreErrorKm2": 0
+  },
+  "workers": 2
+}

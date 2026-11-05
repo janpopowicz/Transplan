@@ -122,3 +122,23 @@ Test tworzy osobny profil oraz projekt w katalogu tymczasowym, uruchamia WebGL i
 piksele trzech kolorów tras, Referer zawierający wyłącznie origin oraz brak wymuszonego
 omijania cache kafelków. Usługi zewnętrzne są zastępowane atrapami; test nie pobiera kafelków OSM.
 `MAP_QA_SCREENSHOT=/tmp/map.png` pozwala zachować zrzut mapy.
+
+## Metryka jakości sieci
+
+`tests/networkQuality.test.ts` sprawdza zgodność batchu z niezależnymi
+wyszukiwaniami dla czterech scenariuszy, wagi miejsc i kampusów, brakujące
+przyłączenia, kierunki, nieaktywne pory i ukryte linie. Kontroluje unikalne
+komórki powierzchni, zgodność KMZ z katalogiem oraz prawdziwy worker API,
+walidację, deduplikację, limity kolejki i zmianę klucza po aktualizacji OSM.
+Produkcja sprawdza osadzony worker dla całego katalogu na małym wycinku OSM
+zapisanym w katalogu tymczasowym, bez pobierania zewnętrznych danych.
+
+`npm run export:quality-places` odtwarza KML/KMZ z katalogu.
+`npm run benchmark:quality -- --baseline` porównuje metrykę z pełnymi
+izochronami, batching z osobnymi wyszukiwaniami oraz geometrię konturów z HEAD.
+
+Skala `gtfs` ma testy kotwic 0/100, wyników ponad 100, słabszej sieci,
+niezdefiniowanej skali przy braku poprawy GTFS nad marszem, zgodności warunków,
+współdzielenia referencji i odrzucania wczorajszego baseline’u. Pomiar rzeczywisty
+zapisuje `artifacts/network-quality/krakow-benchmark.json`; skrypt
+`benchmark:quality-city` przyjmuje pełny wycinek OSM i trzy lokalne archiwa GTFS.

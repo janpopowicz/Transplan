@@ -11,7 +11,11 @@
     "test": "node tests/run.mjs",
     "import:gtfs": "node scripts/import-network.mjs",
     "test:production": "node tests/production-smoke.mjs",
-    "test:map-browser": "node tests/map-browser.mjs"
+    "test:map-browser": "node tests/map-browser.mjs",
+    "export:quality-places": "node scripts/export-quality-places.mjs",
+    "benchmark:quality": "node scripts/benchmark-quality.mjs",
+    "benchmark:quality-city": "node scripts/benchmark-quality-city.mjs",
+    "build:routing-kernel": "node scripts/build-mean-routing.mjs"
   },
   "dependencies": {
     "lz-string": "^1.5.0",

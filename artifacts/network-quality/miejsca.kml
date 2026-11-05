@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Transplan — miejsca metryki jakości sieci</name><description>Katalog 2026-11-04.v2: 88 miejsc, 93 punktów. Wagi 1/2/3; punkty kampusu dzielą wagę miejsca. Współrzędne reprezentatywne do weryfikacji. © OpenStreetMap contributors, ODbL, https://www.openstreetmap.org/copyright</description><Style id="weight1"><IconStyle><color>ff00bbff</color><scale>1</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/wht-circle.png</href></Icon></IconStyle></Style>
+<Style id="weight2"><IconStyle><color>ff0088ff</color><scale>1</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/wht-circle.png</href></Icon></IconStyle></Style>
+<Style id="weight3"><IconStyle><color>ff4444ee</color><scale>1.3</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/wht-circle.png</href></Icon></IconStyle></Style><Folder><name>Galerie handlowe</name><Placemark id="poi-01-1"><name>Galeria Bonarka</name>
+<description>Bonarka City Center
+Waga miejsca: 3; waga punktu: 3
+
+Źródło: https://www.openstreetmap.org/way/48306888</description><styleUrl>#weight3</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-01</value></Data><Data name="pointName"><value>Bonarka City Center</value></Data><Data name="placeWeight"><value>3</value></Data><Data name="anchorWeight"><value>3</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/48306888</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9507208,50.0279769,0</coordinates></Point></Placemark>
+<Placemark id="poi-02-1"><name>Galeria Krakowska</name>
+<description>Galeria Krakowska
+Waga miejsca: 3; waga punktu: 3
+
+Źródło: https://www.openstreetmap.org/way/87527970</description><styleUrl>#weight3</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-02</value></Data><Data name="pointName"><value>Galeria Krakowska</value></Data><Data name="placeWeight"><value>3</value></Data><Data name="anchorWeight"><value>3</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/87527970</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9461443,50.0676545,0</coordinates></Point></Placemark>
+<Placemark id="poi-03-1"><name>Galeria Kazimierz</name>
+<description>Galeria Kazimierz
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/1042023157</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-03</value></Data><Data name="pointName"><value>Galeria Kazimierz</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/1042023157</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9560442,50.0534938,0</coordinates></Point></Placemark>
+<Placemark id="poi-04-1"><name>Serenada</name>
+<description>Centrum Serenada
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/294702945</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-04</value></Data><Data name="pointName"><value>Centrum Serenada</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/294702945</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9856889,50.0880157,0</coordinates></Point></Placemark>
+<Placemark id="poi-05-1"><name>Galeria Bronowice</name>
+<description>Galeria Bronowice
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/212501809</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-05</value></Data><Data name="pointName"><value>Galeria Bronowice</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/212501809</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.8982842,50.0920871,0</coordinates></Point></Placemark>
+<Placemark id="poi-06-1"><name>M1</name>
+<description>M1 Kraków
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/relation/8786154</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-06</value></Data><Data name="pointName"><value>M1 Kraków</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/relation/8786154</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9997557,50.0644278,0</coordinates></Point></Placemark>
+<Placemark id="poi-07-1"><name>Park Handlowy Zakopianka</name>
+<description>Park Handlowy Zakopianka
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/155048674</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-07</value></Data><Data name="pointName"><value>Park Handlowy Zakopianka</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/155048674</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9318454,50.0155503,0</coordinates></Point></Placemark>
+<Placemark id="poi-08-1"><name>CH Nowe Czyżyny</name>
+<description>Centrum Nowe Czyżyny
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/179465887</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-08</value></Data><Data name="pointName"><value>Centrum Nowe Czyżyny</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/179465887</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0164164,50.0771915,0</coordinates></Point></Placemark>
+<Placemark id="poi-09-1"><name>Factory / Futura Park w Modlniczce</name>
+<description>Futura Park Kraków
+Waga miejsca: 1; waga punktu: 1
+Factory / Futura Park w Modlniczce to ten sam kompleks; jeden punkt i jedna waga. Futura z wpisu „Ikea i galeria Futura” nie jest liczona drugi raz.
+Źródło: https://www.openstreetmap.org/way/127376668</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-09</value></Data><Data name="pointName"><value>Futura Park Kraków</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/127376668</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Factory / Futura Park w Modlniczce to ten sam kompleks; jeden punkt i jedna waga. Futura z wpisu „Ikea i galeria Futura” nie jest liczona drugi raz.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.8457974,50.1095946,0</coordinates></Point></Placemark>
+<Placemark id="poi-10-1"><name>CH Krokus</name>
+<description>CH Krokus
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/25486688</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-10</value></Data><Data name="pointName"><value>CH Krokus</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/25486688</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9836676,50.0875532,0</coordinates></Point></Placemark>
+<Placemark id="poi-11-1"><name>IKEA Kraków</name>
+<description>IKEA
+Waga miejsca: 1; waga punktu: 1
+IKEA przy ul. Conrada. Futura jest ujęta osobno razem z Factory w Modlniczce.
+Źródło: https://www.openstreetmap.org/way/231346739</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-11</value></Data><Data name="pointName"><value>IKEA</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/231346739</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>IKEA przy ul. Conrada. Futura jest ujęta osobno razem z Factory w Modlniczce.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.8975635,50.0894806,0</coordinates></Point></Placemark>
+<Placemark id="poi-12-1"><name>Solvay Park</name>
+<description>Solvay Park
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/128241895</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-12</value></Data><Data name="pointName"><value>Solvay Park</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/128241895</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9275472,50.0141843,0</coordinates></Point></Placemark>
+<Placemark id="poi-13-1"><name>Mozaika</name>
+<description>Galeria Mozaika Kraków
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/26258895</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-13</value></Data><Data name="pointName"><value>Galeria Mozaika Kraków</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/26258895</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9942749,50.0146012,0</coordinates></Point></Placemark></Folder>
+<Folder><name>Centra biurowe i miejsca pracy</name><Placemark id="poi-14-1"><name>Bonarka 4 Business</name>
+<description>Budynek A
+Waga miejsca: 2; waga punktu: 2
+
+Źródło: https://www.openstreetmap.org/way/150077028</description><styleUrl>#weight2</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-14</value></Data><Data name="pointName"><value>Budynek A</value></Data><Data name="placeWeight"><value>2</value></Data><Data name="anchorWeight"><value>2</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/150077028</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9500595,50.0262504,0</coordinates></Point></Placemark>
+<Placemark id="poi-15-1"><name>Quattro Business Park</name>
+<description>Quattro Business Park
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/294602822</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-15</value></Data><Data name="pointName"><value>Quattro Business Park</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/294602822</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9758052,50.08662,0</coordinates></Point></Placemark>
+<Placemark id="poi-16-1"><name>Krakowski Park Technologiczny na Czerwonych Makach</name>
+<description>Krakowski Park Technologiczny
+Waga miejsca: 3; waga punktu: 3
+
+Źródło: https://www.openstreetmap.org/way/289986808</description><styleUrl>#weight3</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-16</value></Data><Data name="pointName"><value>Krakowski Park Technologiczny</value></Data><Data name="placeWeight"><value>3</value></Data><Data name="anchorWeight"><value>3</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/289986808</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.8862574,50.0211784,0</coordinates></Point></Placemark>
+<Placemark id="poi-17-1"><name>O3 Business Campus</name>
+<description>O3 Business Campus I
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/337757651</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-17</value></Data><Data name="pointName"><value>O3 Business Campus I</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/337757651</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9545132,50.0872785,0</coordinates></Point></Placemark>
+<Placemark id="poi-18-1"><name>Podium Park</name>
+<description>Podium Park A
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/509233292</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-18</value></Data><Data name="pointName"><value>Podium Park A</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/509233292</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9985614,50.0748156,0</coordinates></Point></Placemark>
+<Placemark id="poi-19-1"><name>High5ive</name>
+<description>High5ive - Budynek 1
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/522355527</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-19</value></Data><Data name="pointName"><value>High5ive - Budynek 1</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/522355527</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9455008,50.0698776,0</coordinates></Point></Placemark>
+<Placemark id="poi-20-1"><name>Unity Centre / Unity Tower</name>
+<description>Unity Tower
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/672306446</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-20</value></Data><Data name="pointName"><value>Unity Tower</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/672306446</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9578181,50.0681876,0</coordinates></Point></Placemark>
+<Placemark id="poi-21-1"><name>Fabryczna Office Park</name>
+<description>Fabryczna Office Park
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/544719968</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-21</value></Data><Data name="pointName"><value>Fabryczna Office Park</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/544719968</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.973941,50.0619934,0</coordinates></Point></Placemark>
+<Placemark id="poi-22-1"><name>Klaster Innowacji Gospodarczych na Zabłociu</name>
+<description>Klaster Innowacji Społeczno-Gospodarczych Zabłocie 22a
+Waga miejsca: 2; waga punktu: 2
+
+Źródło: https://www.openstreetmap.org/way/1315397810</description><styleUrl>#weight2</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-22</value></Data><Data name="pointName"><value>Klaster Innowacji Społeczno-Gospodarczych Zabłocie 22a</value></Data><Data name="placeWeight"><value>2</value></Data><Data name="anchorWeight"><value>2</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/1315397810</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9661637,50.0504068,0</coordinates></Point></Placemark>
+<Placemark id="poi-23-1"><name>Tischnera Office</name>
+<description>Tischnera Office
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/773572324</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-23</value></Data><Data name="pointName"><value>Tischnera Office</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/773572324</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9382295,50.028172,0</coordinates></Point></Placemark></Folder>
+<Folder><name>Szpitale</name><Placemark id="poi-24-1"><name>Szpital Uniwersytecki</name>
+<description>Szpital Uniwersytecki
+Waga miejsca: 1; waga punktu: 1
+Główna siedziba w Prokocimiu, ul. Jakubowskiego; nie dawne budynki przy Kopernika.
+Źródło: https://www.openstreetmap.org/way/534118934</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-24</value></Data><Data name="pointName"><value>Szpital Uniwersytecki</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/534118934</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Główna siedziba w Prokocimiu, ul. Jakubowskiego; nie dawne budynki przy Kopernika.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0003779,50.0082247,0</coordinates></Point></Placemark>
+<Placemark id="poi-25-1"><name>Szpital Dziecięcy w Prokocimiu</name>
+<description>Uniwersytecki Szpital Dziecięcy
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/316891627</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-25</value></Data><Data name="pointName"><value>Uniwersytecki Szpital Dziecięcy</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/316891627</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0015069,50.011527,0</coordinates></Point></Placemark>
+<Placemark id="poi-26-1"><name>Szpital Rydygiera</name>
+<description>Szpital Specjalistyczny im. Ludwika Rydygiera w Krakowie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/65368983</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-26</value></Data><Data name="pointName"><value>Szpital Specjalistyczny im. Ludwika Rydygiera w Krakowie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/65368983</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0184785,50.0930833,0</coordinates></Point></Placemark>
+<Placemark id="poi-27-1"><name>Szpital Żeromskiego</name>
+<description>Szpital specjalistyczny imienia Stefana Żeromskiego
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/276803150</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-27</value></Data><Data name="pointName"><value>Szpital specjalistyczny imienia Stefana Żeromskiego</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/276803150</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0463144,50.0651543,0</coordinates></Point></Placemark>
+<Placemark id="poi-28-1"><name>5 Wojskowy Szpital</name>
+<description>5. Wojskowy Szpital Kliniczny z Polikliniką SP ZOZ w Krakowie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/234723781</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-28</value></Data><Data name="pointName"><value>5. Wojskowy Szpital Kliniczny z Polikliniką SP ZOZ w Krakowie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/234723781</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.93399,50.0773814,0</coordinates></Point></Placemark>
+<Placemark id="poi-29-1"><name>Szpital Narutowicza</name>
+<description>Szpital Miejski Specjalistyczny imienia Gabriela Narutowicza
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/24377001</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-29</value></Data><Data name="pointName"><value>Szpital Miejski Specjalistyczny imienia Gabriela Narutowicza</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/24377001</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9392911,50.0831522,0</coordinates></Point></Placemark>
+<Placemark id="poi-30-1"><name>Szpital JP2</name>
+<description>Krakowski Szpital Specjalistyczny imienia świętego Jana Pawła II
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/234706960</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-30</value></Data><Data name="pointName"><value>Krakowski Szpital Specjalistyczny imienia świętego Jana Pawła II</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/234706960</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9356805,50.0900855,0</coordinates></Point></Placemark>
+<Placemark id="poi-31-1"><name>Szpital Babińskiego w Kobierzynie</name>
+<description>Szpital Kliniczny im. doktora Józefa Babińskiego SP ZOZ
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/108399363</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-31</value></Data><Data name="pointName"><value>Szpital Kliniczny im. doktora Józefa Babińskiego SP ZOZ</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/108399363</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.8836642,50.0036628,0</coordinates></Point></Placemark>
+<Placemark id="poi-32-1"><name>Szpital Św. Rafała</name>
+<description>Szpital Świętego Rafała w Krakowie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/relation/9766853</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-32</value></Data><Data name="pointName"><value>Szpital Świętego Rafała w Krakowie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/relation/9766853</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9753289,50.0105567,0</coordinates></Point></Placemark></Folder>
+<Folder><name>Kampusy</name><Placemark id="poi-33-1"><name>AGH — 1/3</name>
+<description>AGH — gmach główny, wschód
+Waga miejsca: 3; waga punktu: 1
+Trzy punkty w kampusie: wschód, środek i zachód. Łączna waga AGH = 3.
+Źródło: https://www.openstreetmap.org/relation/3111004</description><styleUrl>#weight3</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-33</value></Data><Data name="pointName"><value>AGH — gmach główny, wschód</value></Data><Data name="placeWeight"><value>3</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/relation/3111004</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Trzy punkty w kampusie: wschód, środek i zachód. Łączna waga AGH = 3.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9232975,50.064547,0</coordinates></Point></Placemark>
+<Placemark id="poi-33-2"><name>AGH — 2/3</name>
+<description>AGH — biblioteka, środek
+Waga miejsca: 3; waga punktu: 1
+Trzy punkty w kampusie: wschód, środek i zachód. Łączna waga AGH = 3.
+Źródło: https://www.openstreetmap.org/way/231815478</description><styleUrl>#weight3</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-33</value></Data><Data name="pointName"><value>AGH — biblioteka, środek</value></Data><Data name="placeWeight"><value>3</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/231815478</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Trzy punkty w kampusie: wschód, środek i zachód. Łączna waga AGH = 3.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.921503,50.0656968,0</coordinates></Point></Placemark>
+<Placemark id="poi-33-3"><name>AGH — 3/3</name>
+<description>AGH — D-7, zachód
+Waga miejsca: 3; waga punktu: 1
+Trzy punkty w kampusie: wschód, środek i zachód. Łączna waga AGH = 3.
+Źródło: https://www.openstreetmap.org/way/231815579</description><styleUrl>#weight3</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-33</value></Data><Data name="pointName"><value>AGH — D-7, zachód</value></Data><Data name="placeWeight"><value>3</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/231815579</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Trzy punkty w kampusie: wschód, środek i zachód. Łączna waga AGH = 3.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9123361,50.0668886,0</coordinates></Point></Placemark>
+<Placemark id="poi-34-1"><name>UJ Ruczaj — 1/3</name>
+<description>UJ Ruczaj — matematyka i informatyka
+Waga miejsca: 3; waga punktu: 1
+Trzy punkty kampusu UJ na Ruczaju. Łączna waga kampusu = 3.
+Źródło: https://www.openstreetmap.org/node/5160346296</description><styleUrl>#weight3</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-34</value></Data><Data name="pointName"><value>UJ Ruczaj — matematyka i informatyka</value></Data><Data name="placeWeight"><value>3</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/5160346296</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Trzy punkty kampusu UJ na Ruczaju. Łączna waga kampusu = 3.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9071722,50.0305176,0</coordinates></Point></Placemark>
+<Placemark id="poi-34-2"><name>UJ Ruczaj — 2/3</name>
+<description>UJ Ruczaj — fizyka
+Waga miejsca: 3; waga punktu: 1
+Trzy punkty kampusu UJ na Ruczaju. Łączna waga kampusu = 3.
+Źródło: https://www.openstreetmap.org/node/5160368451</description><styleUrl>#weight3</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-34</value></Data><Data name="pointName"><value>UJ Ruczaj — fizyka</value></Data><Data name="placeWeight"><value>3</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/5160368451</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Trzy punkty kampusu UJ na Ruczaju. Łączna waga kampusu = 3.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9054965,50.0289664,0</coordinates></Point></Placemark>
+<Placemark id="poi-34-3"><name>UJ Ruczaj — 3/3</name>
+<description>UJ Ruczaj — biochemia i biotechnologia
+Waga miejsca: 3; waga punktu: 1
+Trzy punkty kampusu UJ na Ruczaju. Łączna waga kampusu = 3.
+Źródło: https://www.openstreetmap.org/node/5160317166</description><styleUrl>#weight3</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-34</value></Data><Data name="pointName"><value>UJ Ruczaj — biochemia i biotechnologia</value></Data><Data name="placeWeight"><value>3</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/5160317166</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Trzy punkty kampusu UJ na Ruczaju. Łączna waga kampusu = 3.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9003936,50.0263355,0</coordinates></Point></Placemark>
+<Placemark id="poi-35-1"><name>Politechnika Krakowska na Czyżynach</name>
+<description>Politechnika Krakowska - Kampus Czyżyny
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/158296948</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-35</value></Data><Data name="pointName"><value>Politechnika Krakowska - Kampus Czyżyny</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/158296948</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9984154,50.0756451,0</coordinates></Point></Placemark>
+<Placemark id="poi-36-1"><name>AKF</name>
+<description>Akademia Kultury Fizycznej
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/40751142</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-36</value></Data><Data name="pointName"><value>Akademia Kultury Fizycznej</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/40751142</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0006803,50.0711436,0</coordinates></Point></Placemark>
+<Placemark id="poi-37-1"><name>Frycz</name>
+<description>Uniwersytet Andrzeja Frycza Modrzewskiego
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/288247005</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-37</value></Data><Data name="pointName"><value>Uniwersytet Andrzeja Frycza Modrzewskiego</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/288247005</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9646769,50.0508202,0</coordinates></Point></Placemark>
+<Placemark id="poi-38-1"><name>Uniwersytet Pedagogiczny</name>
+<description>Uniwersytet Komisji Edukacji Narodowej
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/656324576</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-38</value></Data><Data name="pointName"><value>Uniwersytet Komisji Edukacji Narodowej</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/656324576</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9087002,50.0735382,0</coordinates></Point></Placemark>
+<Placemark id="poi-39-1"><name>JP2 Ruczaj</name>
+<description>Biblioteka Główna Uniwersytetu Papieskiego Jana Pawła II
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/233371390</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-39</value></Data><Data name="pointName"><value>Biblioteka Główna Uniwersytetu Papieskiego Jana Pawła II</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/233371390</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.8981261,50.0213845,0</coordinates></Point></Placemark>
+<Placemark id="poi-40-1"><name>UEK</name>
+<description>Uniwersytet Ekonomiczny w Krakowie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/371465818</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-40</value></Data><Data name="pointName"><value>Uniwersytet Ekonomiczny w Krakowie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/371465818</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9554822,50.0685491,0</coordinates></Point></Placemark>
+<Placemark id="poi-41-1"><name>Politechnika Krakowska ul. Warszawska</name>
+<description>Politechnika Krakowska - Kampus Warszawska
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/87527963</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-41</value></Data><Data name="pointName"><value>Politechnika Krakowska - Kampus Warszawska</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/87527963</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9421184,50.0718656,0</coordinates></Point></Placemark>
+<Placemark id="poi-42-1"><name>Uniwersytet Rolniczy (przy AGHu i na Al. 29 Listopada) — 1/2</name>
+<description>UR — kampus Mickiewicza
+Waga miejsca: 1; waga punktu: 0.5
+Dwa kampusy z jednego wpisu: Mickiewicza i al. 29 Listopada. Łączna waga = 1.
+Źródło: https://www.openstreetmap.org/way/653795425</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-42</value></Data><Data name="pointName"><value>UR — kampus Mickiewicza</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>0.5</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/653795425</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Dwa kampusy z jednego wpisu: Mickiewicza i al. 29 Listopada. Łączna waga = 1.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9248542,50.0647781,0</coordinates></Point></Placemark>
+<Placemark id="poi-42-2"><name>Uniwersytet Rolniczy (przy AGHu i na Al. 29 Listopada) — 2/2</name>
+<description>UR — kampus 29 Listopada
+Waga miejsca: 1; waga punktu: 0.5
+Dwa kampusy z jednego wpisu: Mickiewicza i al. 29 Listopada. Łączna waga = 1.
+Źródło: https://www.openstreetmap.org/way/566131083</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-42</value></Data><Data name="pointName"><value>UR — kampus 29 Listopada</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>0.5</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/566131083</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Dwa kampusy z jednego wpisu: Mickiewicza i al. 29 Listopada. Łączna waga = 1.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.950566,50.0830344,0</coordinates></Point></Placemark>
+<Placemark id="poi-43-1"><name>Uniwersytet Ignatanium</name>
+<description>Uniwersytet Ignatianum w Krakówie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/295086803</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-43</value></Data><Data name="pointName"><value>Uniwersytet Ignatianum w Krakówie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/295086803</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9485377,50.0625357,0</coordinates></Point></Placemark>
+<Placemark id="poi-44-1"><name>UJ Collegium Medicum</name>
+<description>Collegium Nowodworskiego
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/relation/2066562</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-44</value></Data><Data name="pointName"><value>Collegium Nowodworskiego</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/relation/2066562</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9329797,50.0619131,0</coordinates></Point></Placemark>
+<Placemark id="poi-45-1"><name>UJ na starym mieście - Collegium Novum</name>
+<description>Collegium Novum
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/relation/214262</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-45</value></Data><Data name="pointName"><value>Collegium Novum</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/relation/214262</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9332351,50.0608642,0</coordinates></Point></Placemark></Folder>
+<Folder><name>Duże szkoły średnie</name><Placemark id="poi-46-1"><name>V LO</name>
+<description>V Liceum Ogólnokształcące
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/692533811</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-46</value></Data><Data name="pointName"><value>V Liceum Ogólnokształcące</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/692533811</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9288024,50.0621978,0</coordinates></Point></Placemark>
+<Placemark id="poi-47-1"><name>ZSŁ</name>
+<description>Zespół Szkół Łączności w Krakowie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/233371503</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-47</value></Data><Data name="pointName"><value>Zespół Szkół Łączności w Krakowie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/233371503</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9222327,50.0464205,0</coordinates></Point></Placemark>
+<Placemark id="poi-48-1"><name>ZSM nr 1</name>
+<description>Zespół Szkół Mechanicznych nr 1 im. Szczepana Humberta
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/3037869176</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-48</value></Data><Data name="pointName"><value>Zespół Szkół Mechanicznych nr 1 im. Szczepana Humberta</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/3037869176</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9245553,50.061499,0</coordinates></Point></Placemark>
+<Placemark id="poi-49-1"><name>ZSM nr 3</name>
+<description>Zespół Szkół Mechanicznych nr 3
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/1030848998</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-49</value></Data><Data name="pointName"><value>Zespół Szkół Mechanicznych nr 3</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/1030848998</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0508779,50.0766755,0</coordinates></Point></Placemark>
+<Placemark id="poi-50-1"><name>ZS Energetyczne Loretańska</name>
+<description>Zespół Szkół Energetycznych w Krakowie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/126718958</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-50</value></Data><Data name="pointName"><value>Zespół Szkół Energetycznych w Krakowie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/126718958</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9308169,50.0616209,0</coordinates></Point></Placemark>
+<Placemark id="poi-51-1"><name>I LO</name>
+<description>I Liceum Ogólnokształcące
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/692834133</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-51</value></Data><Data name="pointName"><value>I Liceum Ogólnokształcące</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/692834133</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9333599,50.0571662,0</coordinates></Point></Placemark>
+<Placemark id="poi-52-1"><name>II LO</name>
+<description>II Liceum Ogólnokształcące im. Króla Jana III Sobieskiego w Krakowie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/690962950</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-52</value></Data><Data name="pointName"><value>II Liceum Ogólnokształcące im. Króla Jana III Sobieskiego w Krakowie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/690962950</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9317816,50.0683955,0</coordinates></Point></Placemark>
+<Placemark id="poi-53-1"><name>VI LO</name>
+<description>VI Liceum Ogólnokształcące im. Adama Mickiewicza
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/1251331909</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-53</value></Data><Data name="pointName"><value>VI Liceum Ogólnokształcące im. Adama Mickiewicza</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/1251331909</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9474361,50.0504766,0</coordinates></Point></Placemark>
+<Placemark id="poi-54-1"><name>VII LO</name>
+<description>VII Liceum Ogólnokształcące im. Zofii Nałkowskiej
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/213083704</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-54</value></Data><Data name="pointName"><value>VII Liceum Ogólnokształcące im. Zofii Nałkowskiej</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/213083704</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9082868,50.0705954,0</coordinates></Point></Placemark>
+<Placemark id="poi-55-1"><name>IV LO</name>
+<description>Liceum Ogólnokształcące nr 4 im. Tadeusza Kościuszki
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/309837020</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-55</value></Data><Data name="pointName"><value>Liceum Ogólnokształcące nr 4 im. Tadeusza Kościuszki</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/309837020</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9463623,50.0409878,0</coordinates></Point></Placemark>
+<Placemark id="poi-56-1"><name>VIII LO</name>
+<description>VIII Liceum Ogólnokształcące im. Stanisława Wyspiańskiego
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/83636100</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-56</value></Data><Data name="pointName"><value>VIII Liceum Ogólnokształcące im. Stanisława Wyspiańskiego</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/83636100</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9555525,50.0589724,0</coordinates></Point></Placemark>
+<Placemark id="poi-57-1"><name>13 LO</name>
+<description>XIII Liceum Ogólnokształcące
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/184239026</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-57</value></Data><Data name="pointName"><value>XIII Liceum Ogólnokształcące</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/184239026</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9637323,50.0634436,0</coordinates></Point></Placemark>
+<Placemark id="poi-58-1"><name>ZS Huty</name>
+<description>Osiedle Złotej Jesieni 2
+Waga miejsca: 1; waga punktu: 1
+Przyjęto ZSZ Huty im. Tadeusza Sendzimira, os. Złotej Jesieni 2.
+Źródło: https://www.openstreetmap.org/way/54569711</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-58</value></Data><Data name="pointName"><value>Osiedle Złotej Jesieni 2</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/54569711</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Przyjęto ZSZ Huty im. Tadeusza Sendzimira, os. Złotej Jesieni 2.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0230455,50.0906995,0</coordinates></Point></Placemark>
+<Placemark id="poi-59-1"><name>ZSE nr 1 Kamieńskiego</name>
+<description>Zespół Szkół Elektrycznych nr 1
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/150636559</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-59</value></Data><Data name="pointName"><value>Zespół Szkół Elektrycznych nr 1</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/150636559</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9762133,50.0249133,0</coordinates></Point></Placemark>
+<Placemark id="poi-60-1"><name>Technikum Komunikacyjne (Mogilska)</name>
+<description>Technikum Komunikacyjne nr 25
+Waga miejsca: 1; waga punktu: 1
+Przyjęto Technikum Komunikacyjne nr 25, ul. Ułanów 3 przy al. Jana Pawła II; wpis „Mogilska” wskazuje okolicę.
+Źródło: https://www.openstreetmap.org/node/3463533020</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-60</value></Data><Data name="pointName"><value>Technikum Komunikacyjne nr 25</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/3463533020</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Przyjęto Technikum Komunikacyjne nr 25, ul. Ułanów 3 przy al. Jana Pawła II; wpis „Mogilska” wskazuje okolicę.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9864518,50.074597,0</coordinates></Point></Placemark>
+<Placemark id="poi-61-1"><name>ZS Ekonomicznych (Kapucyńska)</name>
+<description>Zespół Szkół Ekonomicznych nr 1
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/126718948</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-61</value></Data><Data name="pointName"><value>Zespół Szkół Ekonomicznych nr 1</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/126718948</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9315516,50.0617188,0</coordinates></Point></Placemark>
+<Placemark id="poi-62-1"><name>ZS Inżynieri Środowiska i Melioracji Ułanów</name>
+<description>Ułanów 9
+Waga miejsca: 1; waga punktu: 1
+Adres Ułanów 9; geokoder zwraca też nazwę Zespołu Szkół Techniczno-Kreatywnych.
+Źródło: https://www.openstreetmap.org/way/108846202</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-62</value></Data><Data name="pointName"><value>Ułanów 9</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/108846202</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Adres Ułanów 9; geokoder zwraca też nazwę Zespołu Szkół Techniczno-Kreatywnych.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9865849,50.0758648,0</coordinates></Point></Placemark></Folder>
+<Folder><name>Ogólne ważne punkty w mieście</name><Placemark id="poi-63-1"><name>Rynek Główny</name>
+<description>Rynek Główny
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/201133718</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-63</value></Data><Data name="pointName"><value>Rynek Główny</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/201133718</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9371133,50.0614956,0</coordinates></Point></Placemark>
+<Placemark id="poi-64-1"><name>Dworzec Główny</name>
+<description>Kraków Główny
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/206270454</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-64</value></Data><Data name="pointName"><value>Kraków Główny</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/206270454</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9478862,50.0684238,0</coordinates></Point></Placemark>
+<Placemark id="poi-65-1"><name>Dworzec Płaszów</name>
+<description>Kraków Płaszów
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/206270914</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-65</value></Data><Data name="pointName"><value>Kraków Płaszów</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/206270914</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9747852,50.0350214,0</coordinates></Point></Placemark>
+<Placemark id="poi-66-1"><name>Bronowice SKA</name>
+<description>Kraków Bronowice
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/8190667258</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-66</value></Data><Data name="pointName"><value>Kraków Bronowice</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/8190667258</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.8926145,50.0830061,0</coordinates></Point></Placemark>
+<Placemark id="poi-67-1"><name>Teatr Bagatela</name>
+<description>Teatr Bagatela
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/125207200</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-67</value></Data><Data name="pointName"><value>Teatr Bagatela</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/125207200</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9322489,50.0636628,0</coordinates></Point></Placemark>
+<Placemark id="poi-68-1"><name>Teatr Słowackiego</name>
+<description>Teatr im. Juliusza Słowackiego
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/153942974</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-68</value></Data><Data name="pointName"><value>Teatr im. Juliusza Słowackiego</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/153942974</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9430659,50.0639468,0</coordinates></Point></Placemark>
+<Placemark id="poi-69-1"><name>Poczta Główna</name>
+<description>Wielopole 2
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/2989667370</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-69</value></Data><Data name="pointName"><value>Wielopole 2</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/2989667370</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9426888,50.0594606,0</coordinates></Point></Placemark>
+<Placemark id="poi-70-1"><name>Rondo Grunwaldzkie</name>
+<description>Rondo Grunwaldzkie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/199084017</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-70</value></Data><Data name="pointName"><value>Rondo Grunwaldzkie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/199084017</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.931578,50.0488728,0</coordinates></Point></Placemark>
+<Placemark id="poi-71-1"><name>Rondo Grzegórzeckie</name>
+<description>Rondo Grzegórzeckie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/216789263</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-71</value></Data><Data name="pointName"><value>Rondo Grzegórzeckie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/216789263</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.95832,50.0576863,0</coordinates></Point></Placemark>
+<Placemark id="poi-72-1"><name>Rondo Mogilskie</name>
+<description>Rondo Mogilskie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/533275337</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-72</value></Data><Data name="pointName"><value>Rondo Mogilskie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/533275337</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9594586,50.0666229,0</coordinates></Point></Placemark>
+<Placemark id="poi-73-1"><name>Plac Centralny</name>
+<description>Plac Centralny imienia Ronalda Reagana
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/19803388</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-73</value></Data><Data name="pointName"><value>Plac Centralny imienia Ronalda Reagana</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/19803388</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.037814,50.0714582,0</coordinates></Point></Placemark>
+<Placemark id="poi-74-1"><name>Rondo Czyżyńskie</name>
+<description>Rondo Czyżyńskie
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/148469685</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-74</value></Data><Data name="pointName"><value>Rondo Czyżyńskie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/148469685</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0169682,50.0735342,0</coordinates></Point></Placemark>
+<Placemark id="poi-75-1"><name>Czerwone Maki pętla</name>
+<description>Czerwone Maki P+R
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/4431180541</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-75</value></Data><Data name="pointName"><value>Czerwone Maki P+R</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/4431180541</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.8894199,50.0184823,0</coordinates></Point></Placemark>
+<Placemark id="poi-76-1"><name>Borek Fałęcki pętla</name>
+<description>Borek Fałęcki
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/relation/3198787</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-76</value></Data><Data name="pointName"><value>Borek Fałęcki</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/relation/3198787</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9265683,50.0143005,0</coordinates></Point></Placemark>
+<Placemark id="poi-77-1"><name>Plac Inwalidów</name>
+<description>Plac Inwalidów
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/25506182</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-77</value></Data><Data name="pointName"><value>Plac Inwalidów</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/25506182</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9255255,50.0695159,0</coordinates></Point></Placemark>
+<Placemark id="poi-78-1"><name>Nowy Kleparz</name>
+<description>Nowy Kleparz
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/264336170</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-78</value></Data><Data name="pointName"><value>Nowy Kleparz</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/264336170</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9359045,50.0745649,0</coordinates></Point></Placemark>
+<Placemark id="poi-79-1"><name>Mały Płaszów P+R</name>
+<description>Mały Płaszów P+R
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/2431520659</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-79</value></Data><Data name="pointName"><value>Mały Płaszów P+R</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/2431520659</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0006189,50.040189,0</coordinates></Point></Placemark>
+<Placemark id="poi-80-1"><name>Wzgórza Krzesławickie Pętla</name>
+<description>Wzgórza Krzesławickie
+Waga miejsca: 1; waga punktu: 1
+Wybrano pętlę przy ul. Kocmyrzowskiej, a nie geograficzne centrum osiedla.
+Źródło: https://www.openstreetmap.org/node/2078743080</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-80</value></Data><Data name="pointName"><value>Wzgórza Krzesławickie</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/2078743080</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Wybrano pętlę przy ul. Kocmyrzowskiej, a nie geograficzne centrum osiedla.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0528016,50.0983672,0</coordinates></Point></Placemark>
+<Placemark id="poi-81-1"><name>Mistrzejowice Pętla</name>
+<description>Mistrzejowice
+Waga miejsca: 1; waga punktu: 1
+Wybrano pętlę, a nie geograficzne centrum Mistrzejowic.
+Źródło: https://www.openstreetmap.org/node/5617407402</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-81</value></Data><Data name="pointName"><value>Mistrzejowice</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/5617407402</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value>Wybrano pętlę, a nie geograficzne centrum Mistrzejowic.</value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>20.0137673,50.0966423,0</coordinates></Point></Placemark>
+<Placemark id="poi-82-1"><name>Podgórze SKA</name>
+<description>Kraków Podgórze
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/4977292604</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-82</value></Data><Data name="pointName"><value>Kraków Podgórze</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/4977292604</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9592209,50.0411604,0</coordinates></Point></Placemark>
+<Placemark id="poi-83-1"><name>Rondo Matecznego</name>
+<description>Rondo Antoniego Matecznego
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/25031552</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-83</value></Data><Data name="pointName"><value>Rondo Antoniego Matecznego</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/25031552</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9404758,50.0366658,0</coordinates></Point></Placemark>
+<Placemark id="poi-84-1"><name>Górka Narodowa P+R</name>
+<description>Górka Narodowa P+R
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/node/11498423076</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-84</value></Data><Data name="pointName"><value>Górka Narodowa P+R</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/node/11498423076</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9625026,50.1046598,0</coordinates></Point></Placemark>
+<Placemark id="poi-85-1"><name>Krowodrza Górka P+R</name>
+<description>Krowodrza Górka P+R
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/113503454</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-85</value></Data><Data name="pointName"><value>Krowodrza Górka P+R</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/113503454</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9313122,50.0885866,0</coordinates></Point></Placemark></Folder>
+<Folder><name>Obiekty sportowe i wydarzenia</name><Placemark id="poi-86-1"><name>Stadion Wisły</name>
+<description>Synerise Arena - Stadion Miejski im. Henryka Reymana
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/1321900718</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-86</value></Data><Data name="pointName"><value>Synerise Arena - Stadion Miejski im. Henryka Reymana</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/1321900718</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9116239,50.0635558,0</coordinates></Point></Placemark>
+<Placemark id="poi-87-1"><name>Stadion Cracovii</name>
+<description>Stadion Cracovii im. Józefa Piłsudskiego
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/relation/3178493</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-87</value></Data><Data name="pointName"><value>Stadion Cracovii im. Józefa Piłsudskiego</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/relation/3178493</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.9215223,50.0579154,0</coordinates></Point></Placemark>
+<Placemark id="poi-88-1"><name>TAURON Arena Kraków</name>
+<description>Tauron Arena Kraków
+Waga miejsca: 1; waga punktu: 1
+
+Źródło: https://www.openstreetmap.org/way/292867512</description><styleUrl>#weight1</styleUrl>
+<ExtendedData><Data name="placeId"><value>poi-88</value></Data><Data name="pointName"><value>Tauron Arena Kraków</value></Data><Data name="placeWeight"><value>1</value></Data><Data name="anchorWeight"><value>1</value></Data><Data name="source"><value>https://www.openstreetmap.org/way/292867512</value></Data><Data name="catalogVersion"><value>2026-11-04.v2</value></Data><Data name="note"><value></value></Data></ExtendedData>
+<Point><altitudeMode>clampToGround</altitudeMode><coordinates>19.991549,50.0677202,0</coordinates></Point></Placemark></Folder></Document></kml>
